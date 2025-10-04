@@ -99,6 +99,16 @@ async def init_database() -> None:
 
     db_url = get_database_url()
 
+    # Ensure data directory exists for SQLite databases
+    if "sqlite" in db_url:
+        import os
+        from pathlib import Path
+
+        # Extract path from URL (e.g., "sqlite+aiosqlite:///./data/observatory.db")
+        db_path = db_url.split("///")[-1]
+        db_dir = Path(db_path).parent
+        db_dir.mkdir(parents=True, exist_ok=True)
+
     # Create async engine
     engine = create_async_engine(
         db_url,
