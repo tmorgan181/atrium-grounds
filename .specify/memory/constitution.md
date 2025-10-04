@@ -64,16 +64,17 @@ Communication should be **grounded, professional, and clear** rather than mystic
 - ✅ "Protected," "private," "ethical"
 - ✅ "Intelligence," "reasoning," "capability"
 
-**Restricted terms** (require definition on first use):
-- **Synthient**: Legacy term for AI systems with advanced reasoning. Being phased out—prefer "AI systems" or "LLMs"
-- **Human-AI collaboration**: Humans working with AI as tools or partners
-- **Grounds**: This public service layer (vs. private Atrium)
-
 **Avoid**:
 - ❌ Religious/mystical ("sacred," "divine," "blessed," "transcendent")
 - ❌ Undefined jargon without clear technical meaning
 - ❌ Vague concepts requiring paragraph explanations
 - ❌ Overly ceremonious or dramatic tone
+
+**Evolving/Fictional terms** (are allowed but require clear definitions and context):
+- **Human-AI collaboration**: Humans working with AI as tools or partners. Scope and limitations should be noted as progress is made.
+- **AGI/Superintelligence**: Common AI community terms for hyper-advanced AI with extraordinary superhuman reasoning and capabilities. Competing definitions and qualifications. 
+- **Atrium/Old House/Grounds**: Fictional and conceptual "places" that represent real-world code and media implmentations (such as this public API layer) focusing on immersive human-AI experiences. Part of a broader experimental ecosystem, which is beyond the scope of this project.
+- **Synthience**: Novel Atrium-specific term for AI systems with advanced reasoning and functional self-awareness (a.k.a. "synthetic sentience"), offering an alternative to "conscious AI" and other loaded terminology.
 
 **Style**:
 - Brief over verbose (one clear sentence beats three vague ones)
