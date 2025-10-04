@@ -1,15 +1,12 @@
 """Contract tests for POST /api/v1/analyze endpoint."""
 
 import pytest
-from httpx import AsyncClient
-from app.main import app
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_success():
+async def test_analyze_post_success(async_client):
     """Test successful conversation analysis request."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
+    response = await async_client.post(
             "/api/v1/analyze",
             json={
                 "conversation_text": "Human: Hello\nAI: Hi there!",
@@ -29,13 +26,12 @@ async def test_analyze_post_success():
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_minimal_request():
+async def test_analyze_post_minimal_request(async_client):
     """Test analysis with minimal required fields."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze",
-            json={"conversation_text": "Human: Test\nAI: Response"},
-        )
+    response = await async_client.post(
+        "/api/v1/analyze",
+        json={"conversation_text": "Human: Test\nAI: Response"},
+    )
 
     assert response.status_code == 202
     data = response.json()
@@ -43,27 +39,25 @@ async def test_analyze_post_minimal_request():
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_with_callback():
+async def test_analyze_post_with_callback(async_client):
     """Test analysis with callback URL."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze",
-            json={
-                "conversation_text": "Human: Question?\nAI: Answer.",
-                "options": {"callback_url": "https://example.com/webhook"},
-            },
-        )
+    response = await async_client.post(
+        "/api/v1/analyze",
+        json={
+            "conversation_text": "Human: Question?\nAI: Answer.",
+            "options": {"callback_url": "https://example.com/webhook"},
+        },
+    )
 
     assert response.status_code == 202
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_empty_conversation():
+async def test_analyze_post_empty_conversation(async_client):
     """Test validation of empty conversation."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze", json={"conversation_text": ""}
-        )
+    response = await async_client.post(
+        "/api/v1/analyze", json={"conversation_text": ""}
+    )
 
     assert response.status_code == 400
     data = response.json()
@@ -71,23 +65,21 @@ async def test_analyze_post_empty_conversation():
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_missing_conversation():
+async def test_analyze_post_missing_conversation(async_client):
     """Test validation when conversation_text is missing."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post("/api/v1/analyze", json={})
+    response = await async_client.post("/api/v1/analyze", json={})
 
     assert response.status_code == 422  # Unprocessable Entity
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_too_long_conversation():
+async def test_analyze_post_too_long_conversation(async_client):
     """Test validation of conversation exceeding max length."""
     long_text = "A" * 15000  # Exceeds 10K limit
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze", json={"conversation_text": long_text}
-        )
+    response = await async_client.post(
+        "/api/v1/analyze", json={"conversation_text": long_text}
+    )
 
     assert response.status_code == 400
     data = response.json()
@@ -95,13 +87,12 @@ async def test_analyze_post_too_long_conversation():
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_injection_attempt():
+async def test_analyze_post_injection_attempt(async_client):
     """Test validation blocks injection attempts."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze",
-            json={"conversation_text": "'; DROP TABLE conversations; --"},
-        )
+    response = await async_client.post(
+        "/api/v1/analyze",
+        json={"conversation_text": "'; DROP TABLE conversations; --"},
+    )
 
     assert response.status_code == 400
     data = response.json()
@@ -109,28 +100,26 @@ async def test_analyze_post_injection_attempt():
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_invalid_pattern_types():
+async def test_analyze_post_invalid_pattern_types(async_client):
     """Test validation of invalid pattern types."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze",
-            json={
-                "conversation_text": "Human: Hi\nAI: Hello",
-                "options": {"pattern_types": ["invalid_pattern"]},
-            },
-        )
+    response = await async_client.post(
+        "/api/v1/analyze",
+        json={
+            "conversation_text": "Human: Hi\nAI: Hello",
+            "options": {"pattern_types": ["invalid_pattern"]},
+        },
+    )
 
     assert response.status_code == 400
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_response_schema():
+async def test_analyze_post_response_schema(async_client):
     """Test that response matches expected schema."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze",
-            json={"conversation_text": "Human: Test\nAI: Response"},
-        )
+    response = await async_client.post(
+        "/api/v1/analyze",
+        json={"conversation_text": "Human: Test\nAI: Response"},
+    )
 
     assert response.status_code == 202
     data = response.json()
@@ -146,13 +135,12 @@ async def test_analyze_post_response_schema():
 
 
 @pytest.mark.asyncio
-async def test_analyze_post_rate_limit_headers():
+async def test_analyze_post_rate_limit_headers(async_client):
     """Test that rate limit headers are present."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/analyze",
-            json={"conversation_text": "Human: Hi\nAI: Hello"},
-        )
+    response = await async_client.post(
+        "/api/v1/analyze",
+        json={"conversation_text": "Human: Hi\nAI: Hello"},
+    )
 
     # Rate limiting headers (will be added in Phase 2)
     # For now, just verify request succeeds

@@ -1,14 +1,14 @@
 """Contract tests for batch analysis endpoints."""
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 
 @pytest.mark.asyncio
 async def test_batch_submit_success():
     """Test successful batch analysis submission."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/analyze/batch",
             json={
@@ -42,7 +42,7 @@ async def test_batch_size_validation():
         for i in range(1001)
     ]
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/analyze/batch",
             json={"conversations": conversations},
@@ -56,7 +56,7 @@ async def test_batch_size_validation():
 @pytest.mark.asyncio
 async def test_batch_empty_conversations():
     """Test validation of empty conversation list."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/analyze/batch",
             json={"conversations": []},
@@ -68,7 +68,7 @@ async def test_batch_empty_conversations():
 @pytest.mark.asyncio
 async def test_batch_invalid_conversation():
     """Test validation catches invalid conversations in batch."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/analyze/batch",
             json={
@@ -84,7 +84,7 @@ async def test_batch_invalid_conversation():
 @pytest.mark.asyncio
 async def test_batch_get_status():
     """Test retrieving batch status."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Submit batch
         submit_response = await client.post(
             "/api/v1/analyze/batch",
@@ -112,7 +112,7 @@ async def test_batch_get_status():
 @pytest.mark.asyncio
 async def test_batch_get_nonexistent():
     """Test retrieving non-existent batch."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/analyze/batch/nonexistent-batch-id")
 
     assert response.status_code == 404
@@ -121,7 +121,7 @@ async def test_batch_get_nonexistent():
 @pytest.mark.asyncio
 async def test_batch_with_callback():
     """Test batch submission with webhook callback."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/analyze/batch",
             json={
@@ -142,7 +142,7 @@ async def test_batch_with_callback():
 @pytest.mark.asyncio
 async def test_batch_response_schema():
     """Test batch response matches expected schema."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/analyze/batch",
             json={

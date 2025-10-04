@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     max_conversation_length: int = 10000
     analysis_timeout: int = 30
     max_batch_size: int = 1000
+    max_queue_size: int = 10000  # Maximum number of jobs in queue
 
 
 # Global settings instance

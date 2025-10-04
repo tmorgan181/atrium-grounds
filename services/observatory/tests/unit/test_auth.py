@@ -7,9 +7,10 @@ from app.middleware.auth import validate_api_key, generate_api_key, hash_api_key
 def test_api_key_generation():
     """Test API key generation."""
     key = generate_api_key()
-    
+
     assert len(key) == 32  # Standard API key length
-    assert key.isalnum()  # Only alphanumeric characters
+    # URL-safe tokens can contain: A-Z, a-z, 0-9, -, _
+    assert all(c.isalnum() or c in '-_' for c in key)
 
 
 def test_api_key_hashing():
