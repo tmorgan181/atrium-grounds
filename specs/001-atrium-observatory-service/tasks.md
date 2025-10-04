@@ -99,9 +99,9 @@
 ## Phase 3: Batch Processing (Week 3)
 
 ### Phase 3.1: Batch - Tests First
-- [ ] **T034** [P] Test batch job submission in `tests/contract/test_analyze_batch.py`
-- [ ] **T035** [P] Test job queue management in `tests/unit/test_queue.py`
-- [ ] **T036** [P] Test webhook notifications in `tests/integration/test_webhooks.py`
+- [x] **T034** [P] Test batch job submission in `tests/contract/test_analyze_batch.py`
+- [x] **T035** [P] Test job queue management in `tests/unit/test_queue.py`
+- [x] **T036** [P] Test webhook notifications in `tests/integration/test_webhooks.py`
 
 ### Phase 3.2: Batch Implementation
 - [ ] **T037** [P] Redis job queue in `app/core/queue.py` (enforce max 1,000 conversations per batch per FR-011)
