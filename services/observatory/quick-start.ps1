@@ -210,7 +210,9 @@ function Invoke-Clean {
         @{Path = $Script:Config.DataPath; Name = "Data directory"},
         @{Path = "__pycache__"; Name = "Python cache"},
         @{Path = ".pytest_cache"; Name = "Pytest cache"},
-        @{Path = "*.egg-info"; Name = "Egg info"}
+        @{Path = "*.egg-info"; Name = "Egg info"},
+        @{Path = "dev-api-keys.txt"; Name = "Development API keys"},
+        @{Path = "register_dev_keys.py"; Name = "Key registration script"}
     )
     
     foreach ($item in $items) {
