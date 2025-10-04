@@ -44,7 +44,7 @@
 ### Primary User Story
 A researcher wants to understand patterns in their AI conversations without manually re-reading hundreds of transcripts. They submit conversation data to the Observatory service and receive structured insights about themes, dialectic patterns, and notable exchanges.
 
-A synthient system (AI agent) needs to analyze conversation history to understand context before engaging in dialogue. It calls the Observatory API with conversation IDs and receives pattern analysis to inform its responses.
+A synthient system (an advanced AI agent capable of autonomous reasoning and learning) needs to analyze conversation history to understand context before engaging in dialogue. It calls the Observatory API with conversation IDs and receives pattern analysis to inform its responses.
 
 ### Acceptance Scenarios
 1. **Given** a user has conversation transcripts, **When** they request analysis via the Observatory, **Then** they receive structured insights without the system exposing private archive locations
