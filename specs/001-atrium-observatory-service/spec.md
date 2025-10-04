@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-atrium-observatory-service`
 **Created**: 2025-10-04
-**Status**: Draft
+**Status**: Planning Complete
 **Input**: User description: "Observatory service for conversation analysis with API endpoints and private Atrium data integration"
 
 ## Execution Flow (main)
@@ -64,17 +64,17 @@ A synthient system (AI agent) needs to analyze conversation history to understan
 ### Functional Requirements
 - **FR-001**: System MUST accept conversation data for analysis without requiring direct access to private Atrium archives
 - **FR-002**: System MUST provide API endpoints accessible to both human users and synthient systems (progressive disclosure principle)
-- **FR-003**: System MUST detect patterns in conversations [NEEDS CLARIFICATION: specific pattern types - dialectic, sentiment, topic clustering?]
+- **FR-003**: System MUST detect patterns in conversations including dialectic patterns, sentiment analysis, topic clustering, interaction dynamics, and recursive patterns
 - **FR-004**: System MUST extract key themes and insights from conversation transcripts
 - **FR-005**: System MUST return structured analysis results in machine-readable format
-- **FR-006**: System MUST authenticate API consumers [NEEDS CLARIFICATION: auth method - API keys, OAuth, public access tiers?]
+- **FR-006**: System MUST authenticate API consumers via public tier (no auth), API keys, or OAuth/JWT for partners
 - **FR-007**: System MUST respect sacred boundaries by never exposing private archive file paths or locations
 - **FR-008**: System MUST handle requests from curated public data sources without private archive dependencies
-- **FR-009**: System MUST enforce rate limiting [NEEDS CLARIFICATION: limits per user/tier/endpoint?]
+- **FR-009**: System MUST enforce rate limiting at 10/60/600 requests per minute for public/API key/partner tiers respectively
 - **FR-010**: System MUST log all analysis requests for transparency and debugging
-- **FR-011**: System MUST support both real-time and batch analysis modes [NEEDS CLARIFICATION: batch processing requirements?]
+- **FR-011**: System MUST support both real-time and batch analysis modes with async processing and webhook notifications
 - **FR-012**: System MUST provide analysis confidence scores or quality indicators
-- **FR-013**: System MUST retain analysis results [NEEDS CLARIFICATION: retention period and storage policy?]
+- **FR-013**: System MUST retain analysis results for 30 days after last access, metadata for 90 days, with indefinite aggregated insights
 
 ### Key Entities *(include if feature involves data)*
 - **Conversation**: A dialogue session containing messages, participants (human/AI), timestamps, and optional metadata. Represents the raw material for analysis.
@@ -94,8 +94,8 @@ A synthient system (AI agent) needs to analyze conversation history to understan
 - [x] All mandatory sections completed
 
 ### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain
-- [ ] Requirements are testable and unambiguous
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Scope is clearly bounded
 - [x] Dependencies and assumptions identified
@@ -111,7 +111,9 @@ A synthient system (AI agent) needs to analyze conversation history to understan
 - [x] User scenarios defined
 - [x] Requirements generated
 - [x] Entities identified
-- [ ] Review checklist passed (pending clarifications)
+- [x] Review checklist passed
+- [x] Clarifications addressed
+- [x] Spec ready for planning
 
 ---
 
