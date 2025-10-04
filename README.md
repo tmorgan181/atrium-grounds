@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/tmorgan181/atrium-grounds/actions/workflows/ci.yml/badge.svg)](https://github.com/tmorgan181/atrium-grounds/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -59,6 +60,7 @@ Each service is:
 ### Prerequisites
 
 - Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (Python package and project manager)
 - Docker
 - Git
 
@@ -69,7 +71,14 @@ Each service is:
 git clone https://github.com/tmorgan181/atrium-grounds.git
 cd atrium-grounds
 
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 # Each service has its own setup - see service directories
+# Typical service setup:
+# cd services/<service-name>
+# uv sync
+# uv run python main.py
 ```
 
 ### Multi-Agent Collaboration

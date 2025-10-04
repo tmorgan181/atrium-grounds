@@ -14,10 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: '3.11'
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
 
       - name: Check for Python code
         id: check-python
@@ -31,27 +34,25 @@ jobs:
       - name: Install dependencies
         if: steps.check-python.outputs.has_python == 'true'
         run: |
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
+          if [ -f pyproject.toml ] || [ -f requirements.txt ]; then
+            uv sync --dev
+          else
+            uv pip install ruff pytest mypy
           fi
-          if [ -f requirements-dev.txt ]; then
-            pip install -r requirements-dev.txt
-          fi
-          pip install ruff pytest mypy
 
       - name: Lint with ruff
         if: steps.check-python.outputs.has_python == 'true'
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Type check with mypy
         if: steps.check-python.outputs.has_python == 'true'
-        run: mypy . --ignore-missing-imports
+        run: uv run mypy . --ignore-missing-imports
 
       - name: Run tests
         if: steps.check-python.outputs.has_python == 'true'
         run: |
           if [ -d "tests" ]; then
-            pytest tests/ -v
+            uv run pytest tests/ -v
           else
             echo "No tests directory found yet"
           fi

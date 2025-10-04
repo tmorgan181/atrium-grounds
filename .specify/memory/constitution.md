@@ -171,7 +171,8 @@ Every technical choice should trace back to a philosophical principle. If it doe
 These standards support the principles above. Specs and plans will define implementation specifics.
 
 ### Recommended Stack
-- **Python + FastAPI** for new services (async, documented, polyglot-friendly)
+- **Python 3.11+** with **uv** for package/environment management
+- **FastAPI** for new services (async, documented, polyglot-friendly)
 - **Docker** for containerization (required for all services)
 - **OpenAPI specs** for API documentation (required)
 - **REST-first** with WebSocket where appropriate

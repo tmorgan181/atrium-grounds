@@ -42,38 +42,42 @@ project-root/
 
 ### Setup
 ```bash
-# Installation commands
-[install-command]
+# Install uv (Python package manager)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Environment setup
-[env-setup-command]
+# Sync dependencies for a service
+cd services/<service-name>
+uv sync --dev
 ```
 
 ### Local Development
 ```bash
-# Start development server
-[dev-server-command]
+# Run a service
+uv run python main.py
 
-# Build for production
-[build-command]
+# Run FastAPI service with auto-reload
+uv run fastapi dev main.py
 
-# Run with verbose output
-[build-with-trace-command]
+# Run with environment variables
+uv run --env-file .env python main.py
 ```
 
 ### Testing
 ```bash
-# Run tests
-[test-command]
+# Run all tests
+uv run pytest
 
-# Run specific test suite
-[test-suite-command]
+# Run with coverage
+uv run pytest --cov
 
-# Validation/linting
-[validation-command]
+# Lint with ruff
+uv run ruff check .
+
+# Type check with mypy
+uv run mypy .
 ```
 
-**Adaptation Note**: Replace bracketed commands with your actual tooling commands.
+**Note**: Each service manages dependencies via `pyproject.toml` and uses `uv` for environment management.
 
 ## Code Style Guidelines
 
