@@ -59,6 +59,39 @@ jobs:
         if: steps.check-python.outputs.has_python == 'false'
         run: echo "No Python code yet - CI will run when services are added"
 
+  commit-attribution:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check AI agent attribution
+        run: |
+          # Get the latest commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+
+          # Check if commit is from an AI agent (has Claude Code footer or Co-Authored-By: Claude)
+          if echo "$COMMIT_MSG" | grep -qE "(Generated with \[Claude Code\]|Co-Authored-By: Claude)"; then
+            echo "✅ AI agent commit detected - checking attribution..."
+
+            # Verify it has model/agent info somewhere
+            if echo "$COMMIT_MSG" | grep -qE "(claude-|sonnet|opus|haiku|gpt-|gemini)"; then
+              echo "✅ Model information found in commit"
+            else
+              echo "⚠️  Warning: AI commit but no model mentioned"
+              echo "Consider adding model info (e.g., 'via claude-sonnet-4') for tracking"
+            fi
+          else
+            echo "ℹ️  Human commit or commit attribution unclear"
+          fi
+
+          # Always pass - this is informational only
+          exit 0
+
   docker-build:
     runs-on: ubuntu-latest
 
