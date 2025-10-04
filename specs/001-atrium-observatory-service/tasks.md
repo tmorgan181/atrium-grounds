@@ -42,13 +42,13 @@
 ## Phase 1: Core Service (Week 1)
 
 ### Phase 1.1: Setup
-- [ ] **T001** Create `services/observatory/` directory structure per plan
-- [ ] **T002** Initialize uv project with `pyproject.toml` (FastAPI, SQLAlchemy, Redis dependencies)
-- [ ] **T003** [P] Create `Dockerfile` for service containerization
-- [ ] **T004** [P] Create `docker-compose.yml` with SQLite, Redis services
-- [ ] **T005** [P] Configure ruff and mypy in `pyproject.toml`
-- [ ] **T006** [P] Create `.env.example` with environment variables
-- [ ] **T007** Create `app/__init__.py` and `app/main.py` with FastAPI app initialization
+- [x] **T001** Create `services/observatory/` directory structure per plan
+- [x] **T002** Initialize uv project with `pyproject.toml` (FastAPI, SQLAlchemy, Redis dependencies)
+- [x] **T003** [P] Create `Dockerfile` for service containerization
+- [x] **T004** [P] Create `docker-compose.yml` with SQLite, Redis services
+- [x] **T005** [P] Configure ruff and mypy in `pyproject.toml`
+- [x] **T006** [P] Create `.env.example` with environment variables
+- [x] **T007** Create `app/__init__.py` and `app/main.py` with FastAPI app initialization
 
 ### Phase 1.2: Core Components - Tests First (TDD)
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
