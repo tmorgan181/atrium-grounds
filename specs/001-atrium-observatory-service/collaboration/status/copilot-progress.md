@@ -10,7 +10,7 @@
 ## Phase 1.3: Database & Endpoints (T020-T026)
 
 - [x] **T020** - SQLAlchemy Models (`app/models/database.py`) ✅ DONE
-- [ ] **T021** - Database Initialization
+- [x] **T021** - Database Initialization ✅ DONE
 - [ ] **T021A** - TTL Enforcement (FR-013)
 - [ ] **T021B** - Audit Logging (FR-013)
 - [ ] **T021C** - TTL Expiration Tests
@@ -32,17 +32,17 @@
 
 ---
 
-## Current Task: T021 - Database Initialization
+## Current Task: T021A/B/C - TTL & Logging
 
-**Next**: Extend init_database() and add to FastAPI startup
+**Next**: Implement scheduled TTL cleanup, audit logging, and tests
 
 **Blockers**: None
 
 **Notes**:
-- T020 complete: Analysis model with 7 passing tests
-- Added aiosqlite dependency for async SQLite
-- Ready to wire database into FastAPI app lifecycle
+- T020-T021 complete: Database models and initialization working
+- App starts successfully, tables auto-created
+- Moving to TTL enforcement with APScheduler
 
 ---
 
-**Last Updated**: 2025-10-04 17:35 UTC
+**Last Updated**: 2025-10-04 17:50 UTC
