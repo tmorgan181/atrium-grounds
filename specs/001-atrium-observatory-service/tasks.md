@@ -63,11 +63,11 @@
 
 ### Phase 1.3: Core Implementation (ONLY after tests are failing)
 
-- [ ] **T015** [P] Port PatternAnalyzer to `app/core/analyzer.py` (async Ollama integration via httpx client or ollama-python async methods; implement confidence scoring 0.0-1.0 based on conversation length, pattern clarity, model certainty per FR-012)
-- [ ] **T016** [P] Port SecurityMediator to `app/core/validator.py` (injection prevention)
-- [ ] **T017** [P] Port ProcessManager to `app/core/jobs.py` (cancellable analysis)
-- [ ] **T018** [P] Create config management in `app/core/config.py` (environment vars, settings)
-- [ ] **T019** [P] Create Pydantic schemas in `app/models/schemas.py` (AnalysisRequest, AnalysisResponse with confidence_score field)
+- [x] **T015** [P] Port PatternAnalyzer to `app/core/analyzer.py` (async Ollama integration via httpx client or ollama-python async methods; implement confidence scoring 0.0-1.0 based on conversation length, pattern clarity, model certainty per FR-012)
+- [x] **T016** [P] Port SecurityMediator to `app/core/validator.py` (injection prevention)
+- [x] **T017** [P] Port ProcessManager to `app/core/jobs.py` (cancellable analysis)
+- [x] **T018** [P] Create config management in `app/core/config.py` (environment vars, settings)
+- [x] **T019** [P] Create Pydantic schemas in `app/models/schemas.py` (AnalysisRequest, AnalysisResponse with confidence_score field)
 - [ ] **T020** Create SQLAlchemy models in `app/models/database.py` (Analysis table with TTL)
 - [ ] **T021** Database initialization and migrations in `app/models/database.py`
 - [ ] **T021A** Implement TTL enforcement via scheduled cleanup job (APScheduler or FastAPI BackgroundTasks) for analysis results (30-day TTL) and metadata (90-day TTL) in `app/models/database.py` (FR-013)

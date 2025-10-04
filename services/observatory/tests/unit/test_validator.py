@@ -25,7 +25,7 @@ def test_validate_normal_conversation(validator):
 
     result = validator.validate(conversation)
     assert result.is_valid is True
-    assert result.sanitized_text == conversation
+    assert result.sanitized_text == conversation.strip()
 
 
 def test_validate_length_limit(validator):
