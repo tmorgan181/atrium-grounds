@@ -9,7 +9,7 @@
 
 ## Phase 1.3: Database & Endpoints (T020-T026)
 
-- [ ] **T020** - SQLAlchemy Models (`app/models/database.py`)
+- [x] **T020** - SQLAlchemy Models (`app/models/database.py`) ✅ DONE
 - [ ] **T021** - Database Initialization
 - [ ] **T021A** - TTL Enforcement (FR-013)
 - [ ] **T021B** - Audit Logging (FR-013)
@@ -32,17 +32,17 @@
 
 ---
 
-## Current Task: Checking Environment
+## Current Task: T021 - Database Initialization
 
-**Next**: T020 - Create SQLAlchemy models
+**Next**: Extend init_database() and add to FastAPI startup
 
 **Blockers**: None
 
 **Notes**:
-- Pulled latest from 001-atrium-observatory-service branch
-- Reviewing existing file structure created by Claude
-- Will commit after each task completion
+- T020 complete: Analysis model with 7 passing tests
+- Added aiosqlite dependency for async SQLite
+- Ready to wire database into FastAPI app lifecycle
 
 ---
 
-**Last Updated**: 2025-10-04 17:15 UTC
+**Last Updated**: 2025-10-04 17:35 UTC
