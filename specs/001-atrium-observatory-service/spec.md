@@ -13,7 +13,7 @@
    ✓ Actors: API consumers (humans, synthient systems)
    ✓ Actions: Analyze conversations, detect patterns, extract insights
    ✓ Data: Conversation transcripts (from private Atrium archives)
-   ✓ Constraints: Must not expose private archives directly (sacred boundaries principle)
+   ✓ Constraints: Must not expose private archives directly (ethical boundaries principle)
 3. For each unclear aspect:
    ✓ Pattern types: dialectic, sentiment, topic clustering, interaction dynamics, recursive
    ✓ Authentication: Public tier → API keys → OAuth/JWT for partners
@@ -73,7 +73,7 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 - **FR-004**: System MUST extract key themes and insights from conversation transcripts
 - **FR-005**: System MUST return structured analysis results in machine-readable format
 - **FR-006**: System MUST authenticate API consumers via public tier (no auth), API keys, or OAuth/JWT for partners
-- **FR-007**: System MUST respect sacred boundaries by never exposing private archive file paths or locations
+- **FR-007**: System MUST respect ethical boundaries by never exposing private archive file paths or locations
 - **FR-008**: System MUST handle requests from curated public data sources without private archive dependencies
 - **FR-009**: System MUST enforce rate limiting at 10/60/600 requests per minute for public/API key/partner tiers respectively
 - **FR-010**: System MUST log all analysis requests for transparency and debugging

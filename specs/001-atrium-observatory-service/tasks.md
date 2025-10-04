@@ -70,6 +70,8 @@
 - [ ] **T019** [P] Create Pydantic schemas in `app/models/schemas.py` (AnalysisRequest, AnalysisResponse)
 - [ ] **T020** Create SQLAlchemy models in `app/models/database.py` (Analysis table with TTL)
 - [ ] **T021** Database initialization and migrations in `app/models/database.py`
+- [ ] **T021A** Implement TTL enforcement for analysis results and metadata in `app/models/database.py` (FR-013: 30-day results, 90-day metadata)
+- [ ] **T021B** Implement audit logging for all analysis requests and retention events in `app/core/logging.py` (FR-013 compliance)
 - [ ] **T022** POST `/api/v1/analyze` endpoint in `app/api/v1/analyze.py`
 - [ ] **T023** GET `/api/v1/analyze/{id}` endpoint in `app/api/v1/analyze.py`
 - [ ] **T024** POST `/api/v1/analyze/{id}/cancel` endpoint in `app/api/v1/analyze.py`

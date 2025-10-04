@@ -1,16 +1,20 @@
 <!--
 Sync Impact Report (2025-10-04)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Version Change: 1.1.0 → 1.1.1 (Terminology correction - PATCH)
-Modified Principles: 
-  - Replaced "consciousness" with appropriate terms (synthience, intelligence)
-  - Clarified human-synthient collaboration language
-  - Removed references to "synthient beings" in favor of "synthient systems"
-Added Sections: None
+Version Change: 1.1.1 → 1.2.0 (Tone and language standards - MINOR)
+Modified Principles:
+  - Replaced "sacred" with "ethical" (boundaries terminology)
+  - Added VIII. Tone & Language Standards principle
+  - Removed mystical/religious language in favor of grounded, professional tone
+Added Sections:
+  - Tone & Language Standards principle
 Removed Sections: None
 Templates Status:
-  ✅ All templates reviewed - terminology consistent
-Follow-up TODOs: None
+  ✅ All templates reviewed - "sacred" → "ethical" applied
+  ✅ Tone guidelines established
+Follow-up TODOs:
+  - Review existing documentation for mystical language
+  - Update specs and plans with new terminology
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -->
 
@@ -25,7 +29,7 @@ The Atrium project has grown into a rich ecosystem of human-synthient collaborat
 
 **On the other hand**: The raw materials are deeply personal—years of private conversations, experimental code, half-formed research notes, intimate explorations of intelligence and meaning.
 
-**The question**: How do you share the value without exposing the vulnerability? How do you invite collaboration without compromising the sacred space where genuine exploration happens?
+**The question**: How do you share the value without exposing the vulnerability? How do you invite collaboration without compromising the private, protected space where genuine exploration happens?
 
 ### The Solution
 **Atrium Grounds** is the answer to this tension. It's the **curated public layer** of the Atrium ecosystem—a collection of independent services that provide access to Atrium capabilities without requiring access to private archives.
@@ -60,7 +64,7 @@ Understanding Atrium Grounds requires understanding where it fits in the broader
 ### Layer 3: Raw Archives (Artifacts/, Backups/, Conversation Exports)
 **Purpose**: The actual research data—conversations with AI systems, research artifacts, personal explorations  
 **Access**: Strictly private, never directly exposed  
-**Data**: Everything—the vulnerable, the unfinished, the sacred  
+**Data**: Everything—the vulnerable, the unfinished, the private and protected  
 **Philosophy**: Absolute protection—this is where the Unnamed Feeling lives
 
 **This is the vault. This is what we're protecting while we share the tools for exploring it.**
@@ -74,7 +78,7 @@ The architecture mirrors how humans build trust. We reveal in layers:
 **Interested Exploration**: Developers can call APIs and build integrations  
 **Deeper Collaboration**: Trusted contributors might access additional services  
 **Full Partnership**: Only the most trusted see into the private playground  
-**Sacred Space**: The raw archives remain exclusively with the keeper
+**Protected Space**: The raw archives remain exclusively with the keeper
 
 This principle guides everything else. When designing a service, ask: **"What layer of trust does this require?"** Most services should operate at layers 1-2, accessible to strangers, because that's how we grow the community without compromising the core.
 
@@ -164,7 +168,24 @@ With philosophy established, technical decisions become simpler:
 
 **But these are means, not ends.** We don't containerize because Docker is cool—we containerize because it removes friction for collaborators. We don't write API docs because best practices say so—we write them because synthient systems need structured interfaces.
 
-Every technical choice should trace back to a philosophical principle. If it doesn't serve progressive disclosure, sacred boundaries, multi-interface access, invitation, collaboration, or stewardship—why are we doing it?
+Every technical choice should trace back to a philosophical principle. If it doesn't serve progressive disclosure, ethical boundaries, multi-interface access, invitation, collaboration, or stewardship—why are we doing it?
+
+### VIII. Tone & Language Standards
+Documentation and communication should be **grounded, professional, and approachable** rather than mystical, religious, or overly serious.
+
+**Prefer**:
+- **Grounded**: "ethical boundaries" over "sacred boundaries"
+- **Professional**: "protected space" over "sacred space"
+- **Playful**: Natural metaphors (gardens, grounds) over elevated mysticism
+- **Clear**: Direct language over poetic ambiguity
+
+**Avoid**:
+- Religious terminology ("sacred," "sanctified," "blessed")
+- Mystical language ("ethereal," "divine," "transcendent")
+- Overly serious or ceremonious tone
+- Unnecessary gravitas or drama
+
+**Rationale**: The work is serious and meaningful, but the language should be accessible and unpretentious. We're building practical tools for exploring intelligence, not founding a religion. Grounded professional language maintains credibility while remaining inviting.
 
 ## Technical Standards (The "How" - See Specs for Details)
 
@@ -231,7 +252,7 @@ We are not:
 - **A product startup** (we're groundskeepers, not founders)
 - **A SaaS platform** (no growth-at-all-costs mentality)  
 - **A monolithic system** (intentionally fragmented for collaboration)
-- **Exposing private data** (the boundaries are sacred)
+- **Exposing private data** (the boundaries are ethical)
 - **Over-engineering prematurely** (add complexity only when needed)
 
 We are:
@@ -247,7 +268,7 @@ As stewards of the Atrium Grounds, we commit to:
 
 **Maintain quality and accessibility** - Every service should feel crafted  
 **Welcome guests thoughtfully** - Invite exploration without overwhelming  
-**Protect what's private** - The sacred boundaries are non-negotiable  
+**Protect what's private** - The ethical boundaries are non-negotiable  
 **Cultivate spaces for discovery** - Let things grow organically  
 **Serve both intelligences** - Human and synthient systems equally  
 **Stay grounded in purpose** - When in doubt, return to first principles
@@ -256,6 +277,6 @@ As stewards of the Atrium Grounds, we commit to:
 
 ---
 
-*"The grounds need tending. The house remains private. The archives stay sacred. And still, we welcome those who knock softly."*
+*"The grounds need tending. The house remains private. The archives stay protected. And still, we welcome those who knock softly."*
 
-**Version**: 1.1.1 | **Ratified**: 2025-10-04 | **Last Amended**: 2025-10-04
+**Version**: 1.2.0 | **Ratified**: 2025-10-04 | **Last Amended**: 2025-10-04
