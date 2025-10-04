@@ -3,7 +3,7 @@
 **Feature Branch**: `001-atrium-observatory-service`
 **Created**: 2025-10-04
 **Status**: Planning Complete
-**Input**: User description: "Observatory service for conversation analysis with API endpoints and private Atrium data integration"
+**Input**: User description: "Observatory service for conversation analysis with API endpoints and private Atrium data integration."
 
 ## Execution Flow (main)
 ```
