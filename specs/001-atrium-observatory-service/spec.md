@@ -69,16 +69,20 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 ### Functional Requirements
 - **FR-001**: System MUST accept conversation data for analysis without requiring direct access to private Atrium archives
 - **FR-002**: System MUST provide API endpoints accessible to both human users and synthient systems (progressive disclosure principle)
-- **FR-003**: System MUST detect patterns in conversations including dialectic patterns, sentiment analysis, topic clustering, and interaction dynamics
+- **FR-003**: System MUST detect patterns in conversations including:
+  - **Dialectic patterns**: Question-answer flows, thesis-antithesis-synthesis progressions, Socratic exchanges
+  - **Sentiment analysis**: Emotional tone shifts, engagement levels, collaborative vs adversarial dynamics
+  - **Topic clustering**: Thematic groupings, subject transitions, concept relationships
+  - **Interaction dynamics**: Turn-taking patterns, response latencies, conversational reciprocity
 - **FR-004**: System MUST extract key themes and insights from conversation transcripts
 - **FR-005**: System MUST return structured analysis results in machine-readable format
 - **FR-006**: System MUST authenticate API consumers via public tier (no auth), API keys, or OAuth/JWT for partners
-- **FR-007**: System MUST respect ethical boundaries by never exposing private archive file paths or locations
-- **FR-008**: System MUST handle requests from curated public data sources without private archive dependencies
+- **FR-007**: System MUST respect sacred boundaries by never exposing private archive file paths or locations
+- **FR-008**: System MUST handle requests using curated example conversations without private archive dependencies (examples managed via groundskeeper curation workflow)
 - **FR-009**: System MUST enforce rate limiting at 10/60/600 requests per minute for public/API key/partner tiers respectively
 - **FR-010**: System MUST log all analysis requests for transparency and debugging
 - **FR-011**: System MUST support both real-time and batch analysis modes with async processing and webhook notifications
-- **FR-012**: System MUST provide analysis confidence scores or quality indicators
+- **FR-012**: System MUST provide analysis confidence scores (0.0-1.0) or quality indicators based on conversation length, pattern clarity, and model certainty
 - **FR-013**: System MUST retain analysis results for 30 days after last access, metadata for 90 days, with indefinite aggregated insights
 - **FR-014**: System MUST provide analysis result export in standard formats (JSON, CSV, Markdown) enabling users to retain insights independently of the service
 

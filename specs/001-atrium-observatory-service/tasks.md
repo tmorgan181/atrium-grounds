@@ -63,15 +63,16 @@
 
 ### Phase 1.3: Core Implementation (ONLY after tests are failing)
 
-- [ ] **T015** [P] Port PatternAnalyzer to `app/core/analyzer.py` (async Ollama integration)
+- [ ] **T015** [P] Port PatternAnalyzer to `app/core/analyzer.py` (async Ollama integration via httpx client or ollama-python async methods; implement confidence scoring 0.0-1.0 based on conversation length, pattern clarity, model certainty per FR-012)
 - [ ] **T016** [P] Port SecurityMediator to `app/core/validator.py` (injection prevention)
 - [ ] **T017** [P] Port ProcessManager to `app/core/jobs.py` (cancellable analysis)
 - [ ] **T018** [P] Create config management in `app/core/config.py` (environment vars, settings)
-- [ ] **T019** [P] Create Pydantic schemas in `app/models/schemas.py` (AnalysisRequest, AnalysisResponse)
+- [ ] **T019** [P] Create Pydantic schemas in `app/models/schemas.py` (AnalysisRequest, AnalysisResponse with confidence_score field)
 - [ ] **T020** Create SQLAlchemy models in `app/models/database.py` (Analysis table with TTL)
 - [ ] **T021** Database initialization and migrations in `app/models/database.py`
-- [ ] **T021A** Implement TTL enforcement for analysis results and metadata in `app/models/database.py` via scheduled cleanup job (cron/APScheduler) that deletes expired records (FR-013: 30-day results, 90-day metadata)
+- [ ] **T021A** Implement TTL enforcement via scheduled cleanup job (APScheduler or FastAPI BackgroundTasks) for analysis results (30-day TTL) and metadata (90-day TTL) in `app/models/database.py` (FR-013)
 - [ ] **T021B** Implement audit logging for all analysis requests and retention events in `app/core/logging.py` (FR-013 compliance)
+- [ ] **T021C** [P] Test TTL expiration and automated cleanup in `tests/unit/test_ttl.py` (verify 30/90-day enforcement)
 - [ ] **T022** POST `/api/v1/analyze` endpoint in `app/api/v1/analyze.py`
 - [ ] **T023** GET `/api/v1/analyze/{id}` endpoint in `app/api/v1/analyze.py`
 - [ ] **T024** POST `/api/v1/analyze/{id}/cancel` endpoint in `app/api/v1/analyze.py`
@@ -103,9 +104,9 @@
 - [ ] **T036** [P] Test webhook notifications in `tests/integration/test_webhooks.py`
 
 ### Phase 3.2: Batch Implementation
-- [ ] **T037** [P] Redis job queue in `app/core/queue.py` (up to 1,000 conversations)
+- [ ] **T037** [P] Redis job queue in `app/core/queue.py` (enforce max 1,000 conversations per batch per FR-011)
 - [ ] **T038** [P] Async worker process in `app/core/worker.py` (batch analysis)
-- [ ] **T039** POST `/api/v1/analyze/batch` endpoint in `app/api/v1/analyze.py`
+- [ ] **T039** POST `/api/v1/analyze/batch` endpoint in `app/api/v1/analyze.py` (validate batch size ≤1,000 conversations, reject oversized batches with 400 error)
 - [ ] **T040** GET `/api/v1/analyze/batch/{id}` endpoint in `app/api/v1/analyze.py`
 - [ ] **T041** Webhook notification system in `app/core/notifications.py`
 - [ ] **T042** Job cancellation and reprioritization in `app/core/queue.py`
@@ -140,8 +141,8 @@
 - [ ] **T055** [P] Generate OpenAPI spec and serve at `/docs`
 - [ ] **T056** [P] Create `services/observatory/README.md` (setup, usage, API docs)
 - [ ] **T057** [P] Update root `README.md` with Observatory service link
-- [ ] **T058** [P] Create deployment guide in `services/observatory/DEPLOY.md`
-- [ ] **T059** Performance testing and optimization (<30s analysis, <200ms API)
+- [ ] **T058** [P] Create deployment guide in `services/observatory/DEPLOY.md` (include HTTPS/TLS configuration requirements for production)
+- [ ] **T059** Performance testing and optimization: Test with 5 concurrent users analyzing 1K-10K message conversations using k6 or locust; verify <30s analysis completion, <200ms API response times (excluding analysis duration)
 - [ ] **T060** Security audit (injection patterns, rate limit bypass)
 
 ---
