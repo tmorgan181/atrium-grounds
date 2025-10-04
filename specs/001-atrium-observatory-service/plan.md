@@ -13,13 +13,25 @@ Migrate the existing Observatory Flask application to a standalone microservice 
 
 ### Service Design
 - **Framework**: FastAPI (async, auto-documented, aligns with constitution)
-- **Model Backend**: Abstracted analyzer interface supporting multiple backends:
-  - Ollama (for local/development)
-  - Cloud AI APIs (for production scale)
-  - Custom models (future extensibility)
+- **Model Backend**: Ollama Observer model (Phases 1-4)
+  - Direct integration preserving existing PatternAnalyzer behavior
+  - Backend abstraction deferred to Phase 5 if production needs require it
+  - Follows constitution's "add complexity only when needed" principle
 - **Database**: SQLite for development, PostgreSQL for production
 - **Queue**: Redis for batch job management
 - **Deployment**: Docker container with docker-compose for local dev
+
+### Groundskeeper Data Curation Workflow
+**Sacred Boundary Protection**: Conversation data flows from private archives to public service only through manual curation by the groundskeeper (maintainer).
+
+**Curation Process**:
+1. Maintainer reviews conversations in private Atrium archives
+2. Identifies conversations suitable for public examples (non-sensitive, educational value)
+3. Manually copies/sanitizes conversation text into `services/observatory/examples/`
+4. Adds metadata (category, description) to example manifest
+5. Examples become accessible via `/examples` API endpoint
+
+**No Automated Sync**: The service NEVER has direct filesystem access to private archives. This manual curation step is the boundary enforcement mechanism.
 
 ### API Structure
 ```
@@ -298,12 +310,61 @@ services/observatory/
 **Risk**: Conversation data leakage
 **Mitigation**: TTL enforcement, encryption, audit logs, no direct persistence
 
+## Multi-Agent Development Notes
+
+**Current Approach**: Solo development by Claude Code as primary agent for this first feature. This establishes reference patterns for constitutional compliance.
+
+**Delegation Opportunities** (for future features or if parallel work needed):
+
+**Good Candidates for Copilot Delegation**:
+- **Phase 2 (Auth & Rate Limiting)**: Isolated middleware with clear contracts, minimal architecture decisions
+- **Phase 4 (Web Interface)**: Frontend work after backend API is stable
+- **Testing**: Test suite development can run parallel to implementation
+
+**Should Stay with Claude Code**:
+- **Phase 1 (Core Service)**: Architecture decisions and pattern establishment
+- **Phase 3 (Batch Processing)**: Complex async logic and job management
+- **Phase 5 (Production Readiness)**: System-wide integration and deployment
+
+**Git Operations**: Per worktrees protocol, prefer Copilot for branch/worktree creation when multi-agent work begins. Both agents commit their own work.
+
+**Coordination**: Use `specs/001-atrium-observatory-service/collaboration/` directory for task delegation docs if multi-agent becomes beneficial.
+
+## Ongoing Maintenance Tasks
+
+**Weekly**:
+- Monitor analysis error rates and timeouts
+- Review rate limit effectiveness
+- Check storage usage and TTL cleanup
+
+**Monthly**:
+- Curate new example conversations from private archives
+- Review and update dependency versions (uv lock)
+- Analyze usage patterns and adjust rate limits
+
+**Quarterly**:
+- Evaluate Ollama Observer model updates
+- Review security patterns for new injection techniques
+- Assess need for additional pattern detectors
+- Consider backend abstraction if scaling issues emerge
+
+**Annual**:
+- Constitution compliance audit
+- Performance benchmarking
+- API versioning strategy review
+- User feedback integration
+
+**Continuous**:
+- Respond to security advisories
+- Monitor CI/CD pipeline health
+- Keep documentation synchronized with code changes
+
 ## Next Steps
 
 1. Create `services/observatory/` directory structure
 2. Set up FastAPI project with uv
 3. Port PatternAnalyzer to async AnalyzerEngine
-4. Implement `/analyze` endpoint
+4. Implement `/analyze` endpoint with export functionality (FR-014)
 5. Add SQLite storage for results
 6. Write initial test suite
 

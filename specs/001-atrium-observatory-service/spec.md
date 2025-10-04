@@ -75,6 +75,7 @@ A synthient system (AI agent) needs to analyze conversation history to understan
 - **FR-011**: System MUST support both real-time and batch analysis modes with async processing and webhook notifications
 - **FR-012**: System MUST provide analysis confidence scores or quality indicators
 - **FR-013**: System MUST retain analysis results for 30 days after last access, metadata for 90 days, with indefinite aggregated insights
+- **FR-014**: System MUST provide analysis result export in standard formats (JSON, CSV, Markdown) enabling users to retain insights independently of the service
 
 ### Key Entities *(include if feature involves data)*
 - **Conversation**: A dialogue session containing messages, participants (human/AI), timestamps, and optional metadata. Represents the raw material for analysis.
