@@ -82,7 +82,7 @@ Migrate the existing Observatory Flask application to a standalone microservice 
 
 ## Migration Strategy
 
-### Sacred Boundaries Enforcement (Constitution Compliance)
+### Ethical Boundaries Enforcement (Constitution Compliance)
 **ABSOLUTE RULE:** The Observatory service MUST NEVER access private Atrium archives directly. All migration, data flows, and example curation must occur via manual groundskeeper review and explicit copying/sanitization. This is non-negotiable and required by the Atrium Grounds constitution's ethical boundaries principle.
 
 ### Phase 1: Core Service (Week 1)

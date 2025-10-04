@@ -15,7 +15,7 @@
    ✓ Data: Conversation transcripts (from private Atrium archives)
    ✓ Constraints: Must not expose private archives directly (ethical boundaries principle)
 3. For each unclear aspect:
-   ✓ Pattern types: dialectic, sentiment, topic clustering, interaction dynamics, recursive
+   ✓ Pattern types: dialectic, sentiment, topic clustering, interaction dynamics
    ✓ Authentication: Public tier → API keys → OAuth/JWT for partners
    ✓ Rate limits: 10/60/600 req/min for public/API/partner tiers
    ✓ Data retention: 30-day results, 90-day metadata, indefinite aggregated insights
@@ -69,7 +69,7 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 ### Functional Requirements
 - **FR-001**: System MUST accept conversation data for analysis without requiring direct access to private Atrium archives
 - **FR-002**: System MUST provide API endpoints accessible to both human users and synthient systems (progressive disclosure principle)
-- **FR-003**: System MUST detect patterns in conversations including dialectic patterns, sentiment analysis, topic clustering, interaction dynamics, and recursive patterns
+- **FR-003**: System MUST detect patterns in conversations including dialectic patterns, sentiment analysis, topic clustering, and interaction dynamics
 - **FR-004**: System MUST extract key themes and insights from conversation transcripts
 - **FR-005**: System MUST return structured analysis results in machine-readable format
 - **FR-006**: System MUST authenticate API consumers via public tier (no auth), API keys, or OAuth/JWT for partners
@@ -127,7 +127,7 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 
 **Clarifications Addressed**:
 
-1. **Pattern types**: Dialectic patterns, sentiment analysis, topic clustering, interaction dynamics, recursive patterns
+1. **Pattern types**: Dialectic patterns, sentiment analysis, topic clustering, interaction dynamics (recursive patterns deferred to future enhancement)
 2. **Authentication**: Public tier (strict limits) → API keys (higher limits) → OAuth/JWT for partners
 3. **Rate limits**: Public (10/min, 500/day), API key (60/min, 5K/day), Partner (600/min, 50K/day)
 4. **Data retention**: Analysis metadata (90 days), results (30 days after access), no raw conversation persistence, aggregated insights indefinite
