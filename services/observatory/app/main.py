@@ -6,17 +6,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.models.database import init_database
+from app.models.database import init_database, start_cleanup_scheduler, stop_cleanup_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle - startup and shutdown."""
-    # Startup: Initialize database
+    # Startup: Initialize database and start TTL cleanup scheduler
     await init_database()
+    start_cleanup_scheduler()
     yield
-    # Shutdown: cleanup if needed
-    pass
+    # Shutdown: Stop scheduler
+    stop_cleanup_scheduler()
 
 
 app = FastAPI(

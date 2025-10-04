@@ -2,12 +2,14 @@
 
 import uuid
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, AsyncGenerator
 
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text, JSON, Enum as SQLEnum
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 import enum
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from app.core.config import settings
 
@@ -77,6 +79,7 @@ class Analysis(Base):
 # Database engine and session management
 engine = None
 async_session_maker = None
+cleanup_scheduler = None
 
 
 def get_database_url() -> str:
@@ -147,42 +150,80 @@ async def cleanup_expired_records() -> dict[str, int]:
     Returns:
         Dictionary with counts of deleted results and metadata.
     """
+    from sqlalchemy import select, delete
+    from app.core.logging import log_ttl_cleanup, log_ttl_cleanup_error
+    
     if async_session_maker is None:
         await init_database()
 
-    async with async_session_maker() as session:
-        now = datetime.utcnow()
+    try:
+        async with async_session_maker() as session:
+            now = datetime.utcnow()
 
-        # Calculate cutoff dates
-        results_cutoff = now - timedelta(days=settings.ttl_results)
-        metadata_cutoff = now - timedelta(days=settings.ttl_metadata)
+            # Calculate cutoff dates
+            results_cutoff = now - timedelta(days=settings.ttl_results)
+            metadata_cutoff = now - timedelta(days=settings.ttl_metadata)
 
-        # Delete results older than TTL (based on last_accessed_at)
-        results_query = await session.execute(
-            """
-            DELETE FROM analyses
-            WHERE last_accessed_at < :cutoff
-            RETURNING id
-            """,
-            {"cutoff": results_cutoff}
-        )
-        deleted_results = len(results_query.fetchall())
+            # Find records to delete (based on last_accessed_at for results TTL)
+            stmt = select(Analysis).where(Analysis.last_accessed_at < results_cutoff)
+            result = await session.execute(stmt)
+            to_delete = result.scalars().all()
+            
+            deleted_count = len(to_delete)
+            oldest_date = min([r.last_accessed_at for r in to_delete], default=None)
 
-        # For metadata cleanup, we'd delete the entire record
-        # but keep aggregated insights (Phase 5 enhancement)
-        # For now, just track metadata older than 90 days
-        metadata_query = await session.execute(
-            """
-            SELECT COUNT(*) FROM analyses
-            WHERE created_at < :cutoff
-            """,
-            {"cutoff": metadata_cutoff}
-        )
-        old_metadata_count = metadata_query.scalar()
+            # Delete expired results
+            if deleted_count > 0:
+                delete_stmt = delete(Analysis).where(Analysis.last_accessed_at < results_cutoff)
+                await session.execute(delete_stmt)
+                await session.commit()
 
-        await session.commit()
+            # Count old metadata (90+ days old) - for future aggregation
+            metadata_stmt = select(Analysis).where(Analysis.created_at < metadata_cutoff)
+            metadata_result = await session.execute(metadata_stmt)
+            old_metadata_count = len(metadata_result.scalars().all())
 
-        return {
-            "deleted_results": deleted_results,
-            "old_metadata_count": old_metadata_count,
-        }
+            # Log cleanup event
+            log_ttl_cleanup(
+                deleted_results=deleted_count,
+                old_metadata_count=old_metadata_count,
+                oldest_deleted_date=oldest_date.isoformat() if oldest_date else None,
+            )
+
+            return {
+                "deleted_results": deleted_count,
+                "old_metadata_count": old_metadata_count,
+            }
+    except Exception as e:
+        log_ttl_cleanup_error(str(e))
+        raise
+
+
+def start_cleanup_scheduler() -> None:
+    """Start the TTL cleanup scheduler."""
+    global cleanup_scheduler
+    
+    if cleanup_scheduler is not None:
+        return  # Already started
+    
+    cleanup_scheduler = AsyncIOScheduler()
+    
+    # Run cleanup daily at 2 AM
+    cleanup_scheduler.add_job(
+        cleanup_expired_records,
+        CronTrigger(hour=2, minute=0),
+        id="ttl_cleanup",
+        name="TTL Cleanup Job",
+        replace_existing=True,
+    )
+    
+    cleanup_scheduler.start()
+
+
+def stop_cleanup_scheduler() -> None:
+    """Stop the TTL cleanup scheduler."""
+    global cleanup_scheduler
+    
+    if cleanup_scheduler is not None:
+        cleanup_scheduler.shutdown()
+        cleanup_scheduler = None
