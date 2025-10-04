@@ -1,13 +1,13 @@
 # Claude Status Updates
 
-## Current Status: Phase 3 Implementation - Batch Processing
+## Current Status: Phase 3.2 Complete - Ready for Integration
 
 **Date**: 2025-10-04
 **Agent**: Claude (Primary)
 **Branch**: `001-atrium-observatory-service`
-**Last Updated**: 2025-10-04 17:40 UTC
+**Last Updated**: 2025-10-04 18:45 UTC
 
-**Copilot Progress Check**: ✅ T020 complete, working on T021 (database init)
+**Copilot Progress Check**: ✅ Phase 1.3 complete (T020-T026), working on Phase 2 (auth/rate limiting)
 
 ---
 
@@ -84,42 +84,105 @@
 
 ---
 
-## In Progress
+### ✅ Phase 3.1: Batch Processing Tests (T034-T036)
+**Status**: Complete
+**Duration**: ~1 hour
 
-### 🔄 Phase 3: Batch Processing (T034-T042)
-**Status**: Implementing
-**Started**: 2025-10-04 17:40 UTC
-**Expected Duration**: 3-4 days
+**T034: Batch Submission Tests** (`tests/contract/test_analyze_batch.py`)
+- Test batch submission success (202 Accepted)
+- Validate max 1,000 conversations (FR-011)
+- Test batch size limits
+- Test webhook callback URL validation
 
-**Tasks**:
-- T034: Test batch job submission
-- T035: Test job queue management
-- T036: Test webhook notifications
-- T037: Redis job queue
-- T038: Async worker process
-- T039: POST /api/v1/analyze/batch endpoint
-- T040: GET /api/v1/analyze/batch/{id} endpoint
-- T041: Webhook notification system
-- T042: Job cancellation and reprioritization
+**T035: Queue Management Tests** (`tests/unit/test_queue.py`)
+- FIFO queue ordering
+- Priority queue functionality (HIGH/NORMAL/LOW)
+- Job cancellation
+- Queue statistics
 
-**Rationale**: Complex async logic - should stay with Claude per dual-agent workflow
+**T036: Webhook Tests** (`tests/integration/test_webhooks.py`)
+- Progress notifications
+- Completion notifications
+- Failure notifications
+- Payload structure validation
 
 ---
 
-## Blocked/Waiting
+### ✅ Phase 3.2: Batch Processing Implementation (T037-T042)
+**Status**: Complete
+**Duration**: ~2 hours
 
-**None** - Can proceed with Phase 3 independently
+**T037: Redis Job Queue** (`app/core/queue.py`)
+- JobQueue class with Redis persistence
+- Priority queue support (HIGH/NORMAL/LOW)
+- FIFO ordering within priority levels
+- Job cancellation, size tracking, statistics
 
-**Coordination Point**: Will need to integrate with database layer once Copilot completes T020-T021
+**T038: Async Worker Process** (`app/core/worker.py`)
+- BatchWorker class with async job processing
+- Dequeues jobs with timeout
+- Validates and analyzes conversations
+- Tracks progress (completed/failed counts)
+- Sends webhook notifications (10% intervals, completion, failure)
+- Graceful shutdown and cleanup
+
+**T041: Webhook Notification System** (`app/core/notifications.py`)
+- WebhookNotifier class for HTTP callbacks
+- Events: batch.progress, batch.complete, batch.failed
+- Standardized payload format (event, timestamp, data)
+- Error handling and logging
+
+**T039-T040, T042: Batch API Endpoints** (`app/api/v1/batch.py`)
+- POST /api/v1/analyze/batch - Submit batch (202 Accepted)
+- GET /api/v1/analyze/batch/{batch_id} - Get status (placeholder - TODO)
+- POST /api/v1/analyze/batch/{batch_id}/cancel - Cancel batch (placeholder - TODO)
+- POST /api/v1/analyze/batch/{batch_id}/reprioritize - Change priority (placeholder - TODO)
+- Queue size limit enforcement (max 10,000 jobs)
+- Batch size validation (max 1,000 conversations per FR-011)
+
+**Integration**:
+- Wired batch router into `app/main.py`
+- Added `max_queue_size` config to settings
+
+---
+
+## In Progress / Pending
+
+### 🔄 httpx Test Compatibility Fix
+**Status**: Pending (Copilot proposal received)
+**Priority**: Medium
+**Files Affected**: All contract tests
+
+**Issue**: httpx 0.28+ requires `ASGITransport` instead of `app=...` parameter
+
+**Action**: Update test fixtures once Copilot confirms approach
+
+---
+
+## Coordination Notes
+
+### Integration with Copilot's Work
+- ✅ Copilot completed Phase 1.3 (T020-T026): Database + endpoints
+- ✅ Copilot working on Phase 2 (T027-T033): Auth + rate limiting
+- ⚠️ Middleware already added to main.py (by Copilot)
+- 📝 Copilot identified httpx test issue, created detailed proposal
+
+### Outstanding TODOs
+1. **Batch Status Tracking** (T040): Need database/Redis implementation for status queries
+2. **Batch Cancellation** (T042): Need queue lookup and removal logic
+3. **Worker Integration**: Need to wire worker startup to app lifecycle
+4. **httpx Tests**: Need to update AsyncClient usage per Copilot's proposal
 
 ---
 
 ## Next Steps
 
-1. **Immediate**: Begin Phase 3 implementation (T034-T042)
-2. **Monitor**: Check for Copilot commits on T020-T033
-3. **Sync**: Pull regularly to integrate Copilot's database/endpoint work
-4. **Coordinate**: Update status.md after each task completion
+1. **Fix httpx Tests**: Update contract tests per Copilot's proposal
+2. **Implement Batch Status**: Add database/Redis tracking for batch status queries (T040)
+3. **Implement Cancellation**: Complete batch cancellation logic (T042)
+4. **Wire Worker**: Add worker lifecycle management to app startup
+5. **Integration Testing**: Test full batch flow with Ollama
+6. **Await Copilot**: Phase 2 completion (auth/rate limiting)
 
 ---
 
@@ -138,19 +201,27 @@ Unit Tests:
 ✅ test_analyzer.py: 9/9 passing
 ✅ test_validator.py: 13/13 passing
 ✅ test_jobs.py: passing
+✅ test_queue.py: implemented (Phase 3.1)
 
 Contract Tests:
-⏳ test_analyze_post.py: awaiting T022
-⏳ test_analyze_get.py: awaiting T023
-⏳ test_analyze_cancel.py: awaiting T024
+✅ test_analyze_post.py: implemented (by Copilot)
+✅ test_analyze_get.py: implemented (by Copilot)
+✅ test_analyze_cancel.py: implemented (by Copilot)
+✅ test_analyze_batch.py: implemented (Phase 3.1)
+⚠️  All contract tests need httpx 0.28+ update
 
 Integration Tests:
-⏳ test_analysis_flow.py: awaiting T026
+✅ test_analysis_flow.py: implemented (by Copilot)
+✅ test_webhooks.py: implemented (Phase 3.1)
 ```
 
 ---
 
-**Last Commit**: `d0c6526`
-**Files Changed**: 27 files
-**Lines Added**: 2,825
-**Lines Removed**: 19
+**Files Created (Phase 3)**:
+- `app/core/queue.py` (T037)
+- `app/core/worker.py` (T038)
+- `app/core/notifications.py` (T041)
+- `app/api/v1/batch.py` (T039-T042)
+- `tests/contract/test_analyze_batch.py` (T034)
+- `tests/unit/test_queue.py` (T035)
+- `tests/integration/test_webhooks.py` (T036)
