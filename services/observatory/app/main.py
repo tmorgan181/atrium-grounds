@@ -7,7 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.models.database import init_database, start_cleanup_scheduler, stop_cleanup_scheduler
-from app.api.v1 import analyze, health
+from app.api.v1 import analyze, health, batch
+from app.middleware import AuthMiddleware, RateLimitMiddleware
 
 
 @asynccontextmanager
@@ -39,8 +40,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Authentication and rate limiting middleware
+# Order matters: Rate limiting -> Auth (applied in reverse order)
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(AuthMiddleware)
+
 # Include routers
 app.include_router(analyze.router, prefix="/api/v1", tags=["analysis"])
+app.include_router(batch.router, prefix="/api/v1", tags=["batch"])
 app.include_router(health.router, tags=["health"])
 
 
