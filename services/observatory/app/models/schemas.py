@@ -55,6 +55,7 @@ class AnalysisStatusResponse(BaseModel):
     id: str
     status: str
     created_at: datetime
+    expires_at: Optional[datetime] = None
 
 
 class CancelResponse(BaseModel):

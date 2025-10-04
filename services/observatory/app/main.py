@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.models.database import init_database, start_cleanup_scheduler, stop_cleanup_scheduler
+from app.api.v1 import analyze, health
 
 
 @asynccontextmanager
@@ -37,6 +38,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(analyze.router, prefix="/api/v1", tags=["analysis"])
+app.include_router(health.router, tags=["health"])
 
 
 @app.get("/")

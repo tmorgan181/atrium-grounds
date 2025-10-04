@@ -131,7 +131,7 @@ async def init_database() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
 
-async def get_db_session() -> AsyncSession:
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Get an async database session."""
     if async_session_maker is None:
         await init_database()
