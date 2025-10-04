@@ -53,13 +53,13 @@
 ### Phase 1.2: Core Components - Tests First (TDD)
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
-- [ ] **T008** [P] Test analyzer engine in `tests/unit/test_analyzer.py` (validate PatternAnalyzer migration)
-- [ ] **T009** [P] Test input validator in `tests/unit/test_validator.py` (SecurityMediator patterns)
-- [ ] **T010** [P] Test job manager in `tests/unit/test_jobs.py` (ProcessManager cancellation)
-- [ ] **T011** [P] Contract test POST `/api/v1/analyze` in `tests/contract/test_analyze_post.py`
-- [ ] **T012** [P] Contract test GET `/api/v1/analyze/{id}` in `tests/contract/test_analyze_get.py`
-- [ ] **T013** [P] Contract test POST `/api/v1/analyze/{id}/cancel` in `tests/contract/test_analyze_cancel.py`
-- [ ] **T014** [P] Integration test conversation analysis flow in `tests/integration/test_analysis_flow.py`
+- [x] **T008** [P] Test analyzer engine in `tests/unit/test_analyzer.py` (validate PatternAnalyzer migration)
+- [x] **T009** [P] Test input validator in `tests/unit/test_validator.py` (SecurityMediator patterns)
+- [x] **T010** [P] Test job manager in `tests/unit/test_jobs.py` (ProcessManager cancellation)
+- [x] **T011** [P] Contract test POST `/api/v1/analyze` in `tests/contract/test_analyze_post.py`
+- [x] **T012** [P] Contract test GET `/api/v1/analyze/{id}` in `tests/contract/test_analyze_get.py`
+- [x] **T013** [P] Contract test POST `/api/v1/analyze/{id}/cancel` in `tests/contract/test_analyze_cancel.py`
+- [x] **T014** [P] Integration test conversation analysis flow in `tests/integration/test_analysis_flow.py`
 
 ### Phase 1.3: Core Implementation (ONLY after tests are failing)
 
