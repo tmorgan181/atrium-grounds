@@ -170,6 +170,21 @@ When multiple agents edit the same files:
 - Regular synchronization between agents
 - Documented work division and territories
 
+**Commit Attribution for AI Agents**:
+When AI agents commit code, include model and interface info:
+```
+<commit message>
+
+via <model> @ <interface>
+
+Examples:
+- via claude-sonnet-4.5 @ claude-code
+- via gpt-4 @ github-copilot
+- via claude-opus-4 @ cursor
+```
+
+The CI workflow tracks agent/model attribution for transparency and will warn if model info is missing from AI commits.
+
 ### Communication Channels
 - **Collaboration Documents**: Primary written communication
 - **Commit Messages**: Technical change descriptions

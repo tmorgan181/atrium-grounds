@@ -91,9 +91,22 @@ This project is developed collaboratively with AI assistants. See coordination p
 
 ### Workflows
 
-- **CI**: Automated linting, testing, type checking
+- **CI**: Automated linting, testing, type checking, and commit attribution tracking
 - **Claude Code**: AI assistance via `@claude` mentions
 - **Claude Code Review**: Automated PR reviews
+
+### Commit Attribution
+
+AI agents include model and interface info for transparency:
+```
+<commit message>
+
+via <model> @ <interface>
+```
+
+Examples: `via claude-sonnet-4.5 @ claude-code` or `via gpt-4 @ github-copilot`
+
+CI automatically tracks and verifies agent attribution.
 
 ## Contributing
 
