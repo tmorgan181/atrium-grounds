@@ -236,50 +236,96 @@ function Invoke-Tests {
         return
     }
     
-    Write-Section "Unit Tests"
+    # Get test counts dynamically
+    Write-Step "Collecting test information..."
+    $unitCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
+    $contractCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/contract/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
+    $integCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
+    
+    Write-Section "Unit Tests ($unitCount tests)"
     Write-Step "Running unit tests..."
-    $unitResult = & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ -v --tb=short
+    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ -v --tb=short
     $unitExitCode = $LASTEXITCODE
     
     Write-Host ""
-    Write-Section "Integration Tests"
+    Write-Section "Contract Tests ($contractCount tests)"
+    Write-Step "Running contract tests..."
+    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/contract/ -v --tb=short
+    $contractExitCode = $LASTEXITCODE
+    
+    Write-Host ""
+    Write-Section "Integration Tests ($integCount tests)"
     Write-Step "Running integration tests..."
-    $integResult = & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ -v --tb=short
+    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ -v --tb=short
     $integExitCode = $LASTEXITCODE
     
     Write-Host ""
     Write-Section "Test Summary"
     
+    $totalTests = [int]$unitCount + [int]$contractCount + [int]$integCount
+    
     if ($unitExitCode -eq 0) {
-        Write-Success "Unit tests passed"
+        Write-Success "Unit tests passed ($unitCount/$unitCount)"
     } else {
         Write-Error "Unit tests failed (exit code: $unitExitCode)"
     }
     
+    if ($contractExitCode -eq 0) {
+        Write-Success "Contract tests passed ($contractCount/$contractCount)"
+    } else {
+        Write-Error "Contract tests failed (exit code: $contractExitCode)"
+    }
+    
     if ($integExitCode -eq 0) {
-        Write-Success "Integration tests passed"
+        Write-Success "Integration tests passed ($integCount/$integCount)"
     } else {
         Write-Warning "Integration tests failed (exit code: $integExitCode)"
         Write-Info "Some integration tests may require the server running"
     }
     
-    if ($unitExitCode -eq 0 -and $integExitCode -eq 0) {
-        Write-Host ""
-        Write-Success "All tests passed! 🎉"
+    Write-Host ""
+    if ($unitExitCode -eq 0 -and $contractExitCode -eq 0 -and $integExitCode -eq 0) {
+        Write-Success "All $totalTests tests passed! 🎉"
+    } else {
+        $failedSuites = @()
+        if ($unitExitCode -ne 0) { $failedSuites += "unit" }
+        if ($contractExitCode -ne 0) { $failedSuites += "contract" }
+        if ($integExitCode -ne 0) { $failedSuites += "integration" }
+        Write-Warning "Failed test suites: $($failedSuites -join ', ')"
     }
 }
 
 function Invoke-QuickTests {
     Write-Header "Running Quick Test Suite"
     
-    Write-Step "Running fast tests only..."
-    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/test_database.py tests/unit/test_auth.py tests/unit/test_ratelimit.py -v
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
     
-    if ($LASTEXITCODE -eq 0) {
-        Write-Success "Quick tests passed!"
+    Write-Step "Running essential unit tests (fast subset)..."
+    Write-Info "Testing: database, auth, rate limiting, and validation"
+    Write-Host ""
+    
+    & "$($Script:Config.VenvPath)\python.exe" -m pytest `
+        tests/unit/test_database.py `
+        tests/unit/test_auth.py `
+        tests/unit/test_ratelimit.py `
+        tests/unit/test_validator.py `
+        -v --tb=short
+    
+    $exitCode = $LASTEXITCODE
+    
+    Write-Host ""
+    if ($exitCode -eq 0) {
+        Write-Success "Quick tests passed! ✓"
+        Write-Info "Run '.\quick-start.ps1 test' for full suite"
     } else {
         Write-Error "Some tests failed"
+        Write-Info "See output above for details"
     }
+    
+    return $exitCode
 }
 
 # ============================================================================
@@ -456,7 +502,7 @@ function Test-AuthenticationMetrics {
     
     Write-Step "Testing unauthenticated access to /metrics..."
     try {
-        $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/metrics" -Method GET -ErrorAction Stop
+        Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/metrics" -Method GET -ErrorAction Stop | Out-Null
         Write-Error "Unexpected: Metrics accessible without auth"
     } catch {
         if ($_.Exception.Response.StatusCode -eq 401) {
@@ -478,18 +524,33 @@ function Test-AuthenticationMetrics {
 function Invoke-Demo {
     Write-Header "$($Script:Config.ServiceName) - Full Demo"
     
+    # Get test counts for info
+    $unitCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
+    $contractCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/contract/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
+    $integCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
+    $totalTests = [int]$unitCount + [int]$contractCount + [int]$integCount
+    
     Write-Info "This demo will:"
-    Write-Host "  1. Run quick tests" -ForegroundColor Gray
+    Write-Host "  1. Run quick tests (essential unit tests)" -ForegroundColor Gray
     Write-Host "  2. Start the server in background" -ForegroundColor Gray
     Write-Host "  3. Test all API endpoints" -ForegroundColor Gray
     Write-Host "  4. Show rate limiting in action" -ForegroundColor Gray
     Write-Host "  5. Clean up" -ForegroundColor Gray
     Write-Host ""
+    Write-Info "Full test suite: $totalTests tests ($unitCount unit + $contractCount contract + $integCount integration)"
+    Write-Info "Run '.\quick-start.ps1 test' for complete test coverage"
+    Write-Host ""
     
     Read-Host "Press Enter to continue"
     
     # Quick tests
-    Invoke-QuickTests
+    $testResult = Invoke-QuickTests
+    if ($testResult -ne 0) {
+        Write-Host ""
+        Write-Warning "Quick tests failed. Continuing with demo anyway..."
+        Write-Host ""
+        Start-Sleep -Seconds 2
+    }
     
     # Start server
     Write-Host ""
@@ -543,11 +604,11 @@ function Show-Help {
     Write-Host "  setup      " -ForegroundColor Green -NoNewline
     Write-Host "  Set up virtual environment and install dependencies"
     Write-Host "  test       " -ForegroundColor Green -NoNewline
-    Write-Host "  Run the full test suite"
+    Write-Host "  Run the full test suite (unit + contract + integration)"
     Write-Host "  serve      " -ForegroundColor Green -NoNewline
     Write-Host "  Start the development server"
     Write-Host "  demo       " -ForegroundColor Green -NoNewline
-    Write-Host "  Run a full demonstration (tests + server + API calls)"
+    Write-Host "  Run a full demonstration (quick tests + server + API calls)"
     Write-Host "  health     " -ForegroundColor Green -NoNewline
     Write-Host "  Test the health endpoint"
     Write-Host "  analyze    " -ForegroundColor Green -NoNewline

@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -19,6 +20,7 @@ from app.core.analyzer import AnalyzerEngine
 from app.core.validator import InputValidator
 from app.core.jobs import JobManager
 from app.core.config import settings
+from app.core.export import ExportFormatter, ExportFormat
 from app.core.logging import (
     log_analysis_created,
     log_analysis_completed,
@@ -135,36 +137,76 @@ async def create_analysis(
     )
 
 
-@router.get("/analyze/{analysis_id}", response_model=AnalysisResponse)
+@router.get("/analyze/{analysis_id}")
 async def get_analysis(
     analysis_id: str,
+    format: Optional[str] = Query(None, description="Export format: json (default), csv, markdown"),
     db: AsyncSession = Depends(get_db_session),
 ):
     """
     Retrieve analysis results by ID.
-    
+
     Returns full analysis details if completed,
     or status information if still processing.
+
+    **Export Formats (FR-014)**:
+    - `json` (default): JSON response
+    - `csv`: Comma-separated values
+    - `markdown` or `md`: Markdown formatted report
     """
     # Query database
     stmt = select(Analysis).where(Analysis.id == analysis_id)
     result = await db.execute(stmt)
     analysis = result.scalar_one_or_none()
-    
+
     if analysis is None:
         raise HTTPException(status_code=404, detail="Analysis not found or expired")
-    
+
     # Update last accessed timestamp
     analysis.update_last_accessed()
     await db.commit()
-    
-    # Build response
+
+    # Build response data
+    response_data = {
+        "id": analysis.id,
+        "status": analysis.status.value,
+        "observer_output": analysis.observer_output,
+        "patterns": analysis.patterns,
+        "summary_points": None,  # TODO: Extract from observer_output
+        "confidence_score": analysis.confidence_score,
+        "processing_time": analysis.processing_time,
+        "created_at": analysis.created_at.isoformat() if analysis.created_at else None,
+        "expires_at": analysis.expires_at.isoformat() if analysis.expires_at else None,
+        "error": analysis.error,
+        "conversation_text": analysis.conversation_text,
+    }
+
+    # Handle export formats
+    if format:
+        try:
+            export_format = ExportFormatter.detect_format(format)
+            formatter = ExportFormatter()
+
+            if export_format == ExportFormat.JSON:
+                # Return pretty JSON for explicit format request
+                content = formatter.to_json(response_data, pretty=True)
+                return PlainTextResponse(content=content, media_type="application/json")
+            elif export_format == ExportFormat.CSV:
+                content = formatter.to_csv(response_data)
+                return PlainTextResponse(content=content, media_type="text/csv")
+            elif export_format == ExportFormat.MARKDOWN:
+                content = formatter.to_markdown(response_data)
+                return PlainTextResponse(content=content, media_type="text/markdown")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    # Default JSON response (Pydantic model)
     return AnalysisResponse(
         id=analysis.id,
         status=analysis.status.value,
         observer_output=analysis.observer_output,
         patterns=analysis.patterns,
-        summary_points=None,  # TODO: Extract from observer_output
+        summary_points=None,
         confidence_score=analysis.confidence_score,
         processing_time=analysis.processing_time,
         created_at=analysis.created_at,
