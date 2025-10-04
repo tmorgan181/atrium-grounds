@@ -18,9 +18,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
+
+      - name: Check for Python code
+        id: check-python
+        run: |
+          if find . -name "*.py" -type f | grep -q .; then
+            echo "has_python=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_python=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Install dependencies
+        if: steps.check-python.outputs.has_python == 'true'
         run: |
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
@@ -28,32 +37,28 @@ jobs:
           if [ -f requirements-dev.txt ]; then
             pip install -r requirements-dev.txt
           fi
-          # Install common dev tools if no requirements files exist
-          pip install ruff pytest mypy || true
+          pip install ruff pytest mypy
 
       - name: Lint with ruff
-        run: |
-          if [ -d "src" ] || [ -d "services" ]; then
-            ruff check . || echo "No Python files to lint yet"
-          else
-            echo "No source directories found, skipping lint"
-          fi
+        if: steps.check-python.outputs.has_python == 'true'
+        run: ruff check .
 
       - name: Type check with mypy
-        run: |
-          if [ -d "src" ] || [ -d "services" ]; then
-            mypy . --ignore-missing-imports || echo "No Python files to type check yet"
-          else
-            echo "No source directories found, skipping type check"
-          fi
+        if: steps.check-python.outputs.has_python == 'true'
+        run: mypy . --ignore-missing-imports
 
       - name: Run tests
+        if: steps.check-python.outputs.has_python == 'true'
         run: |
           if [ -d "tests" ]; then
             pytest tests/ -v
           else
-            echo "No tests directory found, skipping tests"
+            echo "No tests directory found yet"
           fi
+
+      - name: Project status
+        if: steps.check-python.outputs.has_python == 'false'
+        run: echo "No Python code yet - CI will run when services are added"
 
   docker-build:
     runs-on: ubuntu-latest
@@ -83,3 +88,7 @@ jobs:
               docker build -t test-build $dir
             done
           fi
+
+      - name: Project status
+        if: steps.check-docker.outputs.has_docker == 'false'
+        run: echo "No Docker files yet - builds will run when services are added"
