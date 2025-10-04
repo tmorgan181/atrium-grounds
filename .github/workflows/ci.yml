@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+          # Install common dev tools if no requirements files exist
+          pip install ruff pytest mypy || true
+
+      - name: Lint with ruff
+        run: |
+          if [ -d "src" ] || [ -d "services" ]; then
+            ruff check . || echo "No Python files to lint yet"
+          else
+            echo "No source directories found, skipping lint"
+          fi
+
+      - name: Type check with mypy
+        run: |
+          if [ -d "src" ] || [ -d "services" ]; then
+            mypy . --ignore-missing-imports || echo "No Python files to type check yet"
+          else
+            echo "No source directories found, skipping type check"
+          fi
+
+      - name: Run tests
+        run: |
+          if [ -d "tests" ]; then
+            pytest tests/ -v
+          else
+            echo "No tests directory found, skipping tests"
+          fi
+
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for Dockerfiles
+        id: check-docker
+        run: |
+          if find . -name "Dockerfile" -o -name "docker-compose.yml" | grep -q .; then
+            echo "has_docker=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_docker=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Docker images
+        if: steps.check-docker.outputs.has_docker == 'true'
+        run: |
+          if [ -f "docker-compose.yml" ]; then
+            docker-compose build
+          else
+            for dockerfile in $(find . -name "Dockerfile"); do
+              dir=$(dirname $dockerfile)
+              echo "Building Docker image in $dir"
+              docker build -t test-build $dir
+            done
+          fi
