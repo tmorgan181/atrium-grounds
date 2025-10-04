@@ -11,9 +11,14 @@
 
 - [x] **T020** - SQLAlchemy Models (`app/models/database.py`) ✅ DONE
 - [x] **T021** - Database Initialization ✅ DONE
-- [ ] **T021A** - TTL Enforcement (FR-013)
-- [ ] **T021B** - Audit Logging (FR-013)
-- [ ] **T021C** - TTL Expiration Tests
+- [x] **T021A** - TTL Enforcement (FR-013) ✅ DONE
+- [x] **T021B** - Audit Logging (FR-013) ✅ DONE
+- [x] **T021C** - TTL Expiration Tests ✅ DONE
+- [ ] **T022** - POST `/api/v1/analyze` Endpoint
+- [ ] **T023** - GET `/api/v1/analyze/{id}` Endpoint
+- [ ] **T024** - POST `/api/v1/analyze/{id}/cancel` Endpoint
+- [ ] **T025** - GET `/health` Endpoint
+- [ ] **T026** - Wire Endpoints to FastAPI App
 - [ ] **T022** - POST `/api/v1/analyze` Endpoint
 - [ ] **T023** - GET `/api/v1/analyze/{id}` Endpoint
 - [ ] **T024** - POST `/api/v1/analyze/{id}/cancel` Endpoint
@@ -32,17 +37,18 @@
 
 ---
 
-## Current Task: T021A/B/C - TTL & Logging
+## Current Task: T022-T025 - API Endpoints
 
-**Next**: Implement scheduled TTL cleanup, audit logging, and tests
+**Next**: Implement analyze, get, cancel, and health endpoints
 
 **Blockers**: None
 
-**Notes**:
-- T020-T021 complete: Database models and initialization working
-- App starts successfully, tables auto-created
-- Moving to TTL enforcement with APScheduler
+**Progress Summary**:
+- ✅ T020-T021C complete: Full database layer with TTL and logging
+- ✅ 13 passing tests (7 database + 6 TTL)
+- ✅ App starts with scheduler, audit logging working
+- 🔄 Ready for endpoint implementation
 
 ---
 
-**Last Updated**: 2025-10-04 17:50 UTC
+**Last Updated**: 2025-10-04 18:10 UTC
