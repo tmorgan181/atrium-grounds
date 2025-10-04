@@ -149,7 +149,27 @@ Once running, visit:
 **Storage**: In-memory dictionary (ephemeral, resets on server restart)  
 **Purpose**: Local development and testing only
 
-#### Generate an API Key
+#### Quick Method: Use the Script! ⚡
+
+```powershell
+# One command to generate and register keys
+.\quick-start.ps1 keys
+```
+
+This will:
+- Generate a development API key (60 req/min)
+- Generate a partner API key (600 req/min)
+- Save keys to `dev-api-keys.txt`
+- Create `register_dev_keys.py` for auto-registration
+- Show usage examples
+
+**Output includes**:
+- Both keys displayed clearly
+- PowerShell usage examples
+- Copy-paste ready commands
+- Auto-registration instructions
+
+#### Manual Generation (Alternative)
 
 **Option 1: Python REPL** (Quick Test)
 ```powershell
@@ -304,6 +324,9 @@ The `quick-start.ps1` script provides a professional developer experience:
 # Setup
 .\quick-start.ps1 setup       # Install dependencies
 .\quick-start.ps1 clean       # Clean environment
+
+# API Keys (NEW!)
+.\quick-start.ps1 keys        # Generate & register API keys
 
 # Testing
 .\quick-start.ps1 test        # Run all tests

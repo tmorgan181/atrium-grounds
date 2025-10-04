@@ -35,7 +35,7 @@
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'setup', 'clean', 'help')]
+    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'help')]
     [string]$Action = 'help',
     
     [Parameter()]
@@ -222,6 +222,153 @@ function Invoke-Clean {
     }
     
     Write-Success "Clean complete!"
+}
+
+# ============================================================================
+# API KEY MANAGEMENT
+# ============================================================================
+
+function Invoke-KeyManagement {
+    Write-Header "API Key Management"
+    
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
+    
+    Write-Info "This will generate and register API keys for development"
+    Write-Warning "Keys are in-memory only - they reset when the server restarts"
+    Write-Host ""
+    
+    Write-Section "Generating API Keys"
+    
+    # Create Python script to generate keys
+    $pythonScript = @"
+from app.middleware.auth import generate_api_key, register_api_key
+import json
+
+# Generate keys
+dev_key = generate_api_key()
+partner_key = generate_api_key()
+
+# Register them
+register_api_key(dev_key, tier='api_key')
+register_api_key(partner_key, tier='partner')
+
+# Output as JSON for PowerShell to parse
+result = {
+    'dev_key': dev_key,
+    'partner_key': partner_key
+}
+print(json.dumps(result))
+"@
+    
+    # Run Python script
+    $tempFile = [System.IO.Path]::GetTempFileName()
+    $pythonScript | Out-File -FilePath $tempFile -Encoding UTF8
+    
+    try {
+        Write-Step "Generating keys..."
+        $output = & "$($Script:Config.VenvPath)\python.exe" $tempFile
+        $keys = $output | ConvertFrom-Json
+        
+        Write-Host ""
+        Write-Success "API keys generated successfully!"
+        Write-Host ""
+        
+        # Display keys
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "  DEVELOPMENT API KEY (60 req/min)" -ForegroundColor Yellow
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "  $($keys.dev_key)" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "  PARTNER API KEY (600 req/min)" -ForegroundColor Yellow
+        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "  $($keys.partner_key)" -ForegroundColor Green
+        Write-Host ""
+        
+        # Save to file
+        $keyFile = "dev-api-keys.txt"
+        @"
+# Development API Keys
+# Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+# WARNING: These are for development only. In-memory storage, resets on server restart.
+
+# API Key Tier (60 requests/minute)
+DEV_KEY=$($keys.dev_key)
+
+# Partner Tier (600 requests/minute)
+PARTNER_KEY=$($keys.partner_key)
+
+# Usage Example (PowerShell):
+# `$headers = @{"Authorization" = "Bearer $($keys.dev_key)"}
+# Invoke-WebRequest -Uri "http://localhost:8000/metrics" -Headers `$headers
+
+# Usage Example (curl):
+# curl -H "Authorization: Bearer $($keys.dev_key)" http://localhost:8000/metrics
+"@ | Out-File -FilePath $keyFile -Encoding UTF8
+        
+        Write-Success "Keys saved to: $keyFile"
+        Write-Host ""
+        
+        # Create startup registration script
+        $registerScript = "register_dev_keys.py"
+        @"
+`"``""Register development API keys on startup.`"``""
+
+from app.middleware.auth import register_api_key
+
+# Generated keys
+DEV_KEY = "$($keys.dev_key)"
+PARTNER_KEY = "$($keys.partner_key)"
+
+# Register keys
+register_api_key(DEV_KEY, tier="api_key")
+register_api_key(PARTNER_KEY, tier="partner")
+
+print(f"✓ Development API Key registered (60 req/min)")
+print(f"✓ Partner API Key registered (600 req/min)")
+print(f"")
+print(f"Keys are active for this server session.")
+print(f"Find your keys in: dev-api-keys.txt")
+"@ | Out-File -FilePath $registerScript -Encoding UTF8
+        
+        Write-Success "Startup script created: $registerScript"
+        Write-Host ""
+        
+        Write-Section "Usage Instructions"
+        Write-Host ""
+        Write-Step "Quick Test (PowerShell):"
+        Write-Host ""
+        Write-Host "  `$key = `"$($keys.dev_key)`"" -ForegroundColor Gray
+        Write-Host '  $headers = @{"Authorization" = "Bearer $key"}' -ForegroundColor Gray
+        Write-Host '  Invoke-WebRequest -Uri "http://localhost:8000/metrics" -Headers $headers' -ForegroundColor Gray
+        Write-Host ""
+        
+        Write-Step "Auto-Register on Server Startup:"
+        Write-Host ""
+        Write-Host "  Add to app/main.py after app initialization:" -ForegroundColor Gray
+        Write-Host "  import register_dev_keys  # Auto-registers keys" -ForegroundColor Gray
+        Write-Host ""
+        
+        Write-Step "Test with higher rate limits:"
+        Write-Host ""
+        Write-Host '  1..70 | ForEach-Object {' -ForegroundColor Gray
+        Write-Host '      Invoke-WebRequest -Uri "http://localhost:8000/health" -Headers $headers' -ForegroundColor Gray
+        Write-Host '  }' -ForegroundColor Gray
+        Write-Host ""
+        
+        Write-Info "Public tier: 10 req/min | API key tier: 60 req/min | Partner tier: 600 req/min"
+        Write-Warning "Remember: Keys are in-memory only. Run this command again after server restart."
+        
+    } catch {
+        Write-Error "Failed to generate keys: $($_.Exception.Message)"
+    } finally {
+        Remove-Item $tempFile -ErrorAction SilentlyContinue
+    }
 }
 
 # ============================================================================
@@ -636,6 +783,9 @@ function Show-Help {
     Write-Host "  .\quick-start.ps1 serve -Port 8001" -ForegroundColor White
     Write-Host "    Start server on port 8001" -ForegroundColor Gray
     Write-Host ""
+    Write-Host "  .\quick-start.ps1 keys" -ForegroundColor White
+    Write-Host "    Generate API keys for development" -ForegroundColor Gray
+    Write-Host ""
     Write-Host "  .\quick-start.ps1 demo" -ForegroundColor White
     Write-Host "    Run complete demo with all features" -ForegroundColor Gray
     Write-Host ""
@@ -663,6 +813,9 @@ switch ($Action.ToLower()) {
     }
     'serve' {
         Start-Server -Background $false
+    }
+    'keys' {
+        Invoke-KeyManagement
     }
     'demo' {
         Invoke-Demo
