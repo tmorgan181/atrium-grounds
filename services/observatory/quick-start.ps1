@@ -13,8 +13,8 @@
 .PARAMETER Port
     Port number for the server (default: 8000)
     
-.PARAMETER Detail
-    Enable detailed output with extra logging
+.PARAMETER Verbose
+    Enable verbose output with full diagnostic information and timestamps
     
 .EXAMPLE
     .\quick-start.ps1 test
@@ -42,9 +42,6 @@ param(
     [int]$Port = 8000,
 
     [Parameter()]
-    [switch]$Detail,
-
-    [Parameter()]
     [switch]$NewWindow,
 
     [Parameter()]
@@ -69,6 +66,10 @@ param(
 # ============================================================================
 # PARAMETER VALIDATION (Feature 002 - T024)
 # ============================================================================
+
+# Convert PowerShell's built-in -Verbose parameter to a simple boolean
+# PowerShell automatically adds -Verbose as a common parameter
+$Script:Verbose = ($VerbosePreference -eq 'Continue')
 
 # Rule 1: -Clean only applies to serve action
 if ($Clean -and $Action -ne "serve") {
@@ -150,8 +151,9 @@ function Write-Warning {
 
 function Write-Step {
     param([string]$Text)
-    if ($Detail) {
-        Write-Host "-> " -ForegroundColor Magenta -NoNewline
+    if ($Verbose) {
+        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        Write-Host "[$timestamp] " -ForegroundColor DarkGray -NoNewline
         Write-Host $Text -ForegroundColor White
     }
 }
@@ -206,7 +208,7 @@ function Write-ApiCall {
 function Invoke-CommandWithVerbosity {
     <#
     .SYNOPSIS
-        Execute external command with output controlled by $Detail flag
+        Execute external command with output controlled by $Verbose flag
     .DESCRIPTION
         Implements NFR-005 (<100ms overhead) and NFR-006 (efficient streaming)
         via 2>&1 redirection for verbosity control
@@ -230,8 +232,10 @@ function Invoke-CommandWithVerbosity {
         [string]$ErrorMessage = "Command failed"
     )
 
-    if ($Detail) {
-        # Detail mode: Show all output (stdout and stderr)
+    if ($Verbose) {
+        # Verbose mode: Show all output (stdout and stderr) with timestamp
+        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        Write-Host "[$timestamp] Running command..." -ForegroundColor DarkGray
         & $Command
     } else {
         # Default mode: Suppress output, capture for error reporting
@@ -242,7 +246,7 @@ function Invoke-CommandWithVerbosity {
             $lines = $output -split "`n"
             $summaryStarted = $false
             $relevantLines = @()
-            
+
             foreach ($line in $lines) {
                 # Show FAILED lines
                 if ($line -match "^FAILED ") {
@@ -258,7 +262,7 @@ function Invoke-CommandWithVerbosity {
                     $relevantLines += $line
                 }
             }
-            
+
             # If we got relevant lines, show them; otherwise show count
             if ($relevantLines.Count -gt 0) {
                 $relevantLines | Select-Object -First 10 | ForEach-Object {
@@ -269,14 +273,14 @@ function Invoke-CommandWithVerbosity {
                     }
                 }
             }
-            
+
             # Don't throw - let the calling function handle the failure
             # The LASTEXITCODE is still set and will be checked by caller
         }
     }
 
     # Show success message in default mode
-    if ($SuccessMessage -and -not $Detail -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
+    if ($SuccessMessage -and -not $Verbose -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
         Write-Success $SuccessMessage
     }
 }
@@ -405,7 +409,7 @@ function Invoke-TestSuite {
     $exitCode = $LASTEXITCODE
     $passed = ($exitCode -eq 0)
 
-    if (-not $Detail -and -not $passed) {
+    if (-not $Verbose -and -not $passed) {
         if ($TestType -eq "integration") {
             Write-Host "[FAIL] " -ForegroundColor Red -NoNewline
             Write-Host "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)" -ForegroundColor Yellow
@@ -475,7 +479,7 @@ function Invoke-Setup {
             uv venv
         } -SuccessMessage "Virtual environment created" -ErrorMessage "Failed to create virtual environment"
     } else {
-        if ($Detail) {
+        if ($Verbose) {
             Write-Info "Virtual environment already exists (skipping creation)"
         }
     }
@@ -689,16 +693,16 @@ function Invoke-Tests {
     
     # T009: Define pytest arguments based on verbosity
     $pytestArgs = @()
-    if ($Detail) {
+    if ($Verbose) {
         $pytestArgs += @("-v", "--tb=short")
     } else {
         $pytestArgs += @("-q", "--tb=line")
     }
-    
+
     # T010: Add coverage if requested
     if ($Coverage) {
         $pytestArgs += @("--cov=app", "--cov-report=term-missing")
-        if ($Detail) {
+        if ($Verbose) {
             Write-Info "Coverage reporting enabled"
         }
     }
@@ -783,8 +787,8 @@ function Invoke-Tests {
                     $validationArgs['ApiKey'] = $partnerKey
                 }
 
-                # Use quiet mode unless -Detail is specified
-                if (-not $Detail) {
+                # Use quiet mode unless -Verbose is specified
+                if (-not $Verbose) {
                     $validationArgs['Quiet'] = $true
                 }
 
@@ -793,7 +797,7 @@ function Invoke-Tests {
                 $results['validation'] = ($LASTEXITCODE -eq 0)
 
                 if ($LASTEXITCODE -eq 0) {
-                    if (-not $Detail) {
+                    if (-not $Verbose) {
                         Write-Success "Validation suite passed"
                     }
                 } else {
@@ -841,7 +845,7 @@ function Invoke-Tests {
             Write-Success "All tests passed!"
         } else {
             Write-Warning "Failed test suites: $($failedSuites -join ', ')"
-            Write-Info "Run with -Detail flag for more information"
+            Write-Info "Run with -Verbose flag for more information"
         }
     }
 }
@@ -1440,8 +1444,8 @@ function Invoke-Format {
     Write-Step "Running ruff format..."
 
     # T014: Format with verbosity control
-    if ($Detail) {
-        # Detail mode: Show full formatting output
+    if ($Verbose) {
+        # Verbose mode: Show full formatting output
         & $pythonExe -m ruff format .
         $exitCode = $LASTEXITCODE
 
@@ -1586,8 +1590,8 @@ function Show-Help {
     Write-Host "  Specify server port (default: 8000)"
     Write-Host "  -NewWindow      " -ForegroundColor Cyan -NoNewline
     Write-Host "  Start server in new PowerShell window (for 'serve' action)"
-    Write-Host "  -Detail         " -ForegroundColor Cyan -NoNewline
-    Write-Host "  Enable detailed output with progress steps"
+    Write-Host "  -Verbose        " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Enable verbose output with full diagnostic information"
     Write-Host ""
     Write-Host "  Test Filtering:" -ForegroundColor Yellow
     Write-Host "  -Unit           " -ForegroundColor Cyan -NoNewline
@@ -1615,8 +1619,8 @@ function Show-Help {
     Write-Host "  .\quick-start.ps1 test -Unit -Coverage" -ForegroundColor White
     Write-Host "    Run unit tests with code coverage report" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "  .\quick-start.ps1 test -Detail" -ForegroundColor White
-    Write-Host "    Run all tests with verbose output" -ForegroundColor Gray
+    Write-Host "  .\quick-start.ps1 test -Verbose" -ForegroundColor White
+    Write-Host "    Run all tests with verbose diagnostic output" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  .\quick-start.ps1 serve -Port 8001" -ForegroundColor White
     Write-Host "    Start server on port 8001" -ForegroundColor Gray
