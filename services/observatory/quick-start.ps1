@@ -45,7 +45,25 @@ param(
     [switch]$Detail,
 
     [Parameter()]
-    [switch]$NewWindow
+    [switch]$NewWindow,
+
+    [Parameter()]
+    [switch]$Clean,
+
+    [Parameter()]
+    [switch]$Unit,
+
+    [Parameter()]
+    [switch]$Contract,
+
+    [Parameter()]
+    [switch]$Integration,
+
+    [Parameter()]
+    [switch]$Validation,
+
+    [Parameter()]
+    [switch]$Coverage
 )
 
 # ============================================================================
