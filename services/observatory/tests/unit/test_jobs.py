@@ -33,6 +33,7 @@ async def test_job_manager_initialization(job_manager):
 @pytest.mark.asyncio
 async def test_create_job(job_manager):
     """Test job creation."""
+
     async def sample_task():
         await asyncio.sleep(0.01)
         return {"result": "completed"}
@@ -46,6 +47,7 @@ async def test_create_job(job_manager):
 @pytest.mark.asyncio
 async def test_get_job_status(job_manager):
     """Test getting job status."""
+
     async def quick_task():
         return {"result": "done"}
 
@@ -60,6 +62,7 @@ async def test_get_job_status(job_manager):
 @pytest.mark.asyncio
 async def test_cancel_job(job_manager):
     """Test job cancellation."""
+
     async def long_running_task():
         await asyncio.sleep(10)
         return {"result": "completed"}
@@ -88,6 +91,7 @@ async def test_cancel_nonexistent_job(job_manager):
 @pytest.mark.asyncio
 async def test_cancel_completed_job(job_manager):
     """Test cancelling a job that already completed."""
+
     async def quick_task():
         return {"result": "done"}
 
@@ -107,6 +111,7 @@ async def test_cancel_completed_job(job_manager):
 @pytest.mark.asyncio
 async def test_job_result_retrieval(job_manager):
     """Test retrieving job results."""
+
     async def task_with_result():
         return {"analysis": "complete", "confidence": 0.95}
 
@@ -126,6 +131,7 @@ async def test_job_result_retrieval(job_manager):
 @pytest.mark.asyncio
 async def test_job_error_handling(job_manager):
     """Test handling of job errors."""
+
     async def failing_task():
         raise ValueError("Task failed intentionally")
 
@@ -141,6 +147,7 @@ async def test_job_error_handling(job_manager):
 @pytest.mark.asyncio
 async def test_multiple_concurrent_jobs(job_manager):
     """Test managing multiple concurrent jobs."""
+
     async def task(task_id):
         await asyncio.sleep(0.1)
         return {"task_id": task_id}
@@ -162,6 +169,7 @@ async def test_multiple_concurrent_jobs(job_manager):
 @pytest.mark.asyncio
 async def test_job_timeout(job_manager):
     """Test job timeout handling."""
+
     async def timeout_task():
         await asyncio.sleep(100)
         return {"result": "should_timeout"}

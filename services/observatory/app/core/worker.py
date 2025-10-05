@@ -78,7 +78,9 @@ class BatchWorker:
         Args:
             job: BatchJob to process
         """
-        logger.info(f"Processing batch {job.batch_id} with {len(job.conversation_ids)} conversations")
+        logger.info(
+            f"Processing batch {job.batch_id} with {len(job.conversation_ids)} conversations"
+        )
 
         total_conversations = len(job.conversation_ids)
         completed_count = 0

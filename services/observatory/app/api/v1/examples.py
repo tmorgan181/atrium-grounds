@@ -64,7 +64,9 @@ def load_manifest() -> Dict[str, Any]:
 @router.get("/examples", response_model=ExampleListResponse)
 async def list_examples(
     category: Optional[str] = Query(None, description="Filter by category"),
-    difficulty: Optional[str] = Query(None, description="Filter by difficulty (beginner, intermediate, advanced)"),
+    difficulty: Optional[str] = Query(
+        None, description="Filter by difficulty (beginner, intermediate, advanced)"
+    ),
     tag: Optional[str] = Query(None, description="Filter by tag"),
 ):
     """

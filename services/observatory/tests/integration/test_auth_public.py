@@ -28,10 +28,10 @@ async def test_public_tier_rate_limits(client):
     for i in range(11):
         response = await client.get("/health")
         responses.append(response)
-    
+
     # First 10 should succeed
     assert all(r.status_code == 200 for r in responses[:10])
-    
+
     # 11th should be rate limited (429)
     assert responses[10].status_code == 429
 
@@ -40,10 +40,10 @@ async def test_public_tier_rate_limits(client):
 async def test_public_tier_rate_limit_headers(client):
     """Test that rate limit headers are present."""
     response = await client.get("/health")
-    
+
     assert "X-RateLimit-Limit" in response.headers
     assert "X-RateLimit-Remaining" in response.headers
     assert "X-RateLimit-Reset" in response.headers
-    
+
     # Public tier should have limit of 10
     assert int(response.headers["X-RateLimit-Limit"]) == 10

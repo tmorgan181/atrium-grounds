@@ -113,30 +113,128 @@ INFO: Application startup complete
 ### Run All Tests
 
 ```powershell
+# All test suites (unit + contract + integration + validation)
 .\quick-start.ps1 test
 ```
 
-Runs: Unit → Contract → Integration tests
+**New in Feature 002**: Quiet output by default! Add `-Detail` for verbose output.
 
-### Run Specific Test Suite
+### Test Filtering (NEW - Feature 002)
+
+Run specific test types for faster feedback:
 
 ```powershell
-# Unit tests only
-uv run pytest tests/unit/ -v
+# Unit tests only (~2 seconds, 60x faster!)
+.\quick-start.ps1 test -Unit
 
 # Contract tests only
-uv run pytest tests/contract/ -v
+.\quick-start.ps1 test -Contract
 
-# With coverage
-uv run pytest --cov=app tests/
+# Integration tests only
+.\quick-start.ps1 test -Integration
+
+# Validation suite only
+.\quick-start.ps1 test -Validation
+
+# Combine multiple types
+.\quick-start.ps1 test -Unit -Contract
 ```
 
-### Quick Smoke Test
+### Coverage Reports (NEW - Feature 002)
 
 ```powershell
-# Just the essential tests (fast)
-.\quick-start.ps1 test  # Runs subset automatically if you add -Quick flag
+# Generate coverage for any test type
+.\quick-start.ps1 test -Unit -Coverage
+.\quick-start.ps1 test -Coverage  # All tests with coverage
 ```
+
+### Verbosity Control (NEW - Feature 002)
+
+```powershell
+# Default: Quiet, scannable output
+.\quick-start.ps1 test -Unit
+
+# Detail: Full pytest output with diagnostics
+.\quick-start.ps1 test -Unit -Detail
+```
+
+---
+
+## Code Quality (NEW - Feature 002)
+
+### Quick Linting
+
+```powershell
+# Check code style (fast, read-only)
+.\quick-start.ps1 lint
+
+# With full details
+.\quick-start.ps1 lint -Detail
+```
+
+### Auto-Format Code
+
+```powershell
+# Format all code with ruff
+.\quick-start.ps1 format
+
+# Shows: "12 files reformatted, 45 files left unchanged"
+```
+
+### Pre-Commit Checks
+
+```powershell
+# Run linting + type checking (recommended before commit)
+.\quick-start.ps1 check
+
+# Runs both:
+# - ruff check (linting)
+# - mypy app/ (type checking)
+```
+
+**Best Practice**: Run `.\quick-start.ps1 check` before committing code!
+
+---
+
+## Verbosity Control (NEW - Feature 002)
+
+All actions now support minimal output by default, with `-Detail` for diagnostics:
+
+```powershell
+# Default: Minimal, scannable output
+.\quick-start.ps1 setup
+# Output: ~8 lines, <5 seconds to scan
+
+# Detail: Full diagnostic output
+.\quick-start.ps1 setup -Detail
+# Output: Full tool output (uv, pip, etc.)
+```
+
+**Actions with verbosity control:**
+- `setup` - Dependencies installation
+- `test` - Test execution
+- `lint` - Code linting
+- All other actions respect `-Detail` flag
+
+---
+
+## Clean Logging for Windows (NEW - Feature 002)
+
+For Windows PowerShell 5.1 or CI/CD environments without ANSI support:
+
+```powershell
+# Start server with ANSI-free logs
+.\quick-start.ps1 serve -Clean
+
+# Works in all modes:
+.\quick-start.ps1 serve -Clean -NewWindow
+```
+
+**When to use `-Clean`:**
+- Windows PowerShell 5.1 (no ANSI support)
+- CI/CD pipelines
+- Log file capture
+- Screen readers
 
 ---
 
@@ -171,7 +269,7 @@ Invoke-WebRequest -Uri "http://127.0.0.1:8000/metrics" -Headers $headers
 
 ## Common Workflows
 
-### Full Development Cycle
+### Full Development Cycle (with Feature 002 enhancements)
 
 ```powershell
 # 1. Setup (first time only)
@@ -180,21 +278,32 @@ Invoke-WebRequest -Uri "http://127.0.0.1:8000/metrics" -Headers $headers
 # 2. Make code changes
 # ... edit files ...
 
-# 3. Run tests
-.\quick-start.ps1 test
+# 3. Quick validation (unit tests only, ~2 seconds)
+.\quick-start.ps1 test -Unit
 
-# 4. Validate (auto-starts/stops server)
+# 4. Check code quality before commit
+.\quick-start.ps1 check
+
+# 5. Auto-format if needed
+.\quick-start.ps1 format
+
+# 6. Run full test suite with coverage
+.\quick-start.ps1 test -Coverage
+
+# 7. Validate service (auto-starts/stops server)
 .\quick-start.ps1 validate
 
-# 5. Start dev server
+# 8. Start dev server
 .\quick-start.ps1 serve -NewWindow
 
-# 6. Test manually
+# 9. Test manually
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/docs
 
-# 7. Stop server (close window or Ctrl+C)
+# 10. Stop server (close window or Ctrl+C)
 ```
+
+**Pro Tip**: Use `-Detail` flag anytime you need more diagnostic information!
 
 ### Quick Validation Loop
 
@@ -325,17 +434,24 @@ services/observatory/
 
 ## Quick Reference
 
-| Command | Purpose | Server |
-|---------|---------|--------|
-| `setup` | Install deps + generate keys | No |
-| `test` | Run all tests | No |
-| `validate` | Auto-managed validation | Auto-start/stop |
-| `serve` | Start dev server | Yes (foreground) |
-| `serve -NewWindow` | Start in new window | Yes (background) |
-| `keys` | Generate/regenerate API keys | No |
-| `clean` | Remove all generated files | No |
-| `health` | Test health endpoint | Requires running server |
-| `analyze` | Test analysis endpoint | Requires running server |
+| Command | Purpose | Server | Notes |
+|---------|---------|--------|-------|
+| `setup` | Install deps + generate keys | No | Use `-Detail` for full output |
+| `test` | Run all tests | No | Quiet by default |
+| `test -Unit` | **NEW** Run unit tests only | No | 60x faster! (~2s) |
+| `test -Coverage` | **NEW** Run tests with coverage | No | Works with any test type |
+| `lint` | **NEW** Check code style | No | Read-only check |
+| `format` | **NEW** Auto-format code | No | Modifies files |
+| `check` | **NEW** Lint + type check | No | Pre-commit validation |
+| `validate` | Auto-managed validation | Auto-start/stop | *Deprecated: use `test -Validation`* |
+| `serve` | Start dev server | Yes (foreground) | Add `-Clean` for ANSI-free logs |
+| `serve -NewWindow` | Start in new window | Yes (background) | Recommended for dev |
+| `keys` | Generate/regenerate API keys | No | Auto-loaded by server |
+| `clean` | Remove all generated files | No | Fresh start |
+| `health` | Test health endpoint | Requires running server | Quick check |
+| `analyze` | Test analysis endpoint | Requires running server | Sample data test |
+
+**All commands** support `-Detail` flag for verbose diagnostics!
 
 ---
 

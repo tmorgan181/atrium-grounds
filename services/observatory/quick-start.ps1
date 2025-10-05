@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Atrium Observatory Quick Start Script
@@ -35,7 +35,7 @@
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'validate', 'help')]
+    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'validate', 'lint', 'format', 'check', 'help')]
     [string]$Action = 'help',
 
     [Parameter()]
@@ -45,8 +45,60 @@ param(
     [switch]$Detail,
 
     [Parameter()]
-    [switch]$NewWindow
+    [switch]$NewWindow,
+
+    [Parameter()]
+    [switch]$Clean,
+
+    [Parameter()]
+    [switch]$Unit,
+
+    [Parameter()]
+    [switch]$Contract,
+
+    [Parameter()]
+    [switch]$Integration,
+
+    [Parameter()]
+    [switch]$Validation,
+
+    [Parameter()]
+    [switch]$Coverage
 )
+
+# ============================================================================
+# PARAMETER VALIDATION (Feature 002 - T024)
+# ============================================================================
+
+# Rule 1: -Clean only applies to serve action
+if ($Clean -and $Action -ne "serve") {
+    Write-Warning "-Clean flag only applies to 'serve' action (ignored)"
+    $Clean = $false
+}
+
+# Rule 2: Test filters only apply to test action
+if (($Unit -or $Contract -or $Integration -or $Validation -or $Coverage) -and $Action -ne "test") {
+    Write-Warning "Test filtering flags (-Unit, -Contract, -Integration, -Validation, -Coverage) only apply to 'test' action (ignored)"
+    $Unit = $false; $Contract = $false; $Integration = $false; $Validation = $false; $Coverage = $false
+}
+
+# Rule 3: Multiple test filters selected = run all selected types (informational)
+$testFilterCount = @($Unit, $Contract, $Integration, $Validation).Where({$_}).Count
+if ($testFilterCount -gt 1) {
+    Write-Host "[INFO] Multiple test types selected - running: $(if($Unit){'Unit '})$(if($Contract){'Contract '})$(if($Integration){'Integration '})$(if($Validation){'Validation'})" -ForegroundColor Cyan
+}
+
+# Rule 4: -NewWindow only applies to serve action
+if ($NewWindow -and $Action -ne "serve") {
+    Write-Warning "-NewWindow flag only applies to 'serve' action (ignored)"
+    $NewWindow = $false
+}
+
+# Rule 5: -Coverage without test action
+if ($Coverage -and $Action -ne "test") {
+    Write-Warning "-Coverage flag only applies to 'test' action (ignored)"
+    $Coverage = $false
+}
 
 # ============================================================================
 # CONFIGURATION
@@ -66,7 +118,6 @@ $Script:Config = @{
 
 function Write-Header {
     param([string]$Text)
-    Write-Host ""
     Write-Host "===============================================================" -ForegroundColor Cyan
     Write-Host "  $Text" -ForegroundColor White
     Write-Host "===============================================================" -ForegroundColor Cyan
@@ -99,8 +150,10 @@ function Write-Warning {
 
 function Write-Step {
     param([string]$Text)
-    Write-Host "-> " -ForegroundColor Magenta -NoNewline
-    Write-Host $Text -ForegroundColor White
+    if ($Detail) {
+        Write-Host "-> " -ForegroundColor Magenta -NoNewline
+        Write-Host $Text -ForegroundColor White
+    }
 }
 
 function Write-Result {
@@ -115,7 +168,6 @@ function Write-Result {
 
 function Write-Section {
     param([string]$Text)
-    Write-Host ""
     Write-Host "-------------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host $Text -ForegroundColor Yellow
     Write-Host "-------------------------------------------------------------" -ForegroundColor DarkGray
@@ -144,6 +196,230 @@ function Write-ApiCall {
         Write-Host "-> $Status" -ForegroundColor Yellow
     } else {
         Write-Host "-> $Status" -ForegroundColor Red
+    }
+}
+
+# ============================================================================
+# HELPER FUNCTIONS (Feature 002)
+# ============================================================================
+
+function Invoke-CommandWithVerbosity {
+    <#
+    .SYNOPSIS
+        Execute external command with output controlled by $Detail flag
+    .DESCRIPTION
+        Implements NFR-005 (<100ms overhead) and NFR-006 (efficient streaming)
+        via 2>&1 redirection for verbosity control
+    .PARAMETER Command
+        ScriptBlock containing the command to execute
+    .PARAMETER SuccessMessage
+        Message to display on success (default mode only)
+    .PARAMETER ErrorMessage
+        Message prefix for errors
+    .EXAMPLE
+        Invoke-CommandWithVerbosity -Command { uv venv } -SuccessMessage "Virtual environment created"
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [scriptblock]$Command,
+
+        [Parameter()]
+        [string]$SuccessMessage = "",
+
+        [Parameter()]
+        [string]$ErrorMessage = "Command failed"
+    )
+
+    if ($Detail) {
+        # Detail mode: Show all output (stdout and stderr)
+        & $Command
+    } else {
+        # Default mode: Suppress output, capture for error reporting
+        $output = & $Command 2>&1 | Out-String
+        if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
+            # Error occurred - show minimal summary instead of full output
+            # Extract just the summary lines for pytest failures
+            $lines = $output -split "`n"
+            $summaryStarted = $false
+            $relevantLines = @()
+            
+            foreach ($line in $lines) {
+                # Show FAILED lines
+                if ($line -match "^FAILED ") {
+                    $relevantLines += $line
+                }
+                # Show the short test summary
+                elseif ($line -match "^=+ (FAILURES|short test summary|failed|passed)") {
+                    $summaryStarted = $true
+                    $relevantLines += $line
+                }
+                # Show summary content
+                elseif ($summaryStarted -and $line -match "(FAILED|passed|failed|warnings)") {
+                    $relevantLines += $line
+                }
+            }
+            
+            # If we got relevant lines, show them; otherwise show count
+            if ($relevantLines.Count -gt 0) {
+                $relevantLines | Select-Object -First 10 | ForEach-Object {
+                    if ($_ -match "FAILED") {
+                        Write-Host $_ -ForegroundColor Red
+                    } else {
+                        Write-Host $_ -ForegroundColor Gray
+                    }
+                }
+            }
+            
+            # Don't throw - let the calling function handle the failure
+            # The LASTEXITCODE is still set and will be checked by caller
+        }
+    }
+
+    # Show success message in default mode
+    if ($SuccessMessage -and -not $Detail -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
+        Write-Success $SuccessMessage
+    }
+}
+
+function Get-PythonExePath {
+    <#
+    .SYNOPSIS
+        Get path to Python executable in virtual environment
+    .DESCRIPTION
+        Centralized function to return Python executable path.
+        Reduces duplication across quality check functions.
+    .EXAMPLE
+        $pythonExe = Get-PythonExePath
+    #>
+    return "$($Script:Config.VenvPath)\python.exe"
+}
+
+function Start-TestServer {
+    <#
+    .SYNOPSIS
+        Start server in background for integration/validation tests
+    .DESCRIPTION
+        Starts uvicorn server as background process for testing.
+        Waits for server to be ready before returning.
+    .OUTPUTS
+        Process object for the server (to stop later)
+    #>
+    Write-Step "Starting test server in background..."
+    
+    $pythonExe = Get-PythonExePath
+    $uvicornArgs = @(
+        "-m", "uvicorn",
+        "app.main:app",
+        "--host", "127.0.0.1",
+        "--port", "8000",
+        "--log-level", "warning"
+    )
+    
+    $serverProcess = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -PassThru -WindowStyle Hidden
+    
+    # Wait for server to be ready (max 10 seconds)
+    $maxWait = 10
+    $waited = 0
+    $ready = $false
+    
+    while ($waited -lt $maxWait -and -not $ready) {
+        Start-Sleep -Milliseconds 500
+        $waited += 0.5
+        
+        try {
+            $response = Invoke-WebRequest -Uri "http://127.0.0.1:8000/health" -TimeoutSec 1 -ErrorAction Stop
+            if ($response.StatusCode -eq 200) {
+                $ready = $true
+            }
+        } catch {
+            # Server not ready yet, continue waiting
+        }
+    }
+    
+    if ($ready) {
+        Write-Success "Test server ready"
+    } else {
+        Write-Warning "Server may still be starting (waited ${waited}s)"
+    }
+    
+    return $serverProcess
+}
+
+function Stop-TestServer {
+    <#
+    .SYNOPSIS
+        Stop the test server process
+    .PARAMETER ServerProcess
+        Process object returned from Start-TestServer
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        $ServerProcess
+    )
+    
+    if ($ServerProcess -and -not $ServerProcess.HasExited) {
+        Write-Step "Stopping test server..."
+        try {
+            Stop-Process -Id $ServerProcess.Id -Force -ErrorAction Stop
+            Write-Success "Test server stopped"
+        } catch {
+            Write-Warning "Could not stop server process: $_"
+        }
+    }
+}
+
+function Invoke-TestSuite {
+    <#
+    .SYNOPSIS
+        Run a specific test suite with consistent error handling
+    .DESCRIPTION
+        Reduces duplication in test execution logic.
+        Handles pytest invocation, exit codes, and result tracking.
+    .PARAMETER TestType
+        Type of test (unit, contract, integration)
+    .PARAMETER TestPath
+        Path to test directory
+    .PARAMETER PytestArgs
+        Arguments to pass to pytest
+    .EXAMPLE
+        Invoke-TestSuite -TestType "unit" -TestPath "tests/unit/" -PytestArgs $pytestArgs
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$TestType,
+
+        [Parameter(Mandatory=$true)]
+        [string]$TestPath,
+
+        [Parameter(Mandatory=$true)]
+        [array]$PytestArgs
+    )
+
+    Write-Step "Running $TestType tests..."
+
+    $pythonExe = Get-PythonExePath
+    $command = { & $pythonExe -m pytest $TestPath @PytestArgs }
+
+    Invoke-CommandWithVerbosity -Command $command -SuccessMessage "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests passed"
+
+    $exitCode = $LASTEXITCODE
+    $passed = ($exitCode -eq 0)
+
+    if (-not $Detail -and -not $passed) {
+        if ($TestType -eq "integration") {
+            Write-Host "[FAIL] " -ForegroundColor Red -NoNewline
+            Write-Host "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)" -ForegroundColor Yellow
+            Write-Info "Some integration tests may require the server running"
+        } else {
+            Write-Error "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)"
+        }
+    }
+
+    Write-Host ""
+
+    return @{
+        ExitCode = $exitCode
+        Passed = $passed
     }
 }
 
@@ -192,17 +468,29 @@ function Test-Prerequisites {
 function Invoke-Setup {
     Write-Header "Setting Up Observatory Environment"
 
-    Write-Step "Creating virtual environment with uv..."
-    uv venv
+    # T005: Add venv existence check + verbosity control
+    if (-not (Test-Path ".venv")) {
+        Write-Step "Creating virtual environment with uv..."
+        Invoke-CommandWithVerbosity -Command {
+            uv venv
+        } -SuccessMessage "Virtual environment created" -ErrorMessage "Failed to create virtual environment"
+    } else {
+        if ($Detail) {
+            Write-Info "Virtual environment already exists (skipping creation)"
+        }
+    }
 
+    # T006: Apply verbosity to dependency installation
     Write-Step "Installing dependencies..."
-    uv pip install -e .
+    Invoke-CommandWithVerbosity -Command {
+        uv pip install -e .
+    } -SuccessMessage "Dependencies installed" -ErrorMessage "Failed to install dependencies"
 
+    # T007: Apply verbosity to dev dependencies
     Write-Step "Installing development dependencies..."
-    uv pip install -e ".[dev]"
-
-    Write-Host ""
-    Write-Success "Dependencies installed!"
+    Invoke-CommandWithVerbosity -Command {
+        uv pip install -e ".[dev]"
+    } -SuccessMessage "Development dependencies installed" -ErrorMessage "Failed to install development dependencies"
 
     # Auto-generate API keys if they don't exist
     Write-Host ""
@@ -378,103 +666,233 @@ PARTNER_KEY=$($keys.partner_key)
 # ============================================================================
 
 function Invoke-Tests {
-    Write-Header "Running Observatory Test Suite"
+    # T008: Determine which tests to run based on flags
+    $runAll = -not ($Unit -or $Contract -or $Integration -or $Validation)
+    
+    # Determine title based on what's running
+    if ($runAll) {
+        Write-Header "Running Observatory Test Suite"
+    } elseif ($Validation) {
+        Write-Header "Running Validation Suite"
+    } else {
+        $types = @()
+        if ($Unit) { $types += "Unit" }
+        if ($Contract) { $types += "Contract" }
+        if ($Integration) { $types += "Integration" }
+        Write-Header "Running $($types -join ' + ') Tests"
+    }
     
     if (-not (Test-Prerequisites)) {
         Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
         return
     }
     
-    # Get test counts dynamically
-    Write-Step "Collecting test information..."
-    $unitCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
-    $contractCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/contract/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
-    $integCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
-    
-    Write-Section "Unit Tests ($unitCount tests)"
-    Write-Step "Running unit tests..."
-    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ -v --tb=short
-    $unitExitCode = $LASTEXITCODE
-    
-    Write-Host ""
-    Write-Section "Contract Tests ($contractCount tests)"
-    Write-Step "Running contract tests..."
-    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/contract/ -v --tb=short
-    $contractExitCode = $LASTEXITCODE
-    
-    Write-Host ""
-    Write-Section "Integration Tests ($integCount tests)"
-    Write-Step "Running integration tests..."
-    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ -v --tb=short
-    $integExitCode = $LASTEXITCODE
-    
-    Write-Host ""
-    Write-Section "Test Summary"
-    
-    $totalTests = [int]$unitCount + [int]$contractCount + [int]$integCount
-    
-    if ($unitExitCode -eq 0) {
-        Write-Success "Unit tests passed ($unitCount/$unitCount)"
+    # T009: Define pytest arguments based on verbosity
+    $pytestArgs = @()
+    if ($Detail) {
+        $pytestArgs += @("-v", "--tb=short")
     } else {
-        Write-Error "Unit tests failed (exit code: $unitExitCode)"
+        $pytestArgs += @("-q", "--tb=line")
     }
     
-    if ($contractExitCode -eq 0) {
-        Write-Success "Contract tests passed ($contractCount/$contractCount)"
-    } else {
-        Write-Error "Contract tests failed (exit code: $contractExitCode)"
+    # T010: Add coverage if requested
+    if ($Coverage) {
+        $pytestArgs += @("--cov=app", "--cov-report=term-missing")
+        if ($Detail) {
+            Write-Info "Coverage reporting enabled"
+        }
     }
-    
-    if ($integExitCode -eq 0) {
-        Write-Success "Integration tests passed ($integCount/$integCount)"
-    } else {
-        Write-Warning "Integration tests failed (exit code: $integExitCode)"
-        Write-Info "Some integration tests may require the server running"
+
+    # Track results
+    $results = @{}
+    $exitCodes = @{}
+    $serverProcess = $null
+    $needsServer = ($Integration -or $Validation -or $runAll)
+
+    # Check for API keys, generate if missing (needed for validation/integration)
+    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
+    $partnerKey = $null
+
+    if ($needsServer) {
+        if (-not (Test-Path $apiKeyFile)) {
+            Write-Step "Generating API keys for testing..."
+            Invoke-GenerateKeys
+            Write-Host ""
+        }
+
+        # Load partner key for testing (highest rate limits)
+        if (Test-Path $apiKeyFile) {
+            $content = Get-Content $apiKeyFile -Raw
+            if ($content -match 'PARTNER_KEY=([^\r\n]+)') {
+                $partnerKey = $Matches[1]
+                Write-Info "Using PARTNER_KEY for testing (600 req/min limit)"
+                Write-Host ""
+            }
+        }
     }
-    
-    Write-Host ""
-    if ($unitExitCode -eq 0 -and $contractExitCode -eq 0 -and $integExitCode -eq 0) {
-        Write-Success "All $totalTests tests passed! "
-    } else {
+
+    # Start server if integration or validation tests will run
+    if ($needsServer) {
+        $serverProcess = Start-TestServer
+        Write-Host ""
+    }
+
+    try {
+        # T008: Run unit tests if requested
+        if ($Unit -or $runAll) {
+            $result = Invoke-TestSuite -TestType "unit" -TestPath "tests/unit/" -PytestArgs $pytestArgs
+            $exitCodes['unit'] = $result.ExitCode
+            $results['unit'] = $result.Passed
+        }
+
+        # T008: Run contract tests if requested
+        if ($Contract -or $runAll) {
+            $result = Invoke-TestSuite -TestType "contract" -TestPath "tests/contract/" -PytestArgs $pytestArgs
+            $exitCodes['contract'] = $result.ExitCode
+            $results['contract'] = $result.Passed
+        }
+
+        # T008: Run integration tests if requested
+        if ($Integration -or $runAll) {
+            # Set API key as environment variable for integration tests
+            if ($partnerKey) {
+                $env:TEST_API_KEY = $partnerKey
+            }
+
+            $result = Invoke-TestSuite -TestType "integration" -TestPath "tests/integration/" -PytestArgs $pytestArgs
+            $exitCodes['integration'] = $result.ExitCode
+            $results['integration'] = $result.Passed
+
+            # Clean up environment variable
+            if ($partnerKey) {
+                Remove-Item Env:\TEST_API_KEY -ErrorAction SilentlyContinue
+            }
+        }
+
+        # T008: Run validation suite if requested
+        if ($Validation -or $runAll) {
+            Write-Step "Running validation suite..."
+
+            if (Test-Path ".\scripts\validation.ps1") {
+                # Pass base URL and API key to validation script
+                $validationArgs = @{
+                    BaseUrl = $Script:Config.BaseUrl
+                }
+
+                if ($partnerKey) {
+                    $validationArgs['ApiKey'] = $partnerKey
+                }
+
+                # Use quiet mode unless -Detail is specified
+                if (-not $Detail) {
+                    $validationArgs['Quiet'] = $true
+                }
+
+                & ".\scripts\validation.ps1" @validationArgs
+                $exitCodes['validation'] = $LASTEXITCODE
+                $results['validation'] = ($LASTEXITCODE -eq 0)
+
+                if ($LASTEXITCODE -eq 0) {
+                    if (-not $Detail) {
+                        Write-Success "Validation suite passed"
+                    }
+                } else {
+                    Write-Warning "Validation suite failed (exit code: $LASTEXITCODE)"
+                }
+            } else {
+                Write-Warning "Validation script not found at .\scripts\validation.ps1"
+                $results['validation'] = $false
+            }
+            Write-Host ""
+        }
+    }
+    finally {
+        # Always stop the server if we started it
+        if ($serverProcess) {
+            Write-Host ""
+            Stop-TestServer -ServerProcess $serverProcess
+        }
+    }
+
+    # Summary
+    if ($results.Count -gt 0) {
+        Write-Section "Test Summary"
+        
+        # Show results in the order they were run
+        $testOrder = @('unit', 'contract', 'integration', 'validation')
+        $allPassed = $true
         $failedSuites = @()
-        if ($unitExitCode -ne 0) { $failedSuites += "unit" }
-        if ($contractExitCode -ne 0) { $failedSuites += "contract" }
-        if ($integExitCode -ne 0) { $failedSuites += "integration" }
-        Write-Warning "Failed test suites: $($failedSuites -join ', ')"
+        
+        # Show results in execution order
+        foreach ($suite in $testOrder) {
+            if ($results.ContainsKey($suite)) {
+                if ($results[$suite]) {
+                    Write-Success "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests passed"
+                } else {
+                    Write-Error "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests failed"
+                    $failedSuites += $suite
+                    $allPassed = $false
+                }
+            }
+        }
+        
+        Write-Host ""
+        if ($allPassed) {
+            Write-Success "All tests passed!"
+        } else {
+            Write-Warning "Failed test suites: $($failedSuites -join ', ')"
+            Write-Info "Run with -Detail flag for more information"
+        }
     }
 }
 
 function Invoke-QuickTests {
+    param(
+        [switch]$ReturnExitCode
+    )
+
     Write-Header "Running Quick Test Suite"
-    
+
     if (-not (Test-Prerequisites)) {
         Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        if ($ReturnExitCode) {
+            # Set global variable and exit early
+            $global:LastQuickTestExitCode = 1
+            return
+        }
         return
     }
-    
+
     Write-Step "Running essential unit tests (fast subset)..."
     Write-Info "Testing: database, auth, rate limiting, and validation"
     Write-Host ""
-    
+
+    # In demo context, use quieter output to match demo style
+    $quietMode = $ReturnExitCode
+    $pytestArgs = if ($quietMode) { @("-q", "--tb=line") } else { @("-v", "--tb=short") }
+
     & "$($Script:Config.VenvPath)\python.exe" -m pytest `
         tests/unit/test_database.py `
         tests/unit/test_auth.py `
         tests/unit/test_ratelimit.py `
         tests/unit/test_validator.py `
-        -v --tb=short
-    
+        @pytestArgs
+
     $exitCode = $LASTEXITCODE
-    
+
     Write-Host ""
     if ($exitCode -eq 0) {
-        Write-Success "Quick tests passed! [OK]"
+        Write-Success "Quick tests passed!"
         Write-Info "Run '.\quick-start.ps1 test' for full suite"
     } else {
         Write-Error "Some tests failed"
         Write-Info "See output above for details"
     }
-    
-    return $exitCode
+
+    if ($ReturnExitCode) {
+        # Store exit code in global variable instead of returning
+        $global:LastQuickTestExitCode = $exitCode
+    }
 }
 
 # ============================================================================
@@ -483,29 +901,52 @@ function Invoke-QuickTests {
 
 function Start-Server {
     param([bool]$Background = $false)
-    
+
     Write-Header "Starting $($Script:Config.ServiceName)"
-    
+
     if (-not (Test-Prerequisites)) {
         Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
         return
     }
-    
+
     Write-Result "Service" $Script:Config.ServiceName
     Write-Result "Version" $Script:Config.Version
     Write-Result "Base URL" $Script:Config.BaseUrl "Green"
     Write-Result "Port" $Port "Cyan"
+
+    # T012: Check if clean logging is requested and available
+    if ($Clean) {
+        $cleanServerScript = Join-Path $PSScriptRoot "run_clean_server.py"
+        if (-not (Test-Path $cleanServerScript)) {
+            Write-Warning "Clean logging script not found (run_clean_server.py missing). Using standard mode."
+            $Clean = $false
+        } else {
+            Write-Result "Logging" "Clean (no ANSI codes)" "Yellow"
+        }
+    }
+
     Write-Host ""
-    
+
     Write-Step "Starting FastAPI server..."
 
     if ($NewWindow) {
-        # Start server in new PowerShell window (prefer PowerShell Core)
-        $pwsh = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
-        $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
-        Start-Process $pwsh -ArgumentList "-NoExit", "-Command", $serverScript
+        # Start server in new Windows Terminal window with Orion profile
+        # T012: Use clean server script if -Clean flag is set
+        $pythonExe = "$($Script:Config.VenvPath)\python.exe"
+        if ($Clean) {
+            $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" run_clean_server.py $Port --reload"
+        } else {
+            $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" run_server.py $Port --reload"
+        }
 
-        Write-Success "Server starting in new $pwsh window"
+        # Use Windows Terminal with Orion profile
+        # Syntax: wt -p ProfileName cmd /k "command"
+        Start-Process wt -ArgumentList "-p", "Orion", "cmd", "/k", $cmdCommand
+        Write-Success "Server starting in new Windows Terminal (Orion profile)"
+        
+        if ($Clean) {
+            Write-Info "Using clean logging (ANSI-free output)"
+        }
         Write-Info "Waiting for server to initialize..."
         Start-Sleep -Seconds 3
 
@@ -518,17 +959,38 @@ function Start-Server {
         }
     }
     elseif ($Background) {
-        Start-Job -ScriptBlock {
-            param($VenvPath, $Port)
-            & "$VenvPath\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port
-        } -ArgumentList $Script:Config.VenvPath, $Port
+        # T012: Support clean logging in background mode
+        if ($Clean) {
+            Start-Job -ScriptBlock {
+                param($VenvPath, $Port, $ScriptRoot)
+                & "$VenvPath\python.exe" "$ScriptRoot\run_clean_server.py" $Port
+            } -ArgumentList $Script:Config.VenvPath, $Port, $PSScriptRoot
+        } else {
+            Start-Job -ScriptBlock {
+                param($VenvPath, $Port)
+                & "$VenvPath\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port
+            } -ArgumentList $Script:Config.VenvPath, $Port
+        }
 
+        Write-Host ""
         Write-Success "Server started in background"
+        if ($Clean) {
+            Write-Info "Using clean logging (ANSI-free output)"
+        }
         Start-Sleep -Seconds 2
     } else {
+        # T012: Support clean logging in foreground mode
         Write-Info "Press Ctrl+C to stop the server"
+        if ($Clean) {
+            Write-Info "Using clean logging (no ANSI escape codes)"
+        }
         Write-Host ""
-        & "$($Script:Config.VenvPath)\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload
+
+        if ($Clean) {
+            & "$($Script:Config.VenvPath)\python.exe" run_clean_server.py $Port --reload
+        } else {
+            & "$($Script:Config.VenvPath)\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload
+        }
     }
 }
 
@@ -538,16 +1000,16 @@ function Start-Server {
 
 function Test-HealthEndpoint {
     Write-Section "Testing Health Endpoint"
-    
+
     try {
         $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop
         $data = $response.Content | ConvertFrom-Json
-        
+
         Write-ApiCall "GET" "/health" $response.StatusCode
         Write-Result "Status" $data.status "Green"
         Write-Result "Version" $data.version
         Write-Result "Timestamp" $data.timestamp
-        
+
         return $true
     } catch {
         Write-ApiCall "GET" "/health" "ERROR"
@@ -559,7 +1021,7 @@ function Test-HealthEndpoint {
 
 function Test-AnalyzeEndpoint {
     Write-Section "Testing Analysis Endpoint"
-    
+
     $conversationText = @"
 Human: What is the meaning of life?
 AI: The meaning of life is a profound philosophical question. Many find meaning through relationships, personal growth, and contributing to something larger than themselves.
@@ -577,6 +1039,7 @@ AI: Certainly. From a practical perspective, meaning often comes from: pursuing 
     
     Write-Step "Sending analysis request..."
     Write-Info "Conversation length: $($conversationText.Length) characters"
+    Write-Host ""
     
     try {
         $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/api/v1/analyze" `
@@ -626,18 +1089,20 @@ AI: Certainly. From a practical perspective, meaning often comes from: pursuing 
 
 function Test-RateLimiting {
     Write-Section "Testing Rate Limiting"
-    
+
     Write-Step "Making rapid requests to test rate limiter..."
-    Write-Info "Public tier allows 10 requests/minute"
-    
+    Write-Info "Public tier: 10 requests/minute total (including previous health/analyze requests)"
+    Write-Info "Expect some requests to be rate limited (429) if limit exceeded"
+    Write-Host ""
+
     $successCount = 0
     $rateLimitedCount = 0
-    
+
     for ($i = 1; $i -le 12; $i++) {
         try {
             $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop
             $successCount++
-            
+
             if ($response.Headers["X-RateLimit-Remaining"]) {
                 $remaining = $response.Headers["X-RateLimit-Remaining"]
                 Write-Host "  Request $i`: " -ForegroundColor Gray -NoNewline
@@ -651,23 +1116,24 @@ function Test-RateLimiting {
                 Write-Host "[FAIL] 429 Rate Limited" -ForegroundColor Yellow
             }
         }
-        
+
         Start-Sleep -Milliseconds 100
     }
-    
+
     Write-Host ""
     Write-Result "Successful Requests" $successCount "Green"
     Write-Result "Rate Limited" $rateLimitedCount "Yellow"
-    
+
     if ($rateLimitedCount -gt 0) {
+        Write-Host ""
         Write-Success "Rate limiting is working correctly!"
     }
 }
 
 function Test-AuthenticationMetrics {
     Write-Section "Testing Authentication & Metrics"
-    
-    Write-Step "Testing unauthenticated access to /metrics..."
+
+    Write-Info "Testing unauthenticated access to /metrics..."
     try {
         Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/metrics" -Method GET -ErrorAction Stop | Out-Null
         Write-Error "Unexpected: Metrics accessible without auth"
@@ -677,11 +1143,38 @@ function Test-AuthenticationMetrics {
             Write-Success "Authentication required (as expected)"
         }
     }
-    
+
     Write-Host ""
-    Write-Info "To test with API key, register a key and use:"
-    Write-Host '  $headers = @{"Authorization" = "Bearer YOUR_API_KEY"}' -ForegroundColor DarkGray
-    Write-Host '  Invoke-WebRequest -Uri "$baseUrl/metrics" -Headers $headers' -ForegroundColor DarkGray
+
+    # Check for API key and demonstrate authenticated access
+    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
+    if (Test-Path $apiKeyFile) {
+        $content = Get-Content $apiKeyFile -Raw
+        if ($content -match 'DEV_KEY=([^\r\n]+)') {
+            $apiKey = $Matches[1]
+            Write-Step "Testing authenticated access with DEV_KEY..."
+
+            try {
+                $headers = @{"Authorization" = "Bearer $apiKey"}
+                $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/metrics" -Headers $headers -ErrorAction Stop
+                $data = $response.Content | ConvertFrom-Json
+
+                Write-ApiCall "GET" "/metrics" $response.StatusCode
+                Write-Success "Authenticated access successful!"
+                Write-Result "Tier" $data.tier "Cyan"
+                Write-Result "Total Analyses" $data.database_stats.total_analyses "Cyan"
+                Write-Result "Completed" $data.database_stats.completed_analyses "Cyan"
+                if ($data.database_stats.avg_processing_time -gt 0) {
+                    Write-Result "Avg Processing Time" "$([math]::Round($data.database_stats.avg_processing_time, 2))s" "Cyan"
+                }
+            } catch {
+                Write-Warning "Could not fetch metrics: $($_.Exception.Message)"
+            }
+        }
+    } else {
+        Write-Info "To test with API key, generate keys first:"
+        Write-Host '  .\quick-start.ps1 keys' -ForegroundColor DarkGray
+    }
 }
 
 # ============================================================================
@@ -689,6 +1182,7 @@ function Test-AuthenticationMetrics {
 # ============================================================================
 
 function Invoke-Demo {
+    Write-Host ""
     Write-Header "$($Script:Config.ServiceName) - Full Demo"
     
     # Get test counts for info
@@ -709,23 +1203,34 @@ function Invoke-Demo {
     Write-Host ""
     
     Read-Host "Press Enter to continue"
-    
-    # Quick tests
-    $testResult = Invoke-QuickTests
+
+    # Quick tests - use global variable to avoid PowerShell output capture issues
+    Invoke-QuickTests -ReturnExitCode
+    $testResult = $global:LastQuickTestExitCode
+
     if ($testResult -ne 0) {
         Write-Host ""
         Write-Warning "Quick tests failed. Continuing with demo anyway..."
-        Write-Host ""
         Start-Sleep -Seconds 2
     }
-    
-    # Start server
+
     Write-Host ""
+
+    # Check for API keys, generate if missing
+    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
+    if (-not (Test-Path $apiKeyFile)) {
+        Write-Step "No API keys found - generating development keys..."
+        Invoke-GenerateKeys
+        Write-Host ""
+    }
+
+    # Start server
     Start-Server -Background $true
-    
+
+    Write-Host ""
     Write-Step "Waiting for server to start..."
     Start-Sleep -Seconds 3
-    
+
     # Test endpoints
     $serverRunning = Test-HealthEndpoint
     
@@ -747,9 +1252,7 @@ function Invoke-Demo {
     Get-Job | Stop-Job
     Get-Job | Remove-Job
     Write-Success "Server stopped"
-    
-    Write-Host ""
-    Write-Success "Demo completed successfully! "
+    Write-Success "Demo completed successfully!"
 }
 
 # ============================================================================
@@ -758,6 +1261,11 @@ function Invoke-Demo {
 
 function Invoke-Validation {
     Write-Header "Running Automated Validation Suite"
+    
+    # T011: Deprecation warning
+    Write-Warning "The 'validate' action is deprecated. Use 'test -Validation' instead."
+    Write-Info "Example: .\quick-start.ps1 test -Validation"
+    Write-Host ""
 
     # Check if validation script exists
     $validationScript = Join-Path $PSScriptRoot "scripts\validation.ps1"
@@ -879,6 +1387,157 @@ function Invoke-Validation {
 }
 
 # ============================================================================
+# CODE QUALITY ACTIONS (Feature 002 - T013-T015)
+# ============================================================================
+
+function Invoke-Lint {
+    <#
+    .SYNOPSIS
+        Run code linter using ruff
+    .DESCRIPTION
+        Executes ruff check on the codebase. In default mode, suppresses output
+        unless issues are found. In Detail mode, shows full linter output.
+    #>
+    Write-Header "Running Code Linter"
+
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
+
+    $pythonExe = Get-PythonExePath
+
+    Write-Step "Running ruff check..."
+
+    # T013: Apply verbosity control to linter
+    $command = { & $pythonExe -m ruff check . }
+
+    try {
+        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "No linting issues found" -ErrorMessage "Linting found issues"
+    } catch {
+        # Linting failed - error already displayed by helper
+        exit 1
+    }
+}
+
+function Invoke-Format {
+    <#
+    .SYNOPSIS
+        Format code using ruff
+    .DESCRIPTION
+        Executes ruff format on the codebase. Shows summary of files changed
+        in default mode, full output in Detail mode.
+    #>
+    Write-Header "Formatting Code"
+
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
+
+    $pythonExe = Get-PythonExePath
+
+    Write-Step "Running ruff format..."
+
+    # T014: Format with verbosity control
+    if ($Detail) {
+        # Detail mode: Show full formatting output
+        & $pythonExe -m ruff format .
+        $exitCode = $LASTEXITCODE
+
+        if ($exitCode -eq 0) {
+            Write-Success "Code formatted successfully"
+        } else {
+            Write-Error "Formatting failed (exit code: $exitCode)"
+            exit 1
+        }
+    } else {
+        # Default mode: Show summary only
+        $output = & $pythonExe -m ruff format . 2>&1
+        $exitCode = $LASTEXITCODE
+
+        if ($exitCode -eq 0) {
+            # Extract summary line (e.g., "12 files reformatted, 45 files left unchanged")
+            $summary = $output | Where-Object { $_ -match "files?" } | Select-Object -Last 1
+
+            if ($summary) {
+                Write-Success $summary.ToString().Trim()
+            } else {
+                Write-Success "Code formatted successfully"
+            }
+        } else {
+            # Formatting failed - show output
+            Write-Host $output -ForegroundColor Red
+            Write-Error "Formatting failed (exit code: $exitCode)"
+            exit 1
+        }
+    }
+}
+
+function Invoke-Check {
+    <#
+    .SYNOPSIS
+        Run all code quality checks
+    .DESCRIPTION
+        Executes both linting (ruff check) and type checking (mypy) on the codebase.
+        Reports results for each check and overall status.
+    #>
+    Write-Header "Running Code Quality Checks"
+
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
+
+    $pythonExe = Get-PythonExePath
+    $allPassed = $true
+
+    # T015: Run linter
+    Write-Section "Running Linter (ruff check)"
+    Write-Step "Checking code style..."
+
+    & $pythonExe -m ruff check .
+    $lintExitCode = $LASTEXITCODE
+
+    Write-Host ""
+    if ($lintExitCode -eq 0) {
+        Write-Success "Linting passed"
+    } else {
+        Write-Error "Linting failed"
+        $allPassed = $false
+    }
+
+    # T015: Run type checker
+    Write-Host ""
+    Write-Section "Running Type Checker (mypy)"
+    Write-Step "Checking type annotations..."
+
+    & $pythonExe -m mypy app/
+    $mypyExitCode = $LASTEXITCODE
+
+    Write-Host ""
+    if ($mypyExitCode -eq 0) {
+        Write-Success "Type checking passed"
+    } else {
+        Write-Error "Type checking failed"
+        $allPassed = $false
+    }
+
+    # Summary
+    Write-Host ""
+    Write-Section "Quality Check Summary"
+
+    if ($allPassed) {
+        Write-Success "All quality checks passed!"
+        exit 0
+    } else {
+        Write-Warning "Some quality checks failed"
+        Write-Info "Review the output above for details"
+        exit 1
+    }
+}
+
+# ============================================================================
 # HELP FUNCTION
 # ============================================================================
 
@@ -910,6 +1569,12 @@ function Show-Help {
     Write-Host "  Generate development API keys"
     Write-Host "  validate   " -ForegroundColor Green -NoNewline
     Write-Host "  Run automated validation suite (starts server if needed)"
+    Write-Host "  lint       " -ForegroundColor Green -NoNewline
+    Write-Host "  Run code linter (ruff check)"
+    Write-Host "  format     " -ForegroundColor Green -NoNewline
+    Write-Host "  Format code with ruff"
+    Write-Host "  check      " -ForegroundColor Green -NoNewline
+    Write-Host "  Run all code quality checks (lint + type check)"
     Write-Host "  clean      " -ForegroundColor Green -NoNewline
     Write-Host "  Remove virtual environment and caches"
     Write-Host "  help       " -ForegroundColor Green -NoNewline
@@ -922,7 +1587,19 @@ function Show-Help {
     Write-Host "  -NewWindow      " -ForegroundColor Cyan -NoNewline
     Write-Host "  Start server in new PowerShell window (for 'serve' action)"
     Write-Host "  -Detail         " -ForegroundColor Cyan -NoNewline
-    Write-Host "  Enable detailed output"
+    Write-Host "  Enable detailed output with progress steps"
+    Write-Host ""
+    Write-Host "  Test Filtering:" -ForegroundColor Yellow
+    Write-Host "  -Unit           " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only unit tests (fast, no external dependencies)"
+    Write-Host "  -Contract       " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only contract tests (API contract validation)"
+    Write-Host "  -Integration    " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only integration tests (requires server/services)"
+    Write-Host "  -Validation     " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only validation suite (automated API tests)"
+    Write-Host "  -Coverage       " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Generate code coverage report (works with any test type)"
     Write-Host ""
     
     Write-Host "EXAMPLES:" -ForegroundColor Yellow
@@ -930,7 +1607,16 @@ function Show-Help {
     Write-Host "    Initialize the development environment" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  .\quick-start.ps1 test" -ForegroundColor White
-    Write-Host "    Run all tests" -ForegroundColor Gray
+    Write-Host "    Run all tests (unit + contract + integration + validation)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 test -Unit" -ForegroundColor White
+    Write-Host "    Run only unit tests (fast, ~2 seconds)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 test -Unit -Coverage" -ForegroundColor White
+    Write-Host "    Run unit tests with code coverage report" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 test -Detail" -ForegroundColor White
+    Write-Host "    Run all tests with verbose output" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  .\quick-start.ps1 serve -Port 8001" -ForegroundColor White
     Write-Host "    Start server on port 8001" -ForegroundColor Gray
@@ -946,6 +1632,16 @@ function Show-Help {
     Write-Host ""
     Write-Host "  .\quick-start.ps1 validate" -ForegroundColor White
     Write-Host "    Run automated validation (auto-starts server if needed)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Code Quality Examples:" -ForegroundColor DarkGray
+    Write-Host "  .\quick-start.ps1 lint" -ForegroundColor White
+    Write-Host "    Check code style (fast, read-only)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 format" -ForegroundColor White
+    Write-Host "    Auto-format all code with ruff" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 check" -ForegroundColor White
+    Write-Host "    Pre-commit checks (lint + type check)" -ForegroundColor Gray
     Write-Host ""
     
     Write-Host "MORE INFO:" -ForegroundColor Yellow
@@ -989,6 +1685,15 @@ switch ($Action.ToLower()) {
     }
     'validate' {
         Invoke-Validation
+    }
+    'lint' {
+        Invoke-Lint
+    }
+    'format' {
+        Invoke-Format
+    }
+    'check' {
+        Invoke-Check
     }
     'clean' {
         Invoke-Clean

@@ -46,7 +46,7 @@ async def create_analysis(
 ):
     """
     Create a new conversation analysis request.
-    
+
     Returns 202 Accepted with analysis ID and status.
     The analysis runs asynchronously in the background.
     """
@@ -54,7 +54,7 @@ async def create_analysis(
     validation = validator.validate(request.conversation_text)
     if not validation.is_valid:
         raise HTTPException(status_code=400, detail=validation.error)
-    
+
     # Create database record
     analysis_id = str(uuid4())
     analysis = Analysis(
@@ -63,18 +63,18 @@ async def create_analysis(
         status=AnalysisStatus.PENDING,
     )
     analysis.set_expiration()
-    
+
     db.add(analysis)
     await db.commit()
     await db.refresh(analysis)
-    
+
     # Log creation
     log_analysis_created(
         analysis_id=analysis_id,
         conversation_size=len(request.conversation_text),
         options=request.options.model_dump(),
     )
-    
+
     # Start async analysis job
     async def run_analysis():
         """Background task to run analysis - creates its own DB session."""
@@ -95,7 +95,9 @@ async def create_analysis(
                 analysis_result = await analyzer.analyze(
                     conversation=request.conversation_text,
                 )
-                processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
+                processing_time = (
+                    datetime.now(UTC).replace(tzinfo=None) - start_time
+                ).total_seconds()
 
                 # Update database with results
                 bg_analysis.status = AnalysisStatus.COMPLETED
@@ -117,7 +119,9 @@ async def create_analysis(
                 # Update status to failed
                 bg_analysis.status = AnalysisStatus.FAILED
                 bg_analysis.error = str(e)
-                bg_analysis.processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
+                bg_analysis.processing_time = (
+                    datetime.now(UTC).replace(tzinfo=None) - start_time
+                ).total_seconds()
                 await bg_db.commit()
 
                 # Log failure
@@ -129,13 +133,13 @@ async def create_analysis(
             finally:
                 # Session cleanup is handled by the async context manager
                 break
-    
+
     # Create background job
     await job_manager.create_job(
         run_analysis,
         timeout=settings.analysis_timeout,
     )
-    
+
     # Return status response
     return AnalysisStatusResponse(
         id=analysis.id,
@@ -230,35 +234,35 @@ async def cancel_analysis(
 ):
     """
     Cancel an ongoing analysis.
-    
+
     Only pending or processing analyses can be cancelled.
     """
     # Query database
     stmt = select(Analysis).where(Analysis.id == analysis_id)
     result = await db.execute(stmt)
     analysis = result.scalar_one_or_none()
-    
+
     if analysis is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    
+
     # Check if cancellable
     if analysis.status not in [AnalysisStatus.PENDING, AnalysisStatus.PROCESSING]:
         raise HTTPException(
             status_code=409,
             detail=f"Cannot cancel analysis with status: {analysis.status.value}",
         )
-    
+
     # Cancel the job (if still running)
     # Note: JobManager doesn't have job IDs tied to analysis IDs yet
     # This is a simplified implementation
-    
+
     # Update status
     analysis.status = AnalysisStatus.CANCELLED
     await db.commit()
-    
+
     # Log cancellation
     log_analysis_cancelled(analysis_id=analysis_id, initiated_by="user")
-    
+
     return CancelResponse(
         id=analysis.id,
         status=analysis.status.value,

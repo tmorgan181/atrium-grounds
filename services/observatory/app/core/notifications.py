@@ -180,7 +180,9 @@ class WebhookNotifier:
                 "total_conversations": total_conversations,
                 "completed_count": completed_count,
                 "failed_count": failed_count,
-                "success_rate": round(completed_count / total_conversations * 100, 2) if total_conversations > 0 else 0.0,
+                "success_rate": round(completed_count / total_conversations * 100, 2)
+                if total_conversations > 0
+                else 0.0,
             },
         }
 
@@ -233,9 +235,7 @@ class WebhookNotifier:
                 logger.info(f"Webhook sent successfully to {url}: {payload['event']}")
                 return True
             else:
-                logger.warning(
-                    f"Webhook failed with status {response.status_code}: {url}"
-                )
+                logger.warning(f"Webhook failed with status {response.status_code}: {url}")
                 return False
 
         except httpx.RequestError as e:

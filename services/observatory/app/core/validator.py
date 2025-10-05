@@ -59,10 +59,13 @@ class InputValidator:
         ]
 
         self.path_traversal_patterns = [
-            r"\.\./",
-            r"\.\.",
-            r"/etc/",
-            r"\\\\",
+            r"\.\./",  # ../ (directory traversal)
+            r"/\.\.",  # /.. (directory traversal)
+            r"\.\.$",  # .. at end of string
+            r"^\.\.",  # .. at start of string
+            r"[/\\]\.\.[/\\]",  # /../ or \..\  (directory traversal with slashes)
+            r"/etc/",  # /etc/ access attempt
+            r"\\\\",  # UNC path
         ]
 
     def validate(self, conversation: str) -> ValidationResult:
@@ -86,7 +89,8 @@ class InputValidator:
         # Check length
         if len(conversation) > self.max_length:
             return ValidationResult(
-                is_valid=False, error=f"Conversation exceeds maximum length of {self.max_length} characters"
+                is_valid=False,
+                error=f"Conversation exceeds maximum length of {self.max_length} characters",
             )
 
         # Check for null bytes
@@ -101,7 +105,9 @@ class InputValidator:
         # Check for command injection
         for pattern in self.cmd_injection_patterns:
             if re.search(pattern, conversation):
-                return ValidationResult(is_valid=False, error="Potential command injection detected")
+                return ValidationResult(
+                    is_valid=False, error="Potential command injection detected"
+                )
 
         # Check for script injection
         for pattern in self.script_injection_patterns:

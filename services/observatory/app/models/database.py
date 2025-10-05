@@ -4,7 +4,17 @@ import uuid
 from datetime import datetime, timedelta, UTC
 from typing import Optional, AsyncGenerator
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text, JSON, Enum as SQLEnum
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    Integer,
+    String,
+    Text,
+    JSON,
+    Enum as SQLEnum,
+)
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 import enum
@@ -53,8 +63,15 @@ class Analysis(Base):
     error = Column(Text, nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC).replace(tzinfo=None))
-    last_accessed_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC).replace(tzinfo=None), onupdate=lambda: datetime.now(UTC).replace(tzinfo=None))
+    created_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(UTC).replace(tzinfo=None)
+    )
+    last_accessed_at = Column(
+        DateTime,
+        nullable=False,
+        default=lambda: datetime.now(UTC).replace(tzinfo=None),
+        onupdate=lambda: datetime.now(UTC).replace(tzinfo=None),
+    )
     expires_at = Column(DateTime, nullable=True)
 
     def __repr__(self) -> str:
@@ -63,7 +80,9 @@ class Analysis(Base):
 
     def set_expiration(self) -> None:
         """Set expiration date based on TTL configuration."""
-        self.expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=settings.ttl_results)
+        self.expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(
+            days=settings.ttl_results
+        )
 
     def update_last_accessed(self) -> None:
         """Update last_accessed_at timestamp."""
@@ -146,13 +165,13 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 async def cleanup_expired_records() -> dict[str, int]:
     """
     Clean up expired analysis records based on TTL configuration.
-    
+
     Returns:
         Dictionary with counts of deleted results and metadata.
     """
     from sqlalchemy import select, delete
     from app.core.logging import log_ttl_cleanup, log_ttl_cleanup_error
-    
+
     if async_session_maker is None:
         await init_database()
 
@@ -168,7 +187,7 @@ async def cleanup_expired_records() -> dict[str, int]:
             stmt = select(Analysis).where(Analysis.last_accessed_at < results_cutoff)
             result = await session.execute(stmt)
             to_delete = result.scalars().all()
-            
+
             deleted_count = len(to_delete)
             oldest_date = min([r.last_accessed_at for r in to_delete], default=None)
 
@@ -202,12 +221,12 @@ async def cleanup_expired_records() -> dict[str, int]:
 def start_cleanup_scheduler() -> None:
     """Start the TTL cleanup scheduler."""
     global cleanup_scheduler
-    
+
     if cleanup_scheduler is not None:
         return  # Already started
-    
+
     cleanup_scheduler = AsyncIOScheduler()
-    
+
     # Run cleanup daily at 2 AM
     cleanup_scheduler.add_job(
         cleanup_expired_records,
@@ -216,14 +235,14 @@ def start_cleanup_scheduler() -> None:
         name="TTL Cleanup Job",
         replace_existing=True,
     )
-    
+
     cleanup_scheduler.start()
 
 
 def stop_cleanup_scheduler() -> None:
     """Stop the TTL cleanup scheduler."""
     global cleanup_scheduler
-    
+
     if cleanup_scheduler is not None:
         cleanup_scheduler.shutdown()
         cleanup_scheduler = None

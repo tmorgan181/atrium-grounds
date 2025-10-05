@@ -127,7 +127,11 @@ class AnalyzerEngine:
         sentiment_score = (positive_count - negative_count) / max(total, 1)
 
         return {
-            "overall_tone": "positive" if sentiment_score > 0 else "negative" if sentiment_score < 0 else "neutral",
+            "overall_tone": "positive"
+            if sentiment_score > 0
+            else "negative"
+            if sentiment_score < 0
+            else "neutral",
             "score": sentiment_score,
             "engagement_level": "high" if total > 3 else "medium" if total > 0 else "low",
         }

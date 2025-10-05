@@ -15,23 +15,58 @@ from app.core.dev_keys import auto_register_dev_keys
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle - startup and shutdown."""
+    # ANSI color codes
+    CYAN = "\033[96m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    MAGENTA = "\033[95m"
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+
+    # Startup banner
+    print("\n" + CYAN + "=" * 70 + RESET)
+    print(f"   {BOLD}{MAGENTA}⚡ ATRIUM OBSERVATORY{RESET}")
+    print(f"   {CYAN}Conversation Analysis Service{RESET}")
+    print(CYAN + "=" * 70 + RESET)
+    print(f"   {YELLOW}Version:{RESET} {__version__}")
+    print(f"   {YELLOW}API Docs:{RESET} http://localhost:8000/docs")
+    print(CYAN + "=" * 70 + RESET + "\n")
+
     # Startup: Initialize database and start TTL cleanup scheduler
+    print(f"{CYAN}🔧 Initializing database...{RESET}")
     await init_database()
+    print(f"{GREEN}✓ Database ready{RESET}\n")
+
+    print(f"{CYAN}⏰ Starting cleanup scheduler...{RESET}")
     start_cleanup_scheduler()
+    print(f"{GREEN}✓ TTL cleanup active{RESET}\n")
 
     # Auto-register development API keys if dev-api-keys.txt exists
     dev_keys = auto_register_dev_keys()
     if dev_keys:
-        print("✓ Development API keys registered:")
-        if 'dev_key' in dev_keys:
-            print(f"  - API Key tier (60 req/min)")
-        if 'partner_key' in dev_keys:
-            print(f"  - Partner tier (600 req/min)")
-        print(f"  Keys loaded from dev-api-keys.txt")
+        print(f"{YELLOW}🔑 Development API keys registered:{RESET}")
+        if "dev_key" in dev_keys:
+            print(f"   {GREEN}• API Key tier (60 req/min){RESET}")
+        if "partner_key" in dev_keys:
+            print(f"   {GREEN}• Partner tier (600 req/min){RESET}")
+        print(f"   {GREEN}✓ Loaded from dev-api-keys.txt{RESET}\n")
+
+    print(CYAN + "=" * 70 + RESET)
+    print(f"   {BOLD}{GREEN}🚀 SERVER READY{RESET}")
+    print(f"   {YELLOW}Press CTRL+C to stop{RESET}")
+    print(CYAN + "=" * 70 + RESET + "\n")
 
     yield
-    # Shutdown: Stop scheduler
+
+    # Shutdown
+    print("\n" + YELLOW + "=" * 70 + RESET)
+    print(f"   {YELLOW}⚠ Shutting down...{RESET}")
+    print(YELLOW + "=" * 70 + RESET + "\n")
     stop_cleanup_scheduler()
+    print(f"{GREEN}✓ Cleanup scheduler stopped{RESET}")
+    print("\n" + CYAN + "=" * 70 + RESET)
+    print(f"   {BOLD}{MAGENTA}👋 Server stopped{RESET}")
+    print(CYAN + "=" * 70 + RESET + "\n")
 
 
 app = FastAPI(

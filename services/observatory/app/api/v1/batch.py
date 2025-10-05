@@ -115,9 +115,7 @@ async def submit_batch_analysis(request: BatchAnalysisRequest):
         job_id = await job_queue.enqueue(batch_job)
         queue_position = await job_queue.size()
 
-        logger.info(
-            f"Batch {batch_job.batch_id} queued with {len(conversation_ids)} conversations"
-        )
+        logger.info(f"Batch {batch_job.batch_id} queued with {len(conversation_ids)} conversations")
 
         return BatchAnalysisResponse(
             batch_id=batch_job.batch_id,

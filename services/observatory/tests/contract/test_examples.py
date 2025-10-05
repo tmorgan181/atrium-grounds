@@ -4,7 +4,6 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 
 
-
 @pytest.mark.asyncio
 async def test_examples_list_success(app):
     """Test retrieving list of example conversations."""
@@ -37,6 +36,7 @@ async def test_examples_list_structure(app):
     assert "expected_patterns" in example
     assert "difficulty" in example
     assert "participants" in example
+
 
 @pytest.mark.asyncio
 async def test_examples_list_categories(app):
