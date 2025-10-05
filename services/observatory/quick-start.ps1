@@ -35,14 +35,17 @@
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'help')]
+    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'validate', 'help')]
     [string]$Action = 'help',
-    
+
     [Parameter()]
     [int]$Port = 8000,
-    
+
     [Parameter()]
-    [switch]$Detail
+    [switch]$Detail,
+
+    [Parameter()]
+    [switch]$NewWindow
 )
 
 # ============================================================================
@@ -64,39 +67,39 @@ $Script:Config = @{
 function Write-Header {
     param([string]$Text)
     Write-Host ""
-    Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "===============================================================" -ForegroundColor Cyan
     Write-Host "  $Text" -ForegroundColor White
-    Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "===============================================================" -ForegroundColor Cyan
     Write-Host ""
 }
 
 function Write-Success {
     param([string]$Text)
-    Write-Host "✓ " -ForegroundColor Green -NoNewline
+    Write-Host "[OK] " -ForegroundColor Green -NoNewline
     Write-Host $Text -ForegroundColor White
 }
 
 function Write-Error {
     param([string]$Text)
-    Write-Host "✗ " -ForegroundColor Red -NoNewline
+    Write-Host "[FAIL] " -ForegroundColor Red -NoNewline
     Write-Host $Text -ForegroundColor White
 }
 
 function Write-Info {
     param([string]$Text)
-    Write-Host "ℹ " -ForegroundColor Cyan -NoNewline
+    Write-Host "[INFO] " -ForegroundColor Cyan -NoNewline
     Write-Host $Text -ForegroundColor White
 }
 
 function Write-Warning {
     param([string]$Text)
-    Write-Host "⚠ " -ForegroundColor Yellow -NoNewline
+    Write-Host "[WARN] " -ForegroundColor Yellow -NoNewline
     Write-Host $Text -ForegroundColor White
 }
 
 function Write-Step {
     param([string]$Text)
-    Write-Host "→ " -ForegroundColor Magenta -NoNewline
+    Write-Host "-> " -ForegroundColor Magenta -NoNewline
     Write-Host $Text -ForegroundColor White
 }
 
@@ -113,9 +116,9 @@ function Write-Result {
 function Write-Section {
     param([string]$Text)
     Write-Host ""
-    Write-Host "─────────────────────────────────────────────────────────────" -ForegroundColor DarkGray
+    Write-Host "-------------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host $Text -ForegroundColor Yellow
-    Write-Host "─────────────────────────────────────────────────────────────" -ForegroundColor DarkGray
+    Write-Host "-------------------------------------------------------------" -ForegroundColor DarkGray
 }
 
 function Write-ApiCall {
@@ -136,11 +139,11 @@ function Write-ApiCall {
     Write-Host " $Endpoint " -ForegroundColor White -NoNewline
     
     if ($Status -match "^2\d\d") {
-        Write-Host "→ $Status" -ForegroundColor Green
+        Write-Host "-> $Status" -ForegroundColor Green
     } elseif ($Status -match "^4\d\d") {
-        Write-Host "→ $Status" -ForegroundColor Yellow
+        Write-Host "-> $Status" -ForegroundColor Yellow
     } else {
-        Write-Host "→ $Status" -ForegroundColor Red
+        Write-Host "-> $Status" -ForegroundColor Red
     }
 }
 
@@ -211,8 +214,7 @@ function Invoke-Clean {
         @{Path = "__pycache__"; Name = "Python cache"},
         @{Path = ".pytest_cache"; Name = "Pytest cache"},
         @{Path = "*.egg-info"; Name = "Egg info"},
-        @{Path = "dev-api-keys.txt"; Name = "Development API keys"},
-        @{Path = "register_dev_keys.py"; Name = "Key registration script"}
+        @{Path = "dev-api-keys.txt"; Name = "Development API keys"}
     )
     
     foreach ($item in $items) {
@@ -315,32 +317,19 @@ PARTNER_KEY=$($keys.partner_key)
         
         Write-Success "Keys saved to: $keyFile"
         Write-Host ""
-        
-        # Create startup registration script
-        $registerScript = "register_dev_keys.py"
-        @"
-`"``""Register development API keys on startup.`"``""
 
-from app.middleware.auth import register_api_key
-
-# Generated keys
-DEV_KEY = "$($keys.dev_key)"
-PARTNER_KEY = "$($keys.partner_key)"
-
-# Register keys
-register_api_key(DEV_KEY, tier="api_key")
-register_api_key(PARTNER_KEY, tier="partner")
-
-print(f"✓ Development API Key registered (60 req/min)")
-print(f"✓ Partner API Key registered (600 req/min)")
-print(f"")
-print(f"Keys are active for this server session.")
-print(f"Find your keys in: dev-api-keys.txt")
-"@ | Out-File -FilePath $registerScript -Encoding UTF8
-        
-        Write-Success "Startup script created: $registerScript"
+        Write-Section "Auto-Registration Enabled!"
         Write-Host ""
-        
+        Write-Success "Keys will automatically load when server starts"
+        Write-Info "The server checks for dev-api-keys.txt at startup"
+        Write-Info "No manual configuration needed - just start the server!"
+        Write-Host ""
+        Write-Step "Next Steps:"
+        Write-Host "  1. Start server: .\quick-start.ps1 serve" -ForegroundColor Gray
+        Write-Host "  2. Keys auto-register on startup" -ForegroundColor Gray
+        Write-Host "  3. Use keys from dev-api-keys.txt" -ForegroundColor Gray
+        Write-Host ""
+
         Write-Section "Usage Instructions"
         Write-Host ""
         Write-Step "Quick Test (PowerShell):"
@@ -350,11 +339,6 @@ print(f"Find your keys in: dev-api-keys.txt")
         Write-Host '  Invoke-WebRequest -Uri "http://localhost:8000/metrics" -Headers $headers' -ForegroundColor Gray
         Write-Host ""
         
-        Write-Step "Auto-Register on Server Startup:"
-        Write-Host ""
-        Write-Host "  Add to app/main.py after app initialization:" -ForegroundColor Gray
-        Write-Host "  import register_dev_keys  # Auto-registers keys" -ForegroundColor Gray
-        Write-Host ""
         
         Write-Step "Test with higher rate limits:"
         Write-Host ""
@@ -467,7 +451,7 @@ function Invoke-QuickTests {
     
     Write-Host ""
     if ($exitCode -eq 0) {
-        Write-Success "Quick tests passed! ✓"
+        Write-Success "Quick tests passed! [OK]"
         Write-Info "Run '.\quick-start.ps1 test' for full suite"
     } else {
         Write-Error "Some tests failed"
@@ -498,18 +482,35 @@ function Start-Server {
     Write-Host ""
     
     Write-Step "Starting FastAPI server..."
-    Write-Info "Press Ctrl+C to stop the server"
-    Write-Host ""
-    
-    if ($Background) {
+
+    if ($NewWindow) {
+        # Start server in new PowerShell window
+        $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", $serverScript
+
+        Write-Success "Server starting in new window"
+        Write-Info "Waiting for server to initialize..."
+        Start-Sleep -Seconds 3
+
+        # Verify server is responding
+        try {
+            $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 5
+            Write-Success "Server is ready at $($Script:Config.BaseUrl)"
+        } catch {
+            Write-Warning "Server may still be starting. Check the server window."
+        }
+    }
+    elseif ($Background) {
         Start-Job -ScriptBlock {
             param($VenvPath, $Port)
             & "$VenvPath\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port
         } -ArgumentList $Script:Config.VenvPath, $Port
-        
+
         Write-Success "Server started in background"
         Start-Sleep -Seconds 2
     } else {
+        Write-Info "Press Ctrl+C to stop the server"
+        Write-Host ""
         & "$($Script:Config.VenvPath)\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload
     }
 }
@@ -623,14 +624,14 @@ function Test-RateLimiting {
             if ($response.Headers["X-RateLimit-Remaining"]) {
                 $remaining = $response.Headers["X-RateLimit-Remaining"]
                 Write-Host "  Request $i`: " -ForegroundColor Gray -NoNewline
-                Write-Host "✓ OK" -ForegroundColor Green -NoNewline
+                Write-Host "[OK] OK" -ForegroundColor Green -NoNewline
                 Write-Host " (Remaining: $remaining)" -ForegroundColor Cyan
             }
         } catch {
             if ($_.Exception.Response.StatusCode -eq 429) {
                 $rateLimitedCount++
                 Write-Host "  Request $i`: " -ForegroundColor Gray -NoNewline
-                Write-Host "✗ 429 Rate Limited" -ForegroundColor Yellow
+                Write-Host "[FAIL] 429 Rate Limited" -ForegroundColor Yellow
             }
         }
         
@@ -735,14 +736,102 @@ function Invoke-Demo {
 }
 
 # ============================================================================
+# VALIDATION FUNCTION
+# ============================================================================
+
+function Invoke-Validation {
+    Write-Header "Running Automated Validation Suite"
+
+    # Check if validation script exists
+    $validationScript = Join-Path $PSScriptRoot "scripts\validation.ps1"
+
+    if (-not (Test-Path $validationScript)) {
+        Write-Error "Validation script not found at: $validationScript"
+        return
+    }
+
+    # Check if server is running
+    Write-Step "Checking server status..."
+    try {
+        $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 2
+        Write-Success "Server is running at $($Script:Config.BaseUrl)"
+        $serverWasRunning = $true
+    } catch {
+        Write-Info "Server not running. Starting server in new window..."
+        $serverWasRunning = $false
+
+        # Start server in new window
+        $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port"
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", $serverScript
+
+        Write-Info "Waiting for server to start..."
+        $retries = 0
+        $maxRetries = 10
+
+        while ($retries -lt $maxRetries) {
+            Start-Sleep -Seconds 1
+            try {
+                $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 2
+                Write-Success "Server is ready!"
+                break
+            } catch {
+                $retries++
+                if ($retries -eq $maxRetries) {
+                    Write-Error "Server failed to start after $maxRetries seconds"
+                    return
+                }
+            }
+        }
+    }
+
+    Write-Host ""
+
+    # Check for API key in dev-api-keys.txt
+    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
+    $apiKey = $null
+
+    if (Test-Path $apiKeyFile) {
+        $content = Get-Content $apiKeyFile -Raw
+        if ($content -match 'DEV_KEY=([^\r\n]+)') {
+            $apiKey = $Matches[1]
+            Write-Info "Found API key in dev-api-keys.txt"
+        }
+    }
+
+    # Run validation script
+    Write-Section "Executing Validation Tests"
+    Write-Host ""
+
+    $args = @(
+        "-BaseUrl", $Script:Config.BaseUrl
+    )
+
+    if ($apiKey) {
+        $args += "-ApiKey", $apiKey
+    }
+
+    & $validationScript @args
+
+    $exitCode = $LASTEXITCODE
+
+    Write-Host ""
+
+    if (-not $serverWasRunning) {
+        Write-Info "Server was started for validation. You can close the server window when done."
+    }
+
+    exit $exitCode
+}
+
+# ============================================================================
 # HELP FUNCTION
 # ============================================================================
 
 function Show-Help {
     Write-Host ""
-    Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "===============================================================" -ForegroundColor Cyan
     Write-Host "  🚀 Atrium Observatory Quick Start" -ForegroundColor White
-    Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "===============================================================" -ForegroundColor Cyan
     Write-Host ""
     
     Write-Host "USAGE:" -ForegroundColor Yellow
@@ -762,15 +851,21 @@ function Show-Help {
     Write-Host "  Test the health endpoint"
     Write-Host "  analyze    " -ForegroundColor Green -NoNewline
     Write-Host "  Test the analysis endpoint with sample data"
+    Write-Host "  keys       " -ForegroundColor Green -NoNewline
+    Write-Host "  Generate development API keys"
+    Write-Host "  validate   " -ForegroundColor Green -NoNewline
+    Write-Host "  Run automated validation suite (starts server if needed)"
     Write-Host "  clean      " -ForegroundColor Green -NoNewline
     Write-Host "  Remove virtual environment and caches"
     Write-Host "  help       " -ForegroundColor Green -NoNewline
     Write-Host "  Show this help message"
     Write-Host ""
-    
+
     Write-Host "OPTIONS:" -ForegroundColor Yellow
     Write-Host "  -Port <number>  " -ForegroundColor Cyan -NoNewline
     Write-Host "  Specify server port (default: 8000)"
+    Write-Host "  -NewWindow      " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Start server in new PowerShell window (for 'serve' action)"
     Write-Host "  -Detail         " -ForegroundColor Cyan -NoNewline
     Write-Host "  Enable detailed output"
     Write-Host ""
@@ -790,6 +885,12 @@ function Show-Help {
     Write-Host ""
     Write-Host "  .\quick-start.ps1 demo" -ForegroundColor White
     Write-Host "    Run complete demo with all features" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 serve -NewWindow" -ForegroundColor White
+    Write-Host "    Start server in new window, script continues" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 validate" -ForegroundColor White
+    Write-Host "    Run automated validation (auto-starts server if needed)" -ForegroundColor Gray
     Write-Host ""
     
     Write-Host "MORE INFO:" -ForegroundColor Yellow
@@ -830,6 +931,9 @@ switch ($Action.ToLower()) {
     }
     'analyze' {
         Test-AnalyzeEndpoint
+    }
+    'validate' {
+        Invoke-Validation
     }
     'clean' {
         Invoke-Clean
