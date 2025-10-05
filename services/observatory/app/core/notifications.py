@@ -1,5 +1,8 @@
 """Webhook notification system for batch processing events."""
 
+import hashlib
+import hmac
+import json
 import logging
 from datetime import datetime
 from typing import Any, Optional
@@ -72,6 +75,8 @@ class WebhookNotifier:
         total_conversations: int,
         completed_count: int,
         failed_count: int,
+        timeout: Optional[float] = None,
+        max_retries: int = 0,
     ) -> bool:
         """
         Send batch completion notification.
@@ -82,6 +87,8 @@ class WebhookNotifier:
             total_conversations: Total number of conversations
             completed_count: Number of successful analyses
             failed_count: Number of failed analyses
+            timeout: Request timeout in seconds (overrides default)
+            max_retries: Maximum number of retry attempts on failure
 
         Returns:
             True if notification sent successfully, False otherwise
@@ -93,7 +100,7 @@ class WebhookNotifier:
             failed_count=failed_count,
         )
 
-        return await self._send_webhook(callback_url, payload)
+        return await self._send_webhook(callback_url, payload, timeout=timeout, max_retries=max_retries)
 
     async def send_batch_failed(
         self,
@@ -208,42 +215,93 @@ class WebhookNotifier:
             },
         }
 
-    async def _send_webhook(self, url: str, payload: dict[str, Any]) -> bool:
+    def generate_signature(self, payload: dict[str, Any], secret: str) -> str:
         """
-        Send webhook HTTP POST request.
+        Generate HMAC-SHA256 signature for webhook payload.
+
+        This allows webhook consumers to verify that the webhook
+        payload was sent by the Observatory service and hasn't been
+        tampered with in transit.
+
+        Args:
+            payload: Webhook payload dictionary
+            secret: Shared secret key for HMAC generation
+
+        Returns:
+            Hexadecimal signature string
+        """
+        # Convert payload to JSON with sorted keys for consistency
+        payload_bytes = json.dumps(payload, sort_keys=True).encode('utf-8')
+
+        # Generate HMAC-SHA256 signature
+        signature = hmac.new(
+            secret.encode('utf-8'),
+            payload_bytes,
+            hashlib.sha256
+        )
+
+        return signature.hexdigest()
+
+    async def _send_webhook(
+        self,
+        url: str,
+        payload: dict[str, Any],
+        timeout: Optional[float] = None,
+        max_retries: int = 0,
+    ) -> bool:
+        """
+        Send webhook HTTP POST request with retry support.
 
         Args:
             url: Webhook endpoint URL
             payload: JSON payload
+            timeout: Request timeout in seconds (overrides default)
+            max_retries: Maximum number of retry attempts on failure
 
         Returns:
             True if request succeeded (2xx status), False otherwise
         """
-        try:
-            response = await self.client.post(
-                url,
-                json=payload,
-                headers={
-                    "Content-Type": "application/json",
-                    "User-Agent": "Atrium-Observatory/1.0",
-                },
-            )
+        # Use custom timeout or fall back to instance timeout
+        request_timeout = timeout if timeout is not None else self.timeout
 
-            if response.status_code >= 200 and response.status_code < 300:
-                logger.info(f"Webhook sent successfully to {url}: {payload['event']}")
-                return True
-            else:
-                logger.warning(
-                    f"Webhook failed with status {response.status_code}: {url}"
+        # Try initial request + retries
+        for attempt in range(max_retries + 1):
+            try:
+                response = await self.client.post(
+                    url,
+                    json=payload,
+                    headers={
+                        "Content-Type": "application/json",
+                        "User-Agent": "Atrium-Observatory/1.0",
+                    },
+                    timeout=request_timeout,
                 )
+
+                if response.status_code >= 200 and response.status_code < 300:
+                    if attempt > 0:
+                        logger.info(f"Webhook sent successfully to {url} on attempt {attempt + 1}: {payload['event']}")
+                    else:
+                        logger.info(f"Webhook sent successfully to {url}: {payload['event']}")
+                    return True
+                else:
+                    logger.warning(
+                        f"Webhook failed with status {response.status_code}: {url} (attempt {attempt + 1}/{max_retries + 1})"
+                    )
+                    # Don't retry on client errors (4xx), only server errors (5xx)
+                    if response.status_code < 500:
+                        return False
+
+            except httpx.TimeoutException as e:
+                logger.error(f"Webhook timeout to {url}: {e} (attempt {attempt + 1}/{max_retries + 1})")
+            except httpx.RequestError as e:
+                logger.error(f"Webhook request error to {url}: {e} (attempt {attempt + 1}/{max_retries + 1})")
+            except Exception as e:
+                logger.error(f"Unexpected webhook error to {url}: {e} (attempt {attempt + 1}/{max_retries + 1})", exc_info=True)
                 return False
 
-        except httpx.RequestError as e:
-            logger.error(f"Webhook request error to {url}: {e}")
-            return False
-        except Exception as e:
-            logger.error(f"Unexpected webhook error to {url}: {e}", exc_info=True)
-            return False
+        # All attempts failed
+        logger.error(f"Webhook failed after {max_retries + 1} attempts to {url}")
+        return False
 
     async def close(self):
         """Close HTTP client and cleanup resources."""
