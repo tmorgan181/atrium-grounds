@@ -924,12 +924,8 @@ function Start-Server {
     Write-Step "Starting FastAPI server..."
 
     if ($NewWindow) {
-        # Start server in new Windows Terminal or cmd window
-        # Prefer Windows Terminal, fall back to cmd.exe
-        $useWindowsTerminal = Get-Command wt.exe -ErrorAction SilentlyContinue
-        
+        # Start server in new Windows Terminal window with Orion profile
         # T012: Use clean server script if -Clean flag is set
-        # Build the command for cmd.exe (no PowerShell & operator)
         $pythonExe = "$($Script:Config.VenvPath)\python.exe"
         if ($Clean) {
             $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" run_clean_server.py $Port --reload"
@@ -937,15 +933,9 @@ function Start-Server {
             $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
         }
 
-        if ($useWindowsTerminal) {
-            # Use Windows Terminal with cmd profile
-            Start-Process wt.exe -ArgumentList "cmd", "/k", $cmdCommand
-            Write-Success "Server starting in new Windows Terminal window"
-        } else {
-            # Fall back to classic cmd.exe
-            Start-Process cmd.exe -ArgumentList "/k", $cmdCommand
-            Write-Success "Server starting in new cmd window"
-        }
+        # Use Windows Terminal with Orion profile
+        Start-Process wt.exe -ArgumentList "-p", "Orion", "cmd", "/k", $cmdCommand
+        Write-Success "Server starting in new Windows Terminal (Orion profile)"
         
         if ($Clean) {
             Write-Info "Using clean logging (ANSI-free output)"
