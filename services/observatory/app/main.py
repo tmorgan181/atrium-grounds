@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     MAGENTA = "\033[95m"
     BOLD = "\033[1m"
     RESET = "\033[0m"
-    
+
     # Startup banner
     print("\n" + CYAN + "=" * 70 + RESET)
     print(f"   {BOLD}{MAGENTA}⚡ ATRIUM OBSERVATORY{RESET}")
@@ -31,12 +31,12 @@ async def lifespan(app: FastAPI):
     print(f"   {YELLOW}Version:{RESET} {__version__}")
     print(f"   {YELLOW}API Docs:{RESET} http://localhost:8000/docs")
     print(CYAN + "=" * 70 + RESET + "\n")
-    
+
     # Startup: Initialize database and start TTL cleanup scheduler
     print(f"{CYAN}🔧 Initializing database...{RESET}")
     await init_database()
     print(f"{GREEN}✓ Database ready{RESET}\n")
-    
+
     print(f"{CYAN}⏰ Starting cleanup scheduler...{RESET}")
     start_cleanup_scheduler()
     print(f"{GREEN}✓ TTL cleanup active{RESET}\n")
@@ -57,7 +57,7 @@ async def lifespan(app: FastAPI):
     print(CYAN + "=" * 70 + RESET + "\n")
 
     yield
-    
+
     # Shutdown
     print("\n" + YELLOW + "=" * 70 + RESET)
     print(f"   {YELLOW}⚠ Shutting down...{RESET}")

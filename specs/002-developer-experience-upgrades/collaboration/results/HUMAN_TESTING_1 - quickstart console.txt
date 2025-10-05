@@ -1,0 +1,2139 @@
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Validation
+===============================================================
+  Running Validation Suite                                                                                      ===============================================================                                                                                                                                                                 -------------------------------------------------------------                                                   Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[INFO] Using PARTNER_KEY for testing (600 req/min limit)
+
+[OK] Test server ready
+
+
+===============================================================
+  Atrium Observatory - Automated Validation Suite
+===============================================================
+
+  Base URL: http://127.0.0.1:8000
+  Mode: Full
+  API Key: Provided (***PXe-bcCJ)
+
+[FAIL] ReDoc documentation accessible
+[FAIL] Invalid endpoint returns 404
+  Actual: 429
+[FAIL] Invalid example ID returns 404
+
+===============================================================
+  Validation Summary
+===============================================================
+
+  Passed:  24 / 27
+  Failed:  3 / 27
+  Skipped: 0 / 27
+
+  Pass Rate: 88.9%
+
+[FAIL] Some tests failed. Please review the output above.
+[WARN] Validation suite failed (exit code: 1)
+
+
+[OK] Test server stopped                                                                                        -------------------------------------------------------------                                                   Test Summary                                                                                                    -------------------------------------------------------------                                                   [FAIL] Validation tests failed
+
+[WARN] Failed test suites: validation
+[INFO] Run with -Detail flag for more information
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 serve -NewWindow
+===============================================================
+  Starting Atrium Observatory
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------                                                   [OK] Python found: Python 3.12.6                                                                                [OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)                                                                 [OK] Virtual environment found                                                                                  
+  Service: Atrium Observatory
+  Version: 0.1.0
+  Base URL: http://127.0.0.1:8000
+  Port: 8000
+
+[OK] Server starting in new Windows Terminal (Orion profile)
+[INFO] Waiting for server to initialize...                                                                      [OK] Server is ready at http://127.0.0.1:8000                                                                                                                                                                                   PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Validation              ===============================================================                                                   Running Validation Suite                                                                                      ===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[INFO] Using PARTNER_KEY for testing (600 req/min limit)
+
+[OK] Test server ready
+
+
+===============================================================
+  Atrium Observatory - Automated Validation Suite
+===============================================================
+
+  Base URL: http://127.0.0.1:8000
+  Mode: Full
+  API Key: Provided (***PXe-bcCJ)
+
+[FAIL] OpenAPI specification available
+[FAIL] ReDoc documentation accessible
+[FAIL] Invalid endpoint returns 404
+  Actual: 429
+[FAIL] Invalid example ID returns 404
+
+===============================================================
+  Validation Summary
+===============================================================
+
+  Passed:  22 / 26
+  Failed:  4 / 26
+  Skipped: 0 / 26
+
+  Pass Rate: 84.6%
+
+[FAIL] Some tests failed. Please review the output above.
+[WARN] Validation suite failed (exit code: 1)
+
+
+[OK] Test server stopped
+-------------------------------------------------------------
+Test Summary
+-------------------------------------------------------------
+[FAIL] Validation tests failed
+
+[WARN] Failed test suites: validation
+[INFO] Run with -Detail flag for more information
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Unit
+===============================================================
+  Running Unit Tests
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[OK] Unit tests passed
+
+-------------------------------------------------------------
+Test Summary
+-------------------------------------------------------------
+[OK] Unit tests passed
+
+[OK] All tests passed!
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Contract
+===============================================================
+  Running Contract Tests
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[OK] Contract tests passed
+
+-------------------------------------------------------------
+Test Summary
+-------------------------------------------------------------
+[OK] Contract tests passed
+
+[OK] All tests passed!
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Integration
+===============================================================
+  Running Integration Tests
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[INFO] Using PARTNER_KEY for testing (600 req/min limit)
+
+[WARN] Server may still be starting (waited 10s)
+
+================================== FAILURES ===================================
+============================== warnings summary ===============================
+tests/integration/test_webhooks.py::test_webhook_send_batch_failed
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_analysis_flow.py::test_complete_analysis_flow
+FAILED tests/integration/test_analysis_flow.py::test_cancel_during_processing
+FAILED tests/integration/test_analysis_flow.py::test_multiple_concurrent_analyses
+FAILED tests/integration/test_analysis_flow.py::test_analysis_with_validation_failure
+FAILED tests/integration/test_analysis_flow.py::test_analysis_result_expiration
+[FAIL] Integration tests failed (exit code: 1)
+[INFO] Some integration tests may require the server running
+
+
+[OK] Test server stopped
+-------------------------------------------------------------
+Test Summary
+-------------------------------------------------------------
+[FAIL] Integration tests failed
+
+[WARN] Failed test suites: integration
+[INFO] Run with -Detail flag for more information
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test
+===============================================================
+  Running Observatory Test Suite
+===============================================================
+                                                                                                                -------------------------------------------------------------                                                   Checking Prerequisites                                                                                          -------------------------------------------------------------                                                   [OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[INFO] Using PARTNER_KEY for testing (600 req/min limit)
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Detail
+===============================================================
+  Running Observatory Test Suite
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+-> Checking Python installation...
+[OK] Python found: Python 3.12.6
+-> Checking uv package manager...
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+-> Checking virtual environment...
+[OK] Virtual environment found                                                                                                                                                                                                  [INFO] Using PARTNER_KEY for testing (600 req/min limit)                                                                                                                                                                        -> Starting test server in background...
+[OK] Test server ready
+
+-> Running unit tests...
+
+-> Running contract tests...                                                                                                                                                                                                    -> Running integration tests...                                                                                                                                                                                                 -> Running validation suite...
+
+===============================================================
+  Atrium Observatory - Automated Validation Suite
+===============================================================                                                                                                                                                                   Base URL: http://127.0.0.1:8000                                                                                 Mode: Full                                                                                                      API Key: Provided (***PXe-bcCJ)                                                                                                                                                                                               
+===============================================================
+  Phase 1: Server Connectivity
+===============================================================                                                                                                                                                                 [OK] Server is reachable                                                                                        [OK] Returns JSON response                                                                                      [OK] Service name is correct
+[OK] Version information present
+                                                                                                                ===============================================================                                                   Phase 2: Health Check Endpoint                                                                                ===============================================================                                                 
+[OK] Health endpoint accessible
+[OK] Service reports healthy status
+[OK] Timestamp included in response
+
+===============================================================                                                   Phase 3: Rate Limiting                                                                                        ===============================================================                                                                                                                                                                 [OK] Rate limit headers present                                                                                 [OK] Public tier limit is 10 req/min                                                                            [OK] Remaining count decrements correctly                                                                       
+===============================================================
+  Phase 4: Authentication
+===============================================================                                                                                                                                                                 [OK] Protected endpoint requires authentication                                                                 [OK] API key grants access to protected endpoint                                                                                                                                                                                ===============================================================                                                   Phase 5: Examples Endpoint
+===============================================================
+
+[OK] Examples list endpoint accessible
+[OK] Response contains examples array
+[OK] Response contains categories
+[OK] At least one example available
+
+===============================================================
+  Phase 6: API Documentation
+===============================================================
+
+[OK] Swagger UI accessible
+[OK] OpenAPI specification available
+[OK] OpenAPI spec contains endpoint definitions
+[OK] ReDoc documentation accessible
+
+===============================================================
+  Phase 7: Analysis Endpoint
+===============================================================
+
+[OK] Analysis endpoint responds to POST
+[OK] Analysis accepts request with API key
+[OK] Analysis response includes ID
+[OK] Can retrieve analysis by ID
+
+===============================================================
+  Phase 8: Error Handling
+===============================================================
+
+[FAIL] Invalid endpoint returns 404
+  Expected: 404
+  Actual: 429
+[FAIL] Invalid example ID returns 404
+[OK] Malformed request returns client error
+
+===============================================================
+  Validation Summary
+===============================================================
+
+  Passed:  25 / 27
+  Failed:  2 / 27
+  Skipped: 0 / 27
+
+  Pass Rate: 92.6%
+
+[FAIL] Some tests failed. Please review the output above.
+[WARN] Validation suite failed (exit code: 1)
+
+
+-------------------------------------------------------------
+Test Summary
+-------------------------------------------------------------
+[OK] Unit tests passed
+[OK] Contract tests passed
+[FAIL] Integration tests failed
+[FAIL] Validation tests failed
+
+[WARN] Failed test suites: integration, validation
+[INFO] Run with -Detail flag for more information
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 help
+
+===============================================================
+   Atrium Observatory Quick Start
+===============================================================
+
+USAGE:
+  .\quick-start.ps1 [action] [options]
+
+ACTIONS:
+  setup        Set up virtual environment and install dependencies
+  test         Run the full test suite (unit + contract + integration)
+  serve        Start the development server
+  demo         Run a full demonstration (quick tests + server + API calls)
+  health       Test the health endpoint
+  analyze      Test the analysis endpoint with sample data
+  keys         Generate development API keys
+  validate     Run automated validation suite (starts server if needed)
+  lint         Run code linter (ruff check)
+  format       Format code with ruff
+  check        Run all code quality checks (lint + type check)
+  clean        Remove virtual environment and caches
+  help         Show this help message
+
+OPTIONS:
+  -Port <number>    Specify server port (default: 8000)
+  -NewWindow        Start server in new PowerShell window (for 'serve' action)
+  -Detail           Enable detailed output with progress steps
+
+  Test Filtering:
+  -Unit             Run only unit tests (fast, no external dependencies)
+  -Contract         Run only contract tests (API contract validation)
+  -Integration      Run only integration tests (requires server/services)
+  -Validation       Run only validation suite (automated API tests)
+  -Coverage         Generate code coverage report (works with any test type)
+
+EXAMPLES:
+  .\quick-start.ps1 setup
+    Initialize the development environment
+
+  .\quick-start.ps1 test
+    Run all tests (unit + contract + integration + validation)
+
+  .\quick-start.ps1 test -Unit
+    Run only unit tests (fast, ~2 seconds)
+
+  .\quick-start.ps1 test -Unit -Coverage
+    Run unit tests with code coverage report
+
+  .\quick-start.ps1 test -Detail
+    Run all tests with verbose output
+
+  .\quick-start.ps1 serve -Port 8001
+    Start server on port 8001
+
+  .\quick-start.ps1 keys
+    Generate API keys for development
+
+  .\quick-start.ps1 demo
+    Run complete demo with all features
+
+  .\quick-start.ps1 serve -NewWindow
+    Start server in new window, script continues
+
+  .\quick-start.ps1 validate
+    Run automated validation (auto-starts server if needed)
+
+  Code Quality Examples:
+  .\quick-start.ps1 lint
+    Check code style (fast, read-only)
+
+  .\quick-start.ps1 format
+    Auto-format all code with ruff
+
+  .\quick-start.ps1 check
+    Pre-commit checks (lint + type check)
+
+MORE INFO:
+  Docs:  http://localhost:8000/docs
+  API:   http://localhost:8000/api/v1/
+  README: ./README.md
+
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 lint
+===============================================================
+  Running Code Linter
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 format
+===============================================================
+  Formatting Code
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[OK] 3 files reformatted, 47 files left unchanged
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 check
+===============================================================
+  Running Code Quality Checks
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+-------------------------------------------------------------
+Running Linter (ruff check)
+-------------------------------------------------------------
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\api\v1\analyze.py:3:1
+   |
+ 1 |   """API endpoints for conversation analysis."""
+ 2 |
+ 3 | / from datetime import datetime, UTC
+ 4 | | from typing import Optional
+ 5 | | from uuid import uuid4
+ 6 | |
+ 7 | | from fastapi import APIRouter, HTTPException, Depends, Query
+ 8 | | from fastapi.responses import PlainTextResponse
+ 9 | | from sqlalchemy.ext.asyncio import AsyncSession
+10 | | from sqlalchemy import select
+11 | |
+12 | | from app.models.schemas import (
+13 | |     AnalysisRequest,
+14 | |     AnalysisResponse,
+15 | |     AnalysisStatusResponse,
+16 | |     CancelResponse,
+17 | | )
+18 | | from app.models.database import Analysis, AnalysisStatus, get_db_session
+19 | | from app.core.analyzer import AnalyzerEngine
+20 | | from app.core.validator import InputValidator
+21 | | from app.core.jobs import JobManager
+22 | | from app.core.config import settings
+23 | | from app.core.export import ExportFormatter, ExportFormat
+24 | | from app.core.logging import (
+25 | |     log_analysis_created,
+26 | |     log_analysis_completed,
+27 | |     log_analysis_cancelled,
+28 | |     log_analysis_failed,
+29 | | )
+   | |_^
+30 |
+31 |   router = APIRouter()
+   |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+   --> app\api\v1\analyze.py:155:13
+    |
+153 | async def get_analysis(
+154 |     analysis_id: str,
+155 |     format: Optional[str] = Query(None, description="Export format: json (default), csv, markdown"),
+    |             ^^^^^^^^^^^^^
+156 |     db: AsyncSession = Depends(get_db_session),
+157 | ):
+    |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\api\v1\batch.py:3:1
+   |
+ 1 |   """Batch analysis API endpoints."""
+ 2 |
+ 3 | / import logging
+ 4 | | from typing import Optional
+ 5 | |
+ 6 | | from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+ 7 | | from pydantic import BaseModel, Field
+ 8 | |
+ 9 | | from app.core.queue import JobQueue, BatchJob, JobPriority
+10 | | from app.core.config import settings
+   | |____________________________________^
+11 |
+12 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+F401 [*] `fastapi.BackgroundTasks` imported but unused
+ --> app\api\v1\batch.py:6:47
+  |
+4 | from typing import Optional
+5 |
+6 | from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+  |                                               ^^^^^^^^^^^^^^^
+7 | from pydantic import BaseModel, Field
+  |
+help: Remove unused import: `fastapi.BackgroundTasks`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\api\v1\batch.py:55:21
+   |
+53 |     status: str = Field(..., description="Batch status (queued)")
+54 |     total_conversations: int = Field(..., description="Number of conversations in batch")
+55 |     queue_position: Optional[int] = Field(None, description="Position in queue")
+   |                     ^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+F841 Local variable `job_id` is assigned to but never used
+   --> app\api\v1\batch.py:115:9
+    |
+113 |     # Enqueue job
+114 |     try:
+115 |         job_id = await job_queue.enqueue(batch_job)
+    |         ^^^^^^
+116 |         queue_position = await job_queue.size()
+    |
+help: Remove assignment to unused variable `job_id`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\api\v1\examples.py:3:1
+   |
+ 1 |   """Examples API endpoints for curated conversation samples."""
+ 2 |
+ 3 | / import json
+ 4 | | import logging
+ 5 | | from pathlib import Path
+ 6 | | from typing import Optional, List, Dict, Any
+ 7 | |
+ 8 | | from fastapi import APIRouter, HTTPException, Query
+ 9 | | from pydantic import BaseModel, Field
+   | |_____________________________________^
+10 |
+11 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+UP035 `typing.List` is deprecated, use `list` instead
+ --> app\api\v1\examples.py:6:1
+  |
+4 | import logging
+5 | from pathlib import Path
+6 | from typing import Optional, List, Dict, Any
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | from fastapi import APIRouter, HTTPException, Query
+  |
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+ --> app\api\v1\examples.py:6:1
+  |
+4 | import logging
+5 | from pathlib import Path
+6 | from typing import Optional, List, Dict, Any
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 |
+8 | from fastapi import APIRouter, HTTPException, Query
+  |
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> app\api\v1\examples.py:28:11
+   |
+26 |     category: str
+27 |     description: str
+28 |     tags: List[str]
+   |           ^^^^
+29 |     expected_patterns: List[str]
+30 |     difficulty: str
+   |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> app\api\v1\examples.py:29:24
+   |
+27 |     description: str
+28 |     tags: List[str]
+29 |     expected_patterns: List[str]
+   |                        ^^^^
+30 |     difficulty: str
+31 |     participants: int
+   |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> app\api\v1\examples.py:37:15
+   |
+35 |     """Response for listing examples."""
+36 |
+37 |     examples: List[ExampleMetadata]
+   |               ^^^^
+38 |     categories: List[Dict[str, str]]
+39 |     total: int
+   |
+help: Replace with `list`
+
+UP006 [*] Use `list` instead of `List` for type annotation
+  --> app\api\v1\examples.py:38:17
+   |
+37 |     examples: List[ExampleMetadata]
+38 |     categories: List[Dict[str, str]]
+   |                 ^^^^
+39 |     total: int
+   |
+help: Replace with `list`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\api\v1\examples.py:38:22
+   |
+37 |     examples: List[ExampleMetadata]
+38 |     categories: List[Dict[str, str]]
+   |                      ^^^^
+39 |     total: int
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\api\v1\examples.py:51:24
+   |
+51 | def load_manifest() -> Dict[str, Any]:
+   |                        ^^^^
+52 |     """Load the examples manifest."""
+53 |     try:
+   |
+help: Replace with `dict`
+
+UP015 [*] Unnecessary mode argument
+  --> app\api\v1\examples.py:54:34
+   |
+52 |     """Load the examples manifest."""
+53 |     try:
+54 |         with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+   |                                  ^^^
+55 |             return json.load(f)
+56 |     except FileNotFoundError:
+   |
+help: Remove mode argument
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\api\v1\examples.py:66:15
+   |
+64 | @router.get("/examples", response_model=ExampleListResponse)
+65 | async def list_examples(
+66 |     category: Optional[str] = Query(None, description="Filter by category"),
+   |               ^^^^^^^^^^^^^
+67 |     difficulty: Optional[str] = Query(
+68 |         None, description="Filter by difficulty (beginner, intermediate, advanced)"
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\api\v1\examples.py:67:17
+   |
+65 | async def list_examples(
+66 |     category: Optional[str] = Query(None, description="Filter by category"),
+67 |     difficulty: Optional[str] = Query(
+   |                 ^^^^^^^^^^^^^
+68 |         None, description="Filter by difficulty (beginner, intermediate, advanced)"
+69 |     ),
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\api\v1\examples.py:70:10
+   |
+68 |         None, description="Filter by difficulty (beginner, intermediate, advanced)"
+69 |     ),
+70 |     tag: Optional[str] = Query(None, description="Filter by tag"),
+   |          ^^^^^^^^^^^^^
+71 | ):
+72 |     """
+   |
+help: Convert to `X | None`
+
+UP015 [*] Unnecessary mode argument
+   --> app\api\v1\examples.py:143:33
+    |
+142 |     try:
+143 |         with open(example_file, "r", encoding="utf-8") as f:
+    |                                 ^^^
+144 |             content = f.read()
+145 |     except FileNotFoundError:
+    |
+help: Remove mode argument
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\api\v1\health.py:3:1
+   |
+ 1 |   """Health check and metrics endpoints."""
+ 2 |
+ 3 | / from datetime import datetime, UTC
+ 4 | |
+ 5 | | from fastapi import APIRouter, Depends, HTTPException
+ 6 | | from sqlalchemy import select, func
+ 7 | | from sqlalchemy.ext.asyncio import AsyncSession
+ 8 | |
+ 9 | | from app import __version__
+10 | | from app.models.schemas import HealthResponse
+11 | | from app.models.database import Analysis, get_db_session
+12 | | from app.middleware.auth import get_current_tier
+13 | | from fastapi import Request
+   | |___________________________^
+14 |
+15 |   router = APIRouter()
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app\core\analyzer.py:3:1
+  |
+1 |   """Conversation pattern analysis engine using Ollama Observer model."""
+2 |
+3 | / import re
+4 | | from typing import Any
+5 | | import httpx
+6 | | from pydantic import BaseModel
+  | |______________________________^
+  |
+help: Organize imports
+
+F401 [*] `os` imported but unused
+ --> app\core\dev_keys.py:7:8
+  |
+5 | """
+6 |
+7 | import os
+  |        ^^
+8 | from pathlib import Path
+9 | from typing import Optional
+  |
+help: Remove unused import: `os`
+
+UP015 [*] Unnecessary mode argument
+  --> app\core\dev_keys.py:25:30
+   |
+24 |     try:
+25 |         with open(file_path, "r") as f:
+   |                              ^^^
+26 |             for line in f:
+27 |                 line = line.strip()
+   |
+help: Remove mode argument
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\dev_keys.py:38:33
+   |
+38 | def auto_register_dev_keys() -> Optional[dict[str, str]]:
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^
+39 |     """
+40 |     Automatically register development API keys if dev-api-keys.txt exists.
+   |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app\core\export.py:3:1
+  |
+1 |   """Export functionality for analysis results (FR-014)."""
+2 |
+3 | / import json
+4 | | import csv
+5 | | from io import StringIO
+6 | | from enum import Enum
+7 | | from typing import Dict, Any, Optional
+8 | | from datetime import datetime
+  | |_____________________________^
+  |
+help: Organize imports
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+ --> app\core\export.py:7:1
+  |
+5 | from io import StringIO
+6 | from enum import Enum
+7 | from typing import Dict, Any, Optional
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 | from datetime import datetime
+  |
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\core\export.py:7:31
+  |
+5 | from io import StringIO
+6 | from enum import Enum
+7 | from typing import Dict, Any, Optional
+  |                               ^^^^^^^^
+8 | from datetime import datetime
+  |
+help: Remove unused import: `typing.Optional`
+
+F401 [*] `datetime.datetime` imported but unused
+ --> app\core\export.py:8:22
+  |
+6 | from enum import Enum
+7 | from typing import Dict, Any, Optional
+8 | from datetime import datetime
+  |                      ^^^^^^^^
+  |
+help: Remove unused import: `datetime.datetime`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\core\export.py:47:29
+   |
+45 |             raise ValueError(f"Unsupported export format: {format_str}")
+46 |
+47 |     def to_json(self, data: Dict[str, Any], pretty: bool = False) -> str:
+   |                             ^^^^
+48 |         """
+49 |         Export analysis data to JSON format.
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\core\export.py:62:28
+   |
+60 |         return json.dumps(data, default=str)
+61 |
+62 |     def to_csv(self, data: Dict[str, Any]) -> str:
+   |                            ^^^^
+63 |         """
+64 |         Export analysis data to CSV format.
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\core\export.py:84:33
+   |
+82 |         return output.getvalue()
+83 |
+84 |     def to_markdown(self, data: Dict[str, Any]) -> str:
+   |                                 ^^^^
+85 |         """
+86 |         Export analysis data to Markdown format.
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> app\core\export.py:154:21
+    |
+153 |     def _flatten_dict(
+154 |         self, data: Dict[str, Any], parent_key: str = "", sep: str = "."
+    |                     ^^^^
+155 |     ) -> Dict[str, Any]:
+156 |         """
+    |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> app\core\export.py:155:10
+    |
+153 |     def _flatten_dict(
+154 |         self, data: Dict[str, Any], parent_key: str = "", sep: str = "."
+155 |     ) -> Dict[str, Any]:
+    |          ^^^^
+156 |         """
+157 |         Flatten nested dictionary for CSV export.
+    |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> app\core\export.py:182:37
+    |
+180 |         return dict(items)
+181 |
+182 |     def _get_csv_fields(self, data: Dict[str, Any]) -> list:
+    |                                     ^^^^
+183 |         """
+184 |         Get CSV field names from flattened data.
+    |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+   --> app\core\export.py:195:28
+    |
+193 |         return list(flat_data.keys())
+194 |
+195 |     def export(self, data: Dict[str, Any], format: ExportFormat, **kwargs) -> str:
+    |                            ^^^^
+196 |         """
+197 |         Export data in specified format.
+    |
+help: Replace with `dict`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app\core\jobs.py:3:1
+  |
+1 |   """Job management system for cancellable async analysis tasks."""
+2 |
+3 | / import asyncio
+4 | | import uuid
+5 | | from datetime import datetime, UTC
+6 | | from enum import Enum
+7 | | from typing import Any, Callable, Optional
+8 | | from pydantic import BaseModel, ConfigDict
+  | |__________________________________________^
+  |
+help: Organize imports
+
+UP035 [*] Import from `collections.abc` instead: `Callable`
+ --> app\core\jobs.py:7:1
+  |
+5 | from datetime import datetime, UTC
+6 | from enum import Enum
+7 | from typing import Any, Callable, Optional
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 | from pydantic import BaseModel, ConfigDict
+  |
+help: Import from `collections.abc`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\jobs.py:29:19
+   |
+27 |     status: JobStatus
+28 |     created_at: datetime
+29 |     completed_at: Optional[datetime] = None
+   |                   ^^^^^^^^^^^^^^^^^^
+30 |     result: Optional[dict[str, Any]] = None
+31 |     error: Optional[str] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\jobs.py:30:13
+   |
+28 |     created_at: datetime
+29 |     completed_at: Optional[datetime] = None
+30 |     result: Optional[dict[str, Any]] = None
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+31 |     error: Optional[str] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\jobs.py:31:12
+   |
+29 |     completed_at: Optional[datetime] = None
+30 |     result: Optional[dict[str, Any]] = None
+31 |     error: Optional[str] = None
+   |            ^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\jobs.py:53:52
+   |
+52 |     async def create_job(
+53 |         self, task_func: Callable, *args, timeout: Optional[float] = None, **kwargs
+   |                                                    ^^^^^^^^^^^^^^^
+54 |     ) -> str:
+55 |         """
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\jobs.py:90:18
+   |
+88 |         job_id: str,
+89 |         task_func: Callable,
+90 |         timeout: Optional[float],
+   |                  ^^^^^^^^^^^^^^^
+91 |         *args,
+92 |         **kwargs,
+   |
+help: Convert to `X | None`
+
+UP041 [*] Replace aliased errors with `TimeoutError`
+   --> app\core\jobs.py:124:16
+    |
+122 |                 self.jobs[job_id].completed_at = datetime.now(UTC).replace(tzinfo=None)
+123 |
+124 |         except asyncio.TimeoutError:
+    |                ^^^^^^^^^^^^^^^^^^^^
+125 |             # Job timed out
+126 |             async with self._lock:
+    |
+help: Replace `asyncio.TimeoutError` with builtin `TimeoutError`
+
+UP045 [*] Use `X | None` for type annotations
+   --> app\core\jobs.py:168:52
+    |
+166 |         return True
+167 |
+168 |     async def get_job_status(self, job_id: str) -> Optional[JobStatus]:
+    |                                                    ^^^^^^^^^^^^^^^^^^^
+169 |         """
+170 |         Get the status of a job.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> app\core\jobs.py:183:52
+    |
+181 |             return self.jobs[job_id].status
+182 |
+183 |     async def get_job_result(self, job_id: str) -> Optional[dict[str, Any]]:
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^
+184 |         """
+185 |         Get the result of a completed job.
+    |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> app\core\jobs.py:204:45
+    |
+202 |             return job.result
+203 |
+204 |     async def get_job(self, job_id: str) -> Optional[Job]:
+    |                                             ^^^^^^^^^^^^^
+205 |         """
+206 |         Get full job information.
+    |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app\core\log_config.py:3:1
+  |
+1 |   """Custom logging configuration for clean, readable logs."""
+2 |
+3 | / import logging
+4 | | import sys
+5 | | from datetime import datetime, UTC
+  | |__________________________________^
+  |
+help: Organize imports
+
+F401 [*] `sys` imported but unused
+ --> app\core\log_config.py:4:8
+  |
+3 | import logging
+4 | import sys
+  |        ^^^
+5 | from datetime import datetime, UTC
+  |
+help: Remove unused import: `sys`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app\core\logging.py:3:1
+  |
+1 |   """Structured audit logging for Observatory service."""
+2 |
+3 | / import json
+4 | | import logging
+5 | | from datetime import datetime, UTC
+6 | | from typing import Any, Optional
+7 | |
+8 | | from app.core.config import settings
+  | |____________________________________^
+  |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\logging.py:78:23
+   |
+76 |     status: str,
+77 |     processing_time: float,
+78 |     confidence_score: Optional[float] = None,
+   |                       ^^^^^^^^^^^^^^^
+79 | ) -> None:
+80 |     """Log when an analysis completes."""
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+   --> app\core\logging.py:116:26
+    |
+114 |     deleted_results: int,
+115 |     old_metadata_count: int,
+116 |     oldest_deleted_date: Optional[str] = None,
+    |                          ^^^^^^^^^^^^^
+117 | ) -> None:
+118 |     """Log TTL cleanup execution."""
+    |
+help: Convert to `X | None`
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\core\notifications.py:5:25
+  |
+3 | import logging
+4 | from datetime import datetime
+5 | from typing import Any, Optional
+  |                         ^^^^^^^^
+6 |
+7 | import httpx
+  |
+help: Remove unused import: `typing.Optional`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\core\queue.py:3:1
+   |
+ 1 |   """Redis-based job queue for batch processing."""
+ 2 |
+ 3 | / import asyncio
+ 4 | | import json
+ 5 | | import uuid
+ 6 | | from datetime import datetime, UTC
+ 7 | | from enum import Enum
+ 8 | | from typing import Any, Optional
+ 9 | | from pydantic import BaseModel, ConfigDict
+10 | | import redis.asyncio as redis
+11 | |
+12 | | from app.core.config import settings
+   | |____________________________________^
+   |
+help: Organize imports
+
+F401 [*] `asyncio` imported but unused
+ --> app\core\queue.py:3:8
+  |
+1 | """Redis-based job queue for batch processing."""
+2 |
+3 | import asyncio
+  |        ^^^^^^^
+4 | import json
+5 | import uuid
+  |
+help: Remove unused import: `asyncio`
+
+F401 [*] `json` imported but unused
+ --> app\core\queue.py:4:8
+  |
+3 | import asyncio
+4 | import json
+  |        ^^^^
+5 | import uuid
+6 | from datetime import datetime, UTC
+  |
+help: Remove unused import: `json`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\queue.py:54:28
+   |
+52 |         """Initialize job queue with Redis connection."""
+53 |         self.redis_url = redis_url or settings.redis_url
+54 |         self.redis_client: Optional[redis.Redis] = None
+   |                            ^^^^^^^^^^^^^^^^^^^^^
+55 |         self.queue_key = "observatory:job_queue"
+56 |         self.priority_queue_key = "observatory:priority_queue"
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\queue.py:92:52
+   |
+90 |         return job_id
+91 |
+92 |     async def dequeue(self, timeout: float = 0) -> Optional[BatchJob]:
+   |                                                    ^^^^^^^^^^^^^^^^^^
+93 |         """
+94 |         Remove and return a job from the queue.
+   |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app\core\validator.py:3:1
+  |
+1 |   """Input validation and security filtering for conversation data."""
+2 |
+3 | / import re
+4 | | from typing import Optional
+5 | | from pydantic import BaseModel
+  | |______________________________^
+  |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\validator.py:12:21
+   |
+11 |     is_valid: bool
+12 |     sanitized_text: Optional[str] = None
+   |                     ^^^^^^^^^^^^^
+13 |     error: Optional[str] = None
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\validator.py:13:12
+   |
+11 |     is_valid: bool
+12 |     sanitized_text: Optional[str] = None
+13 |     error: Optional[str] = None
+   |            ^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\core\worker.py:3:1
+   |
+ 1 |   """Async worker process for batch analysis."""
+ 2 |
+ 3 | / import asyncio
+ 4 | | import logging
+ 5 | | from typing import Optional
+ 6 | |
+ 7 | | from app.core.analyzer import AnalyzerEngine
+ 8 | | from app.core.validator import InputValidator
+ 9 | | from app.core.queue import JobQueue, BatchJob
+10 | | from app.core.notifications import WebhookNotifier
+11 | | from app.core.config import settings
+   | |____________________________________^
+12 |
+13 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\worker.py:30:16
+   |
+28 |     def __init__(
+29 |         self,
+30 |         queue: Optional[JobQueue] = None,
+   |                ^^^^^^^^^^^^^^^^^^
+31 |         analyzer: Optional[AnalyzerEngine] = None,
+32 |         validator: Optional[InputValidator] = None,
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\worker.py:31:19
+   |
+29 |         self,
+30 |         queue: Optional[JobQueue] = None,
+31 |         analyzer: Optional[AnalyzerEngine] = None,
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+32 |         validator: Optional[InputValidator] = None,
+33 |         notifier: Optional[WebhookNotifier] = None,
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\worker.py:32:20
+   |
+30 |         queue: Optional[JobQueue] = None,
+31 |         analyzer: Optional[AnalyzerEngine] = None,
+32 |         validator: Optional[InputValidator] = None,
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^
+33 |         notifier: Optional[WebhookNotifier] = None,
+34 |     ):
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\worker.py:33:19
+   |
+31 |         analyzer: Optional[AnalyzerEngine] = None,
+32 |         validator: Optional[InputValidator] = None,
+33 |         notifier: Optional[WebhookNotifier] = None,
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+34 |     ):
+35 |         """Initialize worker with dependencies."""
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\core\worker.py:44:27
+   |
+42 |         self.notifier = notifier or WebhookNotifier()
+43 |         self.running = False
+44 |         self.current_job: Optional[BatchJob] = None
+   |                           ^^^^^^^^^^^^^^^^^^
+45 |
+46 |     async def start(self):
+   |
+help: Convert to `X | None`
+
+E501 Line too long (113 > 100)
+   --> app\core\worker.py:101:101
+    |
+ 99 |                     if not validation.is_valid:
+100 |                         logger.warning(
+101 |                             f"Batch {job.batch_id}: Conversation {conv_id} validation failed: {validation.error}"
+    |                                                                                                     ^^^^^^^^^^^^^
+102 |                         )
+103 |                         failed_count += 1
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\main.py:3:1
+   |
+ 1 |   """FastAPI application entrypoint for Observatory service."""
+ 2 |
+ 3 | / from contextlib import asynccontextmanager
+ 4 | |
+ 5 | | from fastapi import FastAPI
+ 6 | | from fastapi.middleware.cors import CORSMiddleware
+ 7 | |
+ 8 | | from app import __version__
+ 9 | | from app.models.database import init_database, start_cleanup_scheduler, stop_cleanup_scheduler
+10 | | from app.api.v1 import analyze, health, batch, examples
+11 | | from app.middleware import AuthMiddleware, RateLimitMiddleware
+12 | | from app.core.dev_keys import auto_register_dev_keys
+   | |____________________________________________________^
+   |
+help: Organize imports
+
+N806 Variable `CYAN` in function should be lowercase
+  --> app\main.py:19:5
+   |
+17 |     """Manage application lifecycle - startup and shutdown."""
+18 |     # ANSI color codes
+19 |     CYAN = "\033[96m"
+   |     ^^^^
+20 |     GREEN = "\033[92m"
+21 |     YELLOW = "\033[93m"
+   |
+
+N806 Variable `GREEN` in function should be lowercase
+  --> app\main.py:20:5
+   |
+18 |     # ANSI color codes
+19 |     CYAN = "\033[96m"
+20 |     GREEN = "\033[92m"
+   |     ^^^^^
+21 |     YELLOW = "\033[93m"
+22 |     MAGENTA = "\033[95m"
+   |
+
+N806 Variable `YELLOW` in function should be lowercase
+  --> app\main.py:21:5
+   |
+19 |     CYAN = "\033[96m"
+20 |     GREEN = "\033[92m"
+21 |     YELLOW = "\033[93m"
+   |     ^^^^^^
+22 |     MAGENTA = "\033[95m"
+23 |     BOLD = "\033[1m"
+   |
+
+N806 Variable `MAGENTA` in function should be lowercase
+  --> app\main.py:22:5
+   |
+20 |     GREEN = "\033[92m"
+21 |     YELLOW = "\033[93m"
+22 |     MAGENTA = "\033[95m"
+   |     ^^^^^^^
+23 |     BOLD = "\033[1m"
+24 |     RESET = "\033[0m"
+   |
+
+N806 Variable `BOLD` in function should be lowercase
+  --> app\main.py:23:5
+   |
+21 |     YELLOW = "\033[93m"
+22 |     MAGENTA = "\033[95m"
+23 |     BOLD = "\033[1m"
+   |     ^^^^
+24 |     RESET = "\033[0m"
+   |
+
+N806 Variable `RESET` in function should be lowercase
+  --> app\main.py:24:5
+   |
+22 |     MAGENTA = "\033[95m"
+23 |     BOLD = "\033[1m"
+24 |     RESET = "\033[0m"
+   |     ^^^^^
+25 |
+26 |     # Startup banner
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\middleware\auth.py:3:1
+   |
+ 1 |   """API key authentication middleware."""
+ 2 |
+ 3 | / import hashlib
+ 4 | | import secrets
+ 5 | | from typing import Optional, Dict
+ 6 | |
+ 7 | | from fastapi import Request, HTTPException
+ 8 | | from starlette.middleware.base import BaseHTTPMiddleware
+ 9 | |
+10 | | from app.core.config import settings
+11 | | from app.core.logging import log_auth_success, log_auth_failure
+   | |_______________________________________________________________^
+   |
+help: Organize imports
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+ --> app\middleware\auth.py:5:1
+  |
+3 | import hashlib
+4 | import secrets
+5 | from typing import Optional, Dict
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6 |
+7 | from fastapi import Request, HTTPException
+  |
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\middleware\auth.py:16:19
+   |
+14 | # In-memory API key registry for Phase 2
+15 | # Phase 5 will move this to database
+16 | API_KEY_REGISTRY: Dict[str, str] = {}
+   |                   ^^^^
+   |
+help: Replace with `dict`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\middleware\auth.py:43:31
+   |
+43 | def validate_api_key(api_key: Optional[str], registry: Dict[str, str]) -> bool:
+   |                               ^^^^^^^^^^^^^
+44 |     """
+45 |     Validate an API key against the registry.
+   |
+help: Convert to `X | None`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\middleware\auth.py:43:56
+   |
+43 | def validate_api_key(api_key: Optional[str], registry: Dict[str, str]) -> bool:
+   |                                                        ^^^^
+44 |     """
+45 |     Validate an API key against the registry.
+   |
+help: Replace with `dict`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\middleware\ratelimit.py:3:1
+   |
+ 1 |   """Rate limiting middleware with Redis backend."""
+ 2 |
+ 3 | / import time
+ 4 | | from typing import Dict, Optional
+ 5 | | from collections import defaultdict
+ 6 | |
+ 7 | | from fastapi import Request, Response
+ 8 | | from starlette.middleware.base import BaseHTTPMiddleware
+ 9 | |
+10 | | from app.core.config import settings
+11 | | from app.core.logging import log_rate_limit_exceeded
+   | |____________________________________________________^
+   |
+help: Organize imports
+
+UP035 `typing.Dict` is deprecated, use `dict` instead
+ --> app\middleware\ratelimit.py:4:1
+  |
+3 | import time
+4 | from typing import Dict, Optional
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 | from collections import defaultdict
+  |
+
+F401 [*] `fastapi.Response` imported but unused
+ --> app\middleware\ratelimit.py:7:30
+  |
+5 | from collections import defaultdict
+6 |
+7 | from fastapi import Request, Response
+  |                              ^^^^^^^^
+8 | from starlette.middleware.base import BaseHTTPMiddleware
+  |
+help: Remove unused import: `fastapi.Response`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\middleware\ratelimit.py:33:39
+   |
+32 |     @classmethod
+33 |     def get_limits(cls, tier: str) -> Dict[str, int]:
+   |                                       ^^^^
+34 |         """Get rate limits for a tier."""
+35 |         if tier == "partner":
+   |
+help: Replace with `dict`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\middleware\ratelimit.py:49:35
+   |
+47 |     """
+48 |
+49 |     def __init__(self, redis_url: Optional[str] = None):
+   |                                   ^^^^^^^^^^^^^
+50 |         """
+51 |         Initialize rate limiter.
+   |
+help: Convert to `X | None`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\middleware\ratelimit.py:61:29
+   |
+59 |         # In-memory storage for Phase 2
+60 |         # Structure: {key: {"minute": [(timestamp, count)], "day": [(timestamp, count)]}}
+61 |         self._memory_store: Dict[str, Dict[str, list]] = defaultdict(
+   |                             ^^^^
+62 |             lambda: {"minute": [], "day": []}
+63 |         )
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\middleware\ratelimit.py:61:39
+   |
+59 |         # In-memory storage for Phase 2
+60 |         # Structure: {key: {"minute": [(timestamp, count)], "day": [(timestamp, count)]}}
+61 |         self._memory_store: Dict[str, Dict[str, list]] = defaultdict(
+   |                                       ^^^^
+62 |             lambda: {"minute": [], "day": []}
+63 |         )
+   |
+help: Replace with `dict`
+
+UP006 [*] Use `dict` instead of `Dict` for type annotation
+  --> app\middleware\ratelimit.py:77:80
+   |
+75 |         ]
+76 |
+77 |     async def check_rate_limit(self, identifier: str, tier: str = "public") -> Dict:
+   |                                                                                ^^^^
+78 |         """
+79 |         Check if request is within rate limit.
+   |
+help: Replace with `dict`
+
+E501 Line too long (103 > 100)
+   --> app\middleware\ratelimit.py:129:101
+    |
+127 |     async def refund_request(self, identifier: str, tier: str = "public") -> None:
+128 |         """
+129 |         Refund a request (decrement counter) - used when 404 or other non-rate-limited responses occur.
+    |                                                                                                     ^^^
+130 |
+131 |         Args:
+    |
+
+F841 Local variable `now` is assigned to but never used
+   --> app\middleware\ratelimit.py:135:9
+    |
+133 |             tier: Access tier (public, api_key, partner)
+134 |         """
+135 |         now = time.time()
+    |         ^^^
+136 |
+137 |         # Remove the most recent request entry if it exists
+    |
+help: Remove assignment to unused variable `now`
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> app\models\database.py:3:1
+   |
+ 1 |   """SQLAlchemy database models and connection management."""
+ 2 |
+ 3 | / import uuid
+ 4 | | from datetime import datetime, timedelta, UTC
+ 5 | | from typing import Optional, AsyncGenerator
+ 6 | |
+ 7 | | from sqlalchemy import (
+ 8 | |     Boolean,
+ 9 | |     Column,
+10 | |     DateTime,
+11 | |     Float,
+12 | |     Integer,
+13 | |     String,
+14 | |     Text,
+15 | |     JSON,
+16 | |     Enum as SQLEnum,
+17 | | )
+18 | | from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+19 | | from sqlalchemy.orm import declarative_base
+20 | | import enum
+21 | | from apscheduler.schedulers.asyncio import AsyncIOScheduler
+22 | | from apscheduler.triggers.cron import CronTrigger
+23 | |
+24 | | from app.core.config import settings
+   | |____________________________________^
+   |
+help: Organize imports
+
+UP035 [*] Import from `collections.abc` instead: `AsyncGenerator`
+ --> app\models\database.py:5:1
+  |
+3 | import uuid
+4 | from datetime import datetime, timedelta, UTC
+5 | from typing import Optional, AsyncGenerator
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6 |
+7 | from sqlalchemy import (
+  |
+help: Import from `collections.abc`
+
+F401 [*] `typing.Optional` imported but unused
+ --> app\models\database.py:5:20
+  |
+3 | import uuid
+4 | from datetime import datetime, timedelta, UTC
+5 | from typing import Optional, AsyncGenerator
+  |                    ^^^^^^^^
+6 |
+7 | from sqlalchemy import (
+  |
+help: Remove unused import: `typing.Optional`
+
+F401 [*] `sqlalchemy.Boolean` imported but unused
+  --> app\models\database.py:8:5
+   |
+ 7 | from sqlalchemy import (
+ 8 |     Boolean,
+   |     ^^^^^^^
+ 9 |     Column,
+10 |     DateTime,
+   |
+help: Remove unused import
+
+F401 [*] `sqlalchemy.Integer` imported but unused
+  --> app\models\database.py:12:5
+   |
+10 |     DateTime,
+11 |     Float,
+12 |     Integer,
+   |     ^^^^^^^
+13 |     String,
+14 |     Text,
+   |
+help: Remove unused import
+
+F401 [*] `os` imported but unused
+   --> app\models\database.py:126:16
+    |
+124 |     # Ensure data directory exists for SQLite databases
+125 |     if "sqlite" in db_url:
+126 |         import os
+    |                ^^
+127 |         from pathlib import Path
+    |
+help: Remove unused import: `os`
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> app\models\database.py:172:5
+    |
+170 |           Dictionary with counts of deleted results and metadata.
+171 |       """
+172 | /     from sqlalchemy import select, delete
+173 | |     from app.core.logging import log_ttl_cleanup, log_ttl_cleanup_error
+    | |_______________________________________________________________________^
+174 |
+175 |       if async_session_maker is None:
+    |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> app\models\schemas.py:3:1
+  |
+1 |   """Pydantic schemas for API requests and responses."""
+2 |
+3 | / from datetime import datetime
+4 | | from typing import Any, Optional
+5 | | from pydantic import BaseModel, Field
+  | |_____________________________________^
+  |
+help: Organize imports
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:16:19
+   |
+14 |     )
+15 |     include_insights: bool = Field(default=True, description="Include natural language insights")
+16 |     callback_url: Optional[str] = Field(
+   |                   ^^^^^^^^^^^^^
+17 |         default=None, description="Webhook URL for async notifications"
+18 |     )
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:44:22
+   |
+42 |         ..., description="Analysis status: pending, processing, completed, failed, cancelled"
+43 |     )
+44 |     observer_output: Optional[str] = Field(
+   |                      ^^^^^^^^^^^^^
+45 |         default=None, description="Natural language analysis from Observer model"
+46 |     )
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:47:15
+   |
+45 |         default=None, description="Natural language analysis from Observer model"
+46 |     )
+47 |     patterns: Optional[PatternData] = Field(default=None, description="Detected patterns")
+   |               ^^^^^^^^^^^^^^^^^^^^^
+48 |     summary_points: Optional[list[str]] = Field(default=None, description="Key insights summary")
+49 |     confidence_score: Optional[float] = Field(
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:48:21
+   |
+46 |     )
+47 |     patterns: Optional[PatternData] = Field(default=None, description="Detected patterns")
+48 |     summary_points: Optional[list[str]] = Field(default=None, description="Key insights summary")
+   |                     ^^^^^^^^^^^^^^^^^^^
+49 |     confidence_score: Optional[float] = Field(
+50 |         default=None, ge=0.0, le=1.0, description="Confidence score (0.0-1.0)"
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:49:23
+   |
+47 |     patterns: Optional[PatternData] = Field(default=None, description="Detected patterns")
+48 |     summary_points: Optional[list[str]] = Field(default=None, description="Key insights summary")
+49 |     confidence_score: Optional[float] = Field(
+   |                       ^^^^^^^^^^^^^^^
+50 |         default=None, ge=0.0, le=1.0, description="Confidence score (0.0-1.0)"
+51 |     )
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:52:22
+   |
+50 |         default=None, ge=0.0, le=1.0, description="Confidence score (0.0-1.0)"
+51 |     )
+52 |     processing_time: Optional[float] = Field(default=None, description="Processing time in seconds")
+   |                      ^^^^^^^^^^^^^^^
+53 |     created_at: datetime = Field(..., description="Timestamp when analysis was created")
+54 |     expires_at: Optional[datetime] = Field(
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:54:17
+   |
+52 |     processing_time: Optional[float] = Field(default=None, description="Processing time in seconds")
+53 |     created_at: datetime = Field(..., description="Timestamp when analysis was created")
+54 |     expires_at: Optional[datetime] = Field(
+   |                 ^^^^^^^^^^^^^^^^^^
+55 |         default=None, description="Timestamp when results expire"
+56 |     )
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:57:12
+   |
+55 |         default=None, description="Timestamp when results expire"
+56 |     )
+57 |     error: Optional[str] = Field(default=None, description="Error message if analysis failed")
+   |            ^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+UP045 [*] Use `X | None` for type annotations
+  --> app\models\schemas.py:66:17
+   |
+64 |     status: str
+65 |     created_at: datetime
+66 |     expires_at: Optional[datetime] = None
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+help: Convert to `X | None`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> run_clean_server.py:3:1
+  |
+1 |   """Launch uvicorn with clean logging configuration."""
+2 |
+3 | / import sys
+4 | | import uvicorn
+5 | | from app.core.log_config import LOGGING_CONFIG_SIMPLE
+  | |_____________________________________________________^
+6 |
+7 |   if __name__ == "__main__":
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> run_server.py:7:1
+  |
+5 |   """
+6 |
+7 | / import sys
+8 | | import logging
+9 | | from pathlib import Path
+  | |________________________^
+  |
+help: Organize imports
+
+E402 Module level import not at top of file
+  --> run_server.py:73:1
+   |
+72 | # Now import and run uvicorn
+73 | import uvicorn
+   | ^^^^^^^^^^^^^^
+74 |
+75 | if __name__ == "__main__":
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests\conftest.py:3:1
+   |
+ 1 |   """Shared test fixtures for Observatory test suite."""
+ 2 |
+ 3 | / import pytest
+ 4 | | from contextlib import asynccontextmanager
+ 5 | | from httpx import AsyncClient, ASGITransport
+ 6 | | from fastapi import FastAPI
+ 7 | | from fastapi.middleware.cors import CORSMiddleware
+ 8 | |
+ 9 | | from app import __version__
+10 | | from app.models.database import init_database
+11 | | from app.api.v1 import analyze, health, batch, examples
+12 | | from app.middleware import AuthMiddleware, RateLimitMiddleware
+   | |______________________________________________________________^
+   |
+help: Organize imports
+
+F401 [*] `app.middleware.RateLimitMiddleware` imported but unused
+  --> tests\conftest.py:12:44
+   |
+10 | from app.models.database import init_database
+11 | from app.api.v1 import analyze, health, batch, examples
+12 | from app.middleware import AuthMiddleware, RateLimitMiddleware
+   |                                            ^^^^^^^^^^^^^^^^^^^
+   |
+help: Remove unused import: `app.middleware.RateLimitMiddleware`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\contract\test_analyze_batch.py:3:1
+  |
+1 |   """Contract tests for batch analysis endpoints."""
+2 |
+3 | / import pytest
+4 | | from httpx import AsyncClient, ASGITransport
+  | |____________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\contract\test_analyze_cancel.py:3:1
+  |
+1 |   """Contract tests for POST /api/v1/analyze/{id}/cancel endpoint."""
+2 |
+3 | / import pytest
+4 | | from httpx import AsyncClient, ASGITransport
+  | |____________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\contract\test_analyze_get.py:3:1
+  |
+1 |   """Contract tests for GET /api/v1/analyze/{id} endpoint."""
+2 |
+3 | / import pytest
+4 | | from httpx import AsyncClient, ASGITransport
+  | |____________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\contract\test_examples.py:3:1
+  |
+1 |   """Contract tests for GET /examples endpoint."""
+2 |
+3 | / import pytest
+4 | | from httpx import AsyncClient, ASGITransport
+  | |____________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\contract\test_examples_get.py:3:1
+  |
+1 |   """Contract tests for GET /examples/{name} endpoint."""
+2 |
+3 | / import pytest
+4 | | from httpx import AsyncClient, ASGITransport
+  | |____________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\integration\test_analysis_flow.py:3:1
+  |
+1 |   """Integration tests for end-to-end conversation analysis flow."""
+2 |
+3 | / import asyncio
+4 | | import pytest
+5 | | from httpx import AsyncClient
+6 | | from app.main import app
+  | |________________________^
+  |
+help: Organize imports
+
+E501 Line too long (108 > 100)
+   --> tests\integration\test_analysis_flow.py:192:101
+    |
+190 |                 "conversation_text": """
+191 |                 Human: Can you explain the concept of emergence in complex systems?
+192 |                 AI: Emergence occurs when a system exhibits properties not present in individual components.
+    |                                                                                                     ^^^^^^^^
+193 |                 Human: Can you provide concrete examples?
+194 |                 AI: Ant colonies display emergent intelligence despite individual ants being simple.
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\integration\test_auth_public.py:3:1
+  |
+1 |   """Integration tests for public tier access (no authentication)."""
+2 |
+3 | / import pytest
+4 | | from httpx import AsyncClient, ASGITransport
+5 | | from app.main import app
+  | |________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\integration\test_webhooks.py:3:1
+  |
+1 |   """Integration tests for webhook notification system."""
+2 |
+3 | / import pytest
+4 | | from httpx import AsyncClient
+5 | | from app.main import app
+6 | | from app.core.notifications import WebhookNotifier
+  | |__________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_analyzer.py:3:1
+  |
+1 |   """Unit tests for the analyzer engine."""
+2 |
+3 | / import pytest
+4 | | from app.core.analyzer import AnalyzerEngine
+  | |____________________________________________^
+  |
+help: Organize imports
+
+E501 Line too long (103 > 100)
+  --> tests\unit\test_analyzer.py:29:101
+   |
+27 |     AI: The meaning of life is a philosophical question that has been debated for millennia.
+28 |     Human: Can you be more specific?
+29 |     AI: From a practical perspective, meaning often comes from relationships, growth, and contribution.
+   |                                                                                                     ^^^
+30 |     """
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_auth.py:3:1
+  |
+1 |   """Unit tests for API key authentication."""
+2 |
+3 | / import pytest
+4 | | from app.middleware.auth import validate_api_key, generate_api_key, hash_api_key
+  | |________________________________________________________________________________^
+  |
+help: Organize imports
+
+F401 [*] `pytest` imported but unused
+ --> tests\unit\test_auth.py:3:8
+  |
+1 | """Unit tests for API key authentication."""
+2 |
+3 | import pytest
+  |        ^^^^^^
+4 | from app.middleware.auth import validate_api_key, generate_api_key, hash_api_key
+  |
+help: Remove unused import: `pytest`
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_database.py:3:1
+  |
+1 |   """Tests for database models and operations."""
+2 |
+3 | / import pytest
+4 | | from datetime import datetime, timedelta, UTC
+5 | | from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+6 | | from sqlalchemy.pool import StaticPool
+7 | |
+8 | | from app.models.database import Base, Analysis, AnalysisStatus, get_database_url
+  | |________________________________________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_export.py:3:1
+  |
+1 |   """Unit tests for export functionality (FR-014)."""
+2 |
+3 | / import pytest
+4 | | import json
+5 | | import csv
+6 | | from io import StringIO
+7 | | from app.core.export import ExportFormatter, ExportFormat
+  | |_________________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests\unit\test_jobs.py:8:1
+   |
+ 6 |   """
+ 7 |
+ 8 | / import asyncio
+ 9 | | import pytest
+10 | | from app.core.jobs import JobManager, JobStatus
+   | |_______________________________________________^
+   |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_queue.py:7:1
+  |
+5 |   """
+6 |
+7 | / import pytest
+8 | | import asyncio
+9 | | from app.core.queue import JobQueue, BatchJob, JobPriority
+  | |__________________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_ratelimit.py:3:1
+  |
+1 |   """Unit tests for rate limiting."""
+2 |
+3 | / import pytest
+4 | | import time
+5 | | from app.middleware.ratelimit import RateLimiter, TierLimits
+  | |____________________________________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_ttl.py:3:1
+  |
+1 |   """Tests for TTL enforcement and cleanup."""
+2 |
+3 | / import pytest
+4 | | from datetime import datetime, timedelta, UTC
+5 | | from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+6 | | from sqlalchemy.pool import StaticPool
+7 | |
+8 | | from app.models.database import Base, Analysis, AnalysisStatus, cleanup_expired_records
+9 | | from app.core.config import settings
+  | |____________________________________^
+  |
+help: Organize imports
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests\unit\test_validator.py:3:1
+  |
+1 |   """Unit tests for the input validator (SecurityMediator patterns)."""
+2 |
+3 | / import pytest
+4 | | from app.core.validator import InputValidator
+  | |_____________________________________________^
+  |
+help: Organize imports
+
+Found 132 errors.
+[*] 114 fixable with the `--fix` option (2 hidden fixes can be enabled with the `--unsafe-fixes` option).
+
+[FAIL] Linting failed
+
+-------------------------------------------------------------
+Running Type Checker (mypy)
+-------------------------------------------------------------
+app\core\export.py:167: error: Need type annotation for "items" (hint: "items: list[<type>] = ...")  [var-annotated]
+app\core\jobs.py:48: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+app\core\jobs.py:49: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+app\core\queue.py:32: error: Incompatible types in assignment (expression has type "None", variable has type "datetime")  [assignment]
+app\core\queue.py:51: error: Incompatible default for argument "redis_url" (default has type "None", argument has type "str")  [assignment]
+app\core\queue.py:51: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+app\core\queue.py:51: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+app\core\queue.py:82: error: Item "None" of "Redis | None" has no attribute "set"  [union-attr]
+app\core\queue.py:86: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:86: error: Item "None" of "Redis | None" has no attribute "rpush"  [union-attr]
+app\core\queue.py:88: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:88: error: Item "None" of "Redis | None" has no attribute "rpush"  [union-attr]
+app\core\queue.py:105: error: Incompatible types in "await" (actual type "Awaitable[str | list[Any] | None] | str | list[Any] | Any | None", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:105: error: Item "None" of "Redis | None" has no attribute "lpop"  [union-attr]
+app\core\queue.py:110: error: Incompatible types in "await" (actual type "Awaitable[list[Any]] | list[Any] | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:110: error: Item "None" of "Redis | None" has no attribute "blpop"  [union-attr]
+app\core\queue.py:110: error: Argument 1 to "blpop" of "ListCommands" has incompatible type "str"; expected "list[Any]"  [arg-type]
+app\core\queue.py:113: error: Incompatible types in "await" (actual type "Awaitable[str | list[Any] | None] | str | list[Any] | Any | None", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:113: error: Item "None" of "Redis | None" has no attribute "lpop"  [union-attr]
+app\core\queue.py:120: error: Item "None" of "Redis | None" has no attribute "get"  [union-attr]
+app\core\queue.py:126: error: Item "None" of "Redis | None" has no attribute "delete"  [union-attr]
+app\core\queue.py:143: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:143: error: Item "None" of "Redis | None" has no attribute "lrem"  [union-attr]
+app\core\queue.py:144: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:144: error: Item "None" of "Redis | None" has no attribute "lrem"  [union-attr]
+app\core\queue.py:149: error: Item "None" of "Redis | None" has no attribute "delete"  [union-attr]
+app\core\queue.py:163: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:163: error: Item "None" of "Redis | None" has no attribute "llen"  [union-attr]
+app\core\queue.py:164: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:164: error: Item "None" of "Redis | None" has no attribute "llen"  [union-attr]
+app\core\queue.py:166: error: Returning Any from function declared to return "int"  [no-any-return]
+app\core\queue.py:177: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:177: error: Item "None" of "Redis | None" has no attribute "llen"  [union-attr]
+app\core\queue.py:178: error: Incompatible types in "await" (actual type "Awaitable[int] | int | Any", expected type "Awaitable[Any]")  [misc]
+app\core\queue.py:178: error: Item "None" of "Redis | None" has no attribute "llen"  [union-attr]
+app\models\database.py:42: error: Variable "app.models.database.Base" is not valid as a type  [valid-type]
+app\models\database.py:42: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
+app\models\database.py:42: error: Invalid base class "Base"  [misc]
+app\models\database.py:54: error: Need type annotation for "status"  [var-annotated]
+app\models\database.py:83: error: Incompatible types in assignment (expression has type "datetime", variable has type "Column[datetime]")  [assignment]
+app\models\database.py:89: error: Incompatible types in assignment (expression has type "datetime", variable has type "Column[datetime]")  [assignment]
+app\models\database.py:95: error: Incompatible return value type (got "ColumnElement[bool]", expected "bool")  [return-value]
+app\models\database.py:158: error: "None" not callable  [misc]
+app\models\database.py:179: error: "None" not callable  [misc]
+app\api\v1\examples.py:55: error: Returning Any from function declared to return "dict[str, Any]"  [no-any-return]
+app\core\worker.py:108: error: Argument 1 to "analyze" of "AnalyzerEngine" has incompatible type "str | None"; expected "str"  [arg-type]
+app\api\v1\analyze.py:145: error: Argument "id" to "AnalysisStatusResponse" has incompatible type "Column[str]"; expected "str"  [arg-type]
+app\api\v1\analyze.py:147: error: Argument "created_at" to "AnalysisStatusResponse" has incompatible type "Column[datetime]"; expected "datetime"  [arg-type]
+app\api\v1\analyze.py:148: error: Argument "expires_at" to "AnalysisStatusResponse" has incompatible type "Column[datetime]"; expected "datetime | None"  [arg-type]
+app\api\v1\analyze.py:217: error: Argument "id" to "AnalysisResponse" has incompatible type "Column[str]"; expected "str"  [arg-type]
+app\api\v1\analyze.py:219: error: Argument "observer_output" to "AnalysisResponse" has incompatible type "Column[str]"; expected "str | None"  [arg-type]
+app\api\v1\analyze.py:220: error: Argument "patterns" to "AnalysisResponse" has incompatible type "Column[Any]"; expected "PatternData | None"  [arg-type]
+app\api\v1\analyze.py:222: error: Argument "confidence_score" to "AnalysisResponse" has incompatible type "Column[float]"; expected "float | None"  [arg-type]
+app\api\v1\analyze.py:223: error: Argument "processing_time" to "AnalysisResponse" has incompatible type "Column[float]"; expected "float | None"  [arg-type]
+app\api\v1\analyze.py:224: error: Argument "created_at" to "AnalysisResponse" has incompatible type "Column[datetime]"; expected "datetime"  [arg-type]
+app\api\v1\analyze.py:225: error: Argument "expires_at" to "AnalysisResponse" has incompatible type "Column[datetime]"; expected "datetime | None"  [arg-type]
+app\api\v1\analyze.py:226: error: Argument "error" to "AnalysisResponse" has incompatible type "Column[str]"; expected "str | None"  [arg-type]
+app\api\v1\analyze.py:260: error: Incompatible types in assignment (expression has type "AnalysisStatus", variable has type "Column[Any]")  [assignment]
+app\api\v1\analyze.py:267: error: Argument "id" to "CancelResponse" has incompatible type "Column[str]"; expected "str"  [arg-type]
+Found 54 errors in 6 files (checked 25 source files)
+
+[FAIL] Type checking failed
+
+-------------------------------------------------------------
+Quality Check Summary
+-------------------------------------------------------------
+[WARN] Some quality checks failed
+[INFO] Review the output above for details
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory>

@@ -96,7 +96,9 @@ async def test_analyze_post_injection_attempt(async_client):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Pattern type validation not implemented (Feature 001 issue, not Feature 002)")
+@pytest.mark.skip(
+    reason="Pattern type validation not implemented (Feature 001 issue, not Feature 002)"
+)
 async def test_analyze_post_invalid_pattern_types(async_client):
     """Test validation of invalid pattern types."""
     response = await async_client.post(
