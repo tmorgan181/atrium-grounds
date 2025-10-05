@@ -1,0 +1,248 @@
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test
+===============================================================
+  Running Observatory Test Suite                                                                                ===============================================================                                                                                                                                                                 -------------------------------------------------------------                                                   Checking Prerequisites                                                                                          -------------------------------------------------------------                                                   [OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[INFO] Using PARTNER_KEY for testing (600 req/min limit)
+
+[OK] Test server ready
+
+[OK] Unit tests passed
+
+[OK] Contract tests passed
+
+[OK] Integration tests passed
+
+
+===============================================================
+  Atrium Observatory - Automated Validation Suite
+===============================================================
+
+  Base URL: http://127.0.0.1:8000
+  Mode: Full
+  API Key: Provided (***PXe-bcCJ)
+
+[FAIL] ReDoc documentation accessible
+[FAIL] Invalid endpoint returns 404
+  Actual: 429
+[FAIL] Invalid example ID returns 404
+
+===============================================================
+  Validation Summary
+===============================================================
+
+  Passed:  24 / 27
+  Failed:  3 / 27
+  Skipped: 0 / 27
+
+  Pass Rate: 88.9%
+
+[FAIL] Some tests failed. Please review the output above.
+[WARN] Validation suite failed (exit code: 1)
+
+
+-------------------------------------------------------------
+Test Summary
+-------------------------------------------------------------
+[OK] Unit tests passed
+[OK] Contract tests passed
+[OK] Integration tests passed
+[FAIL] Validation tests failed
+
+[WARN] Failed test suites: validation
+[INFO] Run with -Detail flag for more information
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Verbose
+===============================================================
+  Running Observatory Test Suite
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+[OK] Python found: Python 3.12.6
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+[OK] Virtual environment found
+
+[INFO] Using PARTNER_KEY for testing (600 req/min limit)
+
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+[WARN] Server may still be starting (waited 10s)
+
+[OK] Unit tests passed
+
+[OK] Contract tests passed                                                                                                                                                                                                      [OK] Integration tests passed                                                                                                                                                                                                   
+===============================================================
+  Atrium Observatory - Automated Validation Suite
+===============================================================
+
+  Base URL: http://127.0.0.1:8000
+  Mode: Full
+  API Key: Provided (***PXe-bcCJ)                                                                                                                                                                                               VERBOSE: GET with 0-byte payload                                                                                [FAIL] Server is reachable                                                                                        Error: The remote server returned an error: (429) Too Many Requests.                                          [FAIL] Returns JSON response                                                                                    VERBOSE: GET with 0-byte payload
+[FAIL] Health endpoint accessible
+VERBOSE: GET with 0-byte payload
+[FAIL] Rate limit headers present
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+[FAIL] Protected endpoint requires authentication
+  Actual: 429
+VERBOSE: GET with 0-byte payload
+VERBOSE: received 235-byte response of content type application/json
+VERBOSE: GET with 0-byte payload
+[FAIL] Examples list endpoint accessible
+VERBOSE: GET with 0-byte payload
+[FAIL] Swagger UI accessible
+VERBOSE: GET with 0-byte payload
+[FAIL] OpenAPI specification available
+VERBOSE: GET with 0-byte payload
+[FAIL] ReDoc documentation accessible
+VERBOSE: POST with -1-byte payload
+VERBOSE: POST with -1-byte payload
+VERBOSE: received 148-byte response of content type application/json
+VERBOSE: GET with 0-byte payload
+VERBOSE: received 552-byte response of content type application/json
+VERBOSE: GET with 0-byte payload
+VERBOSE: GET with 0-byte payload
+VERBOSE: POST with -1-byte payload
+
+===============================================================
+  Validation Summary
+===============================================================
+
+  Passed:  8 / 17
+  Failed:  9 / 17
+  Skipped: 0 / 17
+
+  Pass Rate: 47.1%
+
+[FAIL] Some tests failed. Please review the output above.
+[WARN] Validation suite failed (exit code: 1)
+
+
+-------------------------------------------------------------
+Test Summary                                                                                                    -------------------------------------------------------------                                                   [OK] Unit tests passed                                                                                          [OK] Contract tests passed                                                                                      [OK] Integration tests passed
+[FAIL] Validation tests failed
+
+[WARN] Failed test suites: validation
+[INFO] Run with -Detail flag for more information
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory> .\quick-start.ps1 test -Detail
+===============================================================
+  Running Observatory Test Suite
+===============================================================
+
+-------------------------------------------------------------
+Checking Prerequisites
+-------------------------------------------------------------
+-> Checking Python installation...
+[OK] Python found: Python 3.12.6
+-> Checking uv package manager...
+[OK] uv found: uv 0.8.22 (ade2bdbd2 2025-09-23)
+-> Checking virtual environment...
+[OK] Virtual environment found                                                                                                                                                                                                  [INFO] Using PARTNER_KEY for testing (600 req/min limit)                                                                                                                                                                        -> Starting test server in background...
+[OK] Test server ready
+
+-> Running unit tests...
+
+-> Running contract tests...                                                                                                                                                                                                    -> Running integration tests...                                                                                                                                                                                                 -> Running validation suite...
+
+===============================================================
+  Atrium Observatory - Automated Validation Suite
+===============================================================                                                                                                                                                                   Base URL: http://127.0.0.1:8000                                                                                 Mode: Full                                                                                                      API Key: Provided (***PXe-bcCJ)                                                                                                                                                                                               
+===============================================================
+  Phase 1: Server Connectivity
+===============================================================                                                                                                                                                                 [OK] Server is reachable                                                                                        [OK] Returns JSON response                                                                                      [OK] Service name is correct
+[OK] Version information present
+                                                                                                                ===============================================================                                                   Phase 2: Health Check Endpoint                                                                                ===============================================================                                                 
+[OK] Health endpoint accessible
+[OK] Service reports healthy status
+[OK] Timestamp included in response
+
+===============================================================                                                   Phase 3: Rate Limiting                                                                                        ===============================================================                                                                                                                                                                 [OK] Rate limit headers present
+[OK] Public tier limit is 10 req/min
+[OK] Remaining count decrements correctly
+
+===============================================================
+  Phase 4: Authentication                                                                                       ===============================================================                                                                                                                                                                 [OK] Protected endpoint requires authentication                                                                 [OK] API key grants access to protected endpoint                                                                                                                                                                                ===============================================================
+  Phase 5: Examples Endpoint
+===============================================================
+
+[OK] Examples list endpoint accessible
+[OK] Response contains examples array
+[OK] Response contains categories
+[OK] At least one example available
+
+===============================================================
+  Phase 6: API Documentation
+===============================================================
+
+[OK] Swagger UI accessible
+[FAIL] OpenAPI specification available
+[FAIL] ReDoc documentation accessible
+
+===============================================================
+  Phase 7: Analysis Endpoint
+===============================================================
+
+[OK] Analysis endpoint responds to POST
+[OK] Analysis accepts request with API key
+[OK] Analysis response includes ID
+[OK] Can retrieve analysis by ID
+
+===============================================================
+  Phase 8: Error Handling
+===============================================================
+
+[FAIL] Invalid endpoint returns 404
+  Expected: 404
+  Actual: 429
+[FAIL] Invalid example ID returns 404
+[OK] Malformed request returns client error
+
+===============================================================
+  Validation Summary
+===============================================================
+
+  Passed:  22 / 26
+  Failed:  4 / 26
+  Skipped: 0 / 26
+
+  Pass Rate: 84.6%
+
+[FAIL] Some tests failed. Please review the output above.
+[WARN] Validation suite failed (exit code: 1)
+
+
+-------------------------------------------------------------
+Test Summary
+-------------------------------------------------------------
+[OK] Unit tests passed
+[OK] Contract tests passed
+[OK] Integration tests passed
+[FAIL] Validation tests failed
+
+[WARN] Failed test suites: validation
+[INFO] Run with -Detail flag for more information
+
+PS C:\Users\tmorg\Projects\atrium-grounds\services\observatory>
