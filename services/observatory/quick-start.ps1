@@ -257,6 +257,73 @@ function Invoke-CommandWithVerbosity {
     }
 }
 
+function Get-PythonExePath {
+    <#
+    .SYNOPSIS
+        Get path to Python executable in virtual environment
+    .DESCRIPTION
+        Centralized function to return Python executable path.
+        Reduces duplication across quality check functions.
+    .EXAMPLE
+        $pythonExe = Get-PythonExePath
+    #>
+    return "$($Script:Config.VenvPath)\python.exe"
+}
+
+function Invoke-TestSuite {
+    <#
+    .SYNOPSIS
+        Run a specific test suite with consistent error handling
+    .DESCRIPTION
+        Reduces duplication in test execution logic.
+        Handles pytest invocation, exit codes, and result tracking.
+    .PARAMETER TestType
+        Type of test (unit, contract, integration)
+    .PARAMETER TestPath
+        Path to test directory
+    .PARAMETER PytestArgs
+        Arguments to pass to pytest
+    .EXAMPLE
+        Invoke-TestSuite -TestType "unit" -TestPath "tests/unit/" -PytestArgs $pytestArgs
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$TestType,
+
+        [Parameter(Mandatory=$true)]
+        [string]$TestPath,
+
+        [Parameter(Mandatory=$true)]
+        [array]$PytestArgs
+    )
+
+    Write-Step "Running $TestType tests..."
+
+    $pythonExe = Get-PythonExePath
+    $command = { & $pythonExe -m pytest $TestPath @PytestArgs }
+
+    Invoke-CommandWithVerbosity -Command $command -SuccessMessage "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests passed"
+
+    $exitCode = $LASTEXITCODE
+    $passed = ($exitCode -eq 0)
+
+    if (-not $Detail -and -not $passed) {
+        if ($TestType -eq "integration") {
+            Write-Warning "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)"
+            Write-Info "Some integration tests may require the server running"
+        } else {
+            Write-Error "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)"
+        }
+    }
+
+    Write-Host ""
+
+    return @{
+        ExitCode = $exitCode
+        Passed = $passed
+    }
+}
+
 # ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
@@ -543,54 +610,23 @@ function Invoke-Tests {
 
     # T008: Run unit tests if requested
     if ($Unit -or $runAll) {
-        Write-Step "Running unit tests..."
-        
-        $testPath = "tests/unit/"
-        $command = { & "$($Script:Config.VenvPath)\python.exe" -m pytest $testPath @pytestArgs }
-        
-        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "Unit tests passed"
-        $exitCodes['unit'] = $LASTEXITCODE
-        $results['unit'] = ($LASTEXITCODE -eq 0)
-        
-        if (-not $Detail -and $LASTEXITCODE -ne 0) {
-            Write-Error "Unit tests failed (exit code: $LASTEXITCODE)"
-        }
-        Write-Host ""
+        $result = Invoke-TestSuite -TestType "unit" -TestPath "tests/unit/" -PytestArgs $pytestArgs
+        $exitCodes['unit'] = $result.ExitCode
+        $results['unit'] = $result.Passed
     }
 
     # T008: Run contract tests if requested
     if ($Contract -or $runAll) {
-        Write-Step "Running contract tests..."
-        
-        $testPath = "tests/contract/"
-        $command = { & "$($Script:Config.VenvPath)\python.exe" -m pytest $testPath @pytestArgs }
-        
-        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "Contract tests passed"
-        $exitCodes['contract'] = $LASTEXITCODE
-        $results['contract'] = ($LASTEXITCODE -eq 0)
-        
-        if (-not $Detail -and $LASTEXITCODE -ne 0) {
-            Write-Error "Contract tests failed (exit code: $LASTEXITCODE)"
-        }
-        Write-Host ""
+        $result = Invoke-TestSuite -TestType "contract" -TestPath "tests/contract/" -PytestArgs $pytestArgs
+        $exitCodes['contract'] = $result.ExitCode
+        $results['contract'] = $result.Passed
     }
 
     # T008: Run integration tests if requested
     if ($Integration -or $runAll) {
-        Write-Step "Running integration tests..."
-        
-        $testPath = "tests/integration/"
-        $command = { & "$($Script:Config.VenvPath)\python.exe" -m pytest $testPath @pytestArgs }
-        
-        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "Integration tests passed"
-        $exitCodes['integration'] = $LASTEXITCODE
-        $results['integration'] = ($LASTEXITCODE -eq 0)
-        
-        if (-not $Detail -and $LASTEXITCODE -ne 0) {
-            Write-Warning "Integration tests failed (exit code: $LASTEXITCODE)"
-            Write-Info "Some integration tests may require the server running"
-        }
-        Write-Host ""
+        $result = Invoke-TestSuite -TestType "integration" -TestPath "tests/integration/" -PytestArgs $pytestArgs
+        $exitCodes['integration'] = $result.ExitCode
+        $results['integration'] = $result.Passed
     }
 
     # T008: Run validation suite if requested
@@ -1146,7 +1182,7 @@ function Invoke-Lint {
         return
     }
 
-    $pythonExe = "$($Script:Config.VenvPath)\python.exe"
+    $pythonExe = Get-PythonExePath
 
     Write-Step "Running ruff check..."
 
@@ -1176,7 +1212,7 @@ function Invoke-Format {
         return
     }
 
-    $pythonExe = "$($Script:Config.VenvPath)\python.exe"
+    $pythonExe = Get-PythonExePath
 
     Write-Step "Running ruff format..."
 
@@ -1230,7 +1266,7 @@ function Invoke-Check {
         return
     }
 
-    $pythonExe = "$($Script:Config.VenvPath)\python.exe"
+    $pythonExe = Get-PythonExePath
     $allPassed = $true
 
     # T015: Run linter
