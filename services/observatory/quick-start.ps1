@@ -934,7 +934,8 @@ function Start-Server {
         }
 
         # Use Windows Terminal with Orion profile
-        Start-Process wt.exe -ArgumentList "-p", "Orion", "cmd", "/k", $cmdCommand
+        # Syntax: wt -p ProfileName cmd /k "command"
+        Start-Process wt -ArgumentList "-p", "Orion", "cmd", "/k", $cmdCommand
         Write-Success "Server starting in new Windows Terminal (Orion profile)"
         
         if ($Clean) {
