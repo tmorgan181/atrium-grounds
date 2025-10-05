@@ -632,12 +632,10 @@ function Invoke-Tests {
     # T008: Run validation suite if requested
     if ($Validation -or $runAll) {
         Write-Step "Running validation suite..."
-        
+
         if (Test-Path ".\scripts\validation.ps1") {
-            $validationArgs = @()
-            if ($Detail) { $validationArgs += "-Verbose" }
-            
-            & ".\scripts\validation.ps1" @validationArgs
+            # Note: Validation script has its own output control, -Detail not needed
+            & ".\scripts\validation.ps1"
             $exitCodes['validation'] = $LASTEXITCODE
             $results['validation'] = ($LASTEXITCODE -eq 0)
             
