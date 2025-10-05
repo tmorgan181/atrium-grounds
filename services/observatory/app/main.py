@@ -15,23 +15,50 @@ from app.core.dev_keys import auto_register_dev_keys
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle - startup and shutdown."""
+    # Startup banner
+    print("\n" + "=" * 70)
+    print("   ⚡ ATRIUM OBSERVATORY")
+    print("   Conversation Analysis Service")
+    print("=" * 70)
+    print(f"   Version: {__version__}")
+    print(f"   API Docs: http://localhost:8000/docs")
+    print("=" * 70 + "\n")
+    
     # Startup: Initialize database and start TTL cleanup scheduler
+    print("🔧 Initializing database...")
     await init_database()
+    print("✓ Database ready\n")
+    
+    print("⏰ Starting cleanup scheduler...")
     start_cleanup_scheduler()
+    print("✓ TTL cleanup active\n")
 
     # Auto-register development API keys if dev-api-keys.txt exists
     dev_keys = auto_register_dev_keys()
     if dev_keys:
-        print("[OK] Development API keys registered:")
+        print("🔑 Development API keys registered:")
         if "dev_key" in dev_keys:
-            print(f"  - API Key tier (60 req/min)")
+            print("   • API Key tier (60 req/min)")
         if "partner_key" in dev_keys:
-            print(f"  - Partner tier (600 req/min)")
-        print(f"  Keys loaded from dev-api-keys.txt")
+            print("   • Partner tier (600 req/min)")
+        print(f"   ✓ Loaded from dev-api-keys.txt\n")
+
+    print("=" * 70)
+    print("   🚀 SERVER READY")
+    print("   Press CTRL+C to stop")
+    print("=" * 70 + "\n")
 
     yield
-    # Shutdown: Stop scheduler
+    
+    # Shutdown
+    print("\n" + "=" * 70)
+    print("   ⚠ Shutting down...")
+    print("=" * 70 + "\n")
     stop_cleanup_scheduler()
+    print("✓ Cleanup scheduler stopped")
+    print("\n" + "=" * 70)
+    print("   👋 Server stopped")
+    print("=" * 70 + "\n")
 
 
 app = FastAPI(

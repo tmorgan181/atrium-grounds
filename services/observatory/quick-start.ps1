@@ -407,7 +407,8 @@ function Invoke-TestSuite {
 
     if (-not $Detail -and -not $passed) {
         if ($TestType -eq "integration") {
-            Write-Warning "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)"
+            Write-Host "[FAIL] " -ForegroundColor Red -NoNewline
+            Write-Host "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)" -ForegroundColor Yellow
             Write-Info "Some integration tests may require the server running"
         } else {
             Write-Error "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)"
@@ -780,6 +781,11 @@ function Invoke-Tests {
 
                 if ($partnerKey) {
                     $validationArgs['ApiKey'] = $partnerKey
+                }
+
+                # Use quiet mode unless -Detail is specified
+                if (-not $Detail) {
+                    $validationArgs['Quiet'] = $true
                 }
 
                 & ".\scripts\validation.ps1" @validationArgs

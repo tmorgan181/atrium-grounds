@@ -124,6 +124,23 @@ class RateLimiter:
             "retry_after": 0,
         }
 
+    async def refund_request(self, identifier: str, tier: str = "public") -> None:
+        """
+        Refund a request (decrement counter) - used when 404 or other non-rate-limited responses occur.
+
+        Args:
+            identifier: Unique identifier (IP address or API key)
+            tier: Access tier (public, api_key, partner)
+        """
+        now = time.time()
+
+        # Remove the most recent request entry if it exists
+        if identifier in self._memory_store:
+            if self._memory_store[identifier]["minute"]:
+                self._memory_store[identifier]["minute"].pop()
+            if self._memory_store[identifier]["day"]:
+                self._memory_store[identifier]["day"].pop()
+
 
 # Global rate limiter instance
 rate_limiter = RateLimiter(redis_url=settings.redis_url if hasattr(settings, "redis_url") else None)
@@ -147,7 +164,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             # Use IP address for public tier
             identifier = request.client.host if request.client else "unknown"
 
-        # Check rate limit
+        # Check rate limit before processing request
         result = await rate_limiter.check_rate_limit(identifier, tier)
 
         if not result["allowed"]:
@@ -176,8 +193,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 },
             )
 
-        # Continue processing
+        # Process request
         response = await call_next(request)
+
+        # If response is 404, refund the rate limit quota (don't count invalid endpoints)
+        if response.status_code == 404:
+            # Decrement the counter (refund)
+            await rate_limiter.refund_request(identifier, tier)
 
         # Add rate limit headers to successful responses
         response.headers["X-RateLimit-Limit"] = str(result["limit"])
