@@ -651,29 +651,51 @@ function Invoke-QuickTests {
 
 function Start-Server {
     param([bool]$Background = $false)
-    
+
     Write-Header "Starting $($Script:Config.ServiceName)"
-    
+
     if (-not (Test-Prerequisites)) {
         Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
         return
     }
-    
+
     Write-Result "Service" $Script:Config.ServiceName
     Write-Result "Version" $Script:Config.Version
     Write-Result "Base URL" $Script:Config.BaseUrl "Green"
     Write-Result "Port" $Port "Cyan"
+
+    # T012: Check if clean logging is requested and available
+    if ($Clean) {
+        $cleanServerScript = Join-Path $PSScriptRoot "run_clean_server.py"
+        if (-not (Test-Path $cleanServerScript)) {
+            Write-Warning "Clean logging script not found (run_clean_server.py missing). Using standard mode."
+            $Clean = $false
+        } else {
+            Write-Result "Logging" "Clean (no ANSI codes)" "Yellow"
+        }
+    }
+
     Write-Host ""
-    
+
     Write-Step "Starting FastAPI server..."
 
     if ($NewWindow) {
         # Start server in new PowerShell window (prefer PowerShell Core)
         $pwsh = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
-        $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
+
+        # T012: Use clean server script if -Clean flag is set
+        if ($Clean) {
+            $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' run_clean_server.py $Port --reload"
+        } else {
+            $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
+        }
+
         Start-Process $pwsh -ArgumentList "-NoExit", "-Command", $serverScript
 
         Write-Success "Server starting in new $pwsh window"
+        if ($Clean) {
+            Write-Info "Using clean logging (ANSI-free output)"
+        }
         Write-Info "Waiting for server to initialize..."
         Start-Sleep -Seconds 3
 
@@ -686,17 +708,37 @@ function Start-Server {
         }
     }
     elseif ($Background) {
-        Start-Job -ScriptBlock {
-            param($VenvPath, $Port)
-            & "$VenvPath\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port
-        } -ArgumentList $Script:Config.VenvPath, $Port
+        # T012: Support clean logging in background mode
+        if ($Clean) {
+            Start-Job -ScriptBlock {
+                param($VenvPath, $Port, $ScriptRoot)
+                & "$VenvPath\python.exe" "$ScriptRoot\run_clean_server.py" $Port
+            } -ArgumentList $Script:Config.VenvPath, $Port, $PSScriptRoot
+        } else {
+            Start-Job -ScriptBlock {
+                param($VenvPath, $Port)
+                & "$VenvPath\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port
+            } -ArgumentList $Script:Config.VenvPath, $Port
+        }
 
         Write-Success "Server started in background"
+        if ($Clean) {
+            Write-Info "Using clean logging (ANSI-free output)"
+        }
         Start-Sleep -Seconds 2
     } else {
+        # T012: Support clean logging in foreground mode
         Write-Info "Press Ctrl+C to stop the server"
+        if ($Clean) {
+            Write-Info "Using clean logging (no ANSI escape codes)"
+        }
         Write-Host ""
-        & "$($Script:Config.VenvPath)\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload
+
+        if ($Clean) {
+            & "$($Script:Config.VenvPath)\python.exe" run_clean_server.py $Port --reload
+        } else {
+            & "$($Script:Config.VenvPath)\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload
+        }
     }
 }
 
