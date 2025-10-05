@@ -708,6 +708,28 @@ function Invoke-Tests {
     $serverProcess = $null
     $needsServer = ($Integration -or $Validation -or $runAll)
 
+    # Check for API keys, generate if missing (needed for validation/integration)
+    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
+    $partnerKey = $null
+
+    if ($needsServer) {
+        if (-not (Test-Path $apiKeyFile)) {
+            Write-Step "Generating API keys for testing..."
+            Invoke-GenerateKeys
+            Write-Host ""
+        }
+
+        # Load partner key for testing (highest rate limits)
+        if (Test-Path $apiKeyFile) {
+            $content = Get-Content $apiKeyFile -Raw
+            if ($content -match 'PARTNER_KEY=([^\r\n]+)') {
+                $partnerKey = $Matches[1]
+                Write-Info "Using PARTNER_KEY for testing (600 req/min limit)"
+                Write-Host ""
+            }
+        }
+    }
+
     # Start server if integration or validation tests will run
     if ($needsServer) {
         $serverProcess = Start-TestServer
@@ -731,9 +753,19 @@ function Invoke-Tests {
 
         # T008: Run integration tests if requested
         if ($Integration -or $runAll) {
+            # Set API key as environment variable for integration tests
+            if ($partnerKey) {
+                $env:TEST_API_KEY = $partnerKey
+            }
+
             $result = Invoke-TestSuite -TestType "integration" -TestPath "tests/integration/" -PytestArgs $pytestArgs
             $exitCodes['integration'] = $result.ExitCode
             $results['integration'] = $result.Passed
+
+            # Clean up environment variable
+            if ($partnerKey) {
+                Remove-Item Env:\TEST_API_KEY -ErrorAction SilentlyContinue
+            }
         }
 
         # T008: Run validation suite if requested
@@ -741,11 +773,16 @@ function Invoke-Tests {
             Write-Step "Running validation suite..."
 
             if (Test-Path ".\scripts\validation.ps1") {
-                # Note: Validation script has its own output control, -Detail not needed
-                & ".\scripts\validation.ps1"
+                # Pass API key to validation script for authenticated tests
+                $validationArgs = @()
+                if ($partnerKey) {
+                    $validationArgs += @("-ApiKey", $partnerKey)
+                }
+
+                & ".\scripts\validation.ps1" @validationArgs
                 $exitCodes['validation'] = $LASTEXITCODE
                 $results['validation'] = ($LASTEXITCODE -eq 0)
-                
+
                 if ($LASTEXITCODE -eq 0) {
                     if (-not $Detail) {
                         Write-Success "Validation suite passed"
