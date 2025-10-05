@@ -67,6 +67,40 @@ param(
 )
 
 # ============================================================================
+# PARAMETER VALIDATION (Feature 002 - T024)
+# ============================================================================
+
+# Rule 1: -Clean only applies to serve action
+if ($Clean -and $Action -ne "serve") {
+    Write-Warning "-Clean flag only applies to 'serve' action (ignored)"
+    $Clean = $false
+}
+
+# Rule 2: Test filters only apply to test action
+if (($Unit -or $Contract -or $Integration -or $Validation -or $Coverage) -and $Action -ne "test") {
+    Write-Warning "Test filtering flags (-Unit, -Contract, -Integration, -Validation, -Coverage) only apply to 'test' action (ignored)"
+    $Unit = $false; $Contract = $false; $Integration = $false; $Validation = $false; $Coverage = $false
+}
+
+# Rule 3: Multiple test filters selected = run all selected types (informational)
+$testFilterCount = @($Unit, $Contract, $Integration, $Validation).Where({$_}).Count
+if ($testFilterCount -gt 1) {
+    Write-Host "[INFO] Multiple test types selected - running: $(if($Unit){'Unit '})$(if($Contract){'Contract '})$(if($Integration){'Integration '})$(if($Validation){'Validation'})" -ForegroundColor Cyan
+}
+
+# Rule 4: -NewWindow only applies to serve action
+if ($NewWindow -and $Action -ne "serve") {
+    Write-Warning "-NewWindow flag only applies to 'serve' action (ignored)"
+    $NewWindow = $false
+}
+
+# Rule 5: -Coverage without test action
+if ($Coverage -and $Action -ne "test") {
+    Write-Warning "-Coverage flag only applies to 'test' action (ignored)"
+    $Coverage = $false
+}
+
+# ============================================================================
 # CONFIGURATION
 # ============================================================================
 
@@ -1339,6 +1373,16 @@ function Show-Help {
     Write-Host ""
     Write-Host "  .\quick-start.ps1 validate" -ForegroundColor White
     Write-Host "    Run automated validation (auto-starts server if needed)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Code Quality Examples:" -ForegroundColor DarkGray
+    Write-Host "  .\quick-start.ps1 lint" -ForegroundColor White
+    Write-Host "    Check code style (fast, read-only)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 format" -ForegroundColor White
+    Write-Host "    Auto-format all code with ruff" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 check" -ForegroundColor White
+    Write-Host "    Pre-commit checks (lint + type check)" -ForegroundColor Gray
     Write-Host ""
     
     Write-Host "MORE INFO:" -ForegroundColor Yellow
