@@ -166,6 +166,62 @@ function Write-ApiCall {
 }
 
 # ============================================================================
+# HELPER FUNCTIONS (Feature 002)
+# ============================================================================
+
+function Invoke-CommandWithVerbosity {
+    <#
+    .SYNOPSIS
+        Execute external command with output controlled by $Detail flag
+    .DESCRIPTION
+        Implements NFR-005 (<100ms overhead) and NFR-006 (efficient streaming)
+        via 2>&1 redirection for verbosity control
+    .PARAMETER Command
+        ScriptBlock containing the command to execute
+    .PARAMETER SuccessMessage
+        Message to display on success (default mode only)
+    .PARAMETER ErrorMessage
+        Message prefix for errors
+    .EXAMPLE
+        Invoke-CommandWithVerbosity -Command { uv venv } -SuccessMessage "Virtual environment created"
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [scriptblock]$Command,
+
+        [Parameter()]
+        [string]$SuccessMessage = "",
+
+        [Parameter()]
+        [string]$ErrorMessage = "Command failed"
+    )
+
+    try {
+        if ($Detail) {
+            # Detail mode: Show all output (stdout and stderr)
+            & $Command
+        } else {
+            # Default mode: Suppress output, capture for error reporting
+            $output = & $Command 2>&1
+            if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
+                # Error occurred - show captured output
+                Write-Host $output -ForegroundColor Red
+                throw "$ErrorMessage (exit code: $LASTEXITCODE)"
+            }
+        }
+
+        # Show success message in default mode
+        if ($SuccessMessage -and -not $Detail) {
+            Write-Success $SuccessMessage
+        }
+    }
+    catch {
+        Write-Error "${ErrorMessage}: $_"
+        throw
+    }
+}
+
+# ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
 
