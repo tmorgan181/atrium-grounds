@@ -4,7 +4,9 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 
 
-pytestmark = pytest.mark.skip(reason="Batch processing requires Redis - not available in test environment")
+pytestmark = pytest.mark.skip(
+    reason="Batch processing requires Redis - not available in test environment"
+)
 
 
 @pytest.mark.asyncio
@@ -40,8 +42,7 @@ async def test_batch_size_validation(app):
     """Test batch size limit enforcement (FR-011: max 1,000)."""
     # Create 1001 conversations
     conversations = [
-        {"id": f"conv-{i}", "text": f"Human: Test {i}\nAI: Response {i}"}
-        for i in range(1001)
+        {"id": f"conv-{i}", "text": f"Human: Test {i}\nAI: Response {i}"} for i in range(1001)
     ]
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
