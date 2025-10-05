@@ -238,10 +238,41 @@ function Invoke-CommandWithVerbosity {
             & $Command
         } else {
             # Default mode: Suppress output, capture for error reporting
-            $output = & $Command 2>&1
+            $output = & $Command 2>&1 | Out-String
             if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
-                # Error occurred - show captured output
-                Write-Host $output -ForegroundColor Red
+                # Error occurred - show minimal summary instead of full output
+                # Extract just the summary lines for pytest failures
+                $lines = $output -split "`n"
+                $summaryStarted = $false
+                $relevantLines = @()
+                
+                foreach ($line in $lines) {
+                    # Show FAILED lines
+                    if ($line -match "^FAILED ") {
+                        $relevantLines += $line
+                    }
+                    # Show the short test summary
+                    elseif ($line -match "^=+ (FAILURES|short test summary|failed|passed)") {
+                        $summaryStarted = $true
+                        $relevantLines += $line
+                    }
+                    # Show summary content
+                    elseif ($summaryStarted -and $line -match "(FAILED|passed|failed|warnings)") {
+                        $relevantLines += $line
+                    }
+                }
+                
+                # If we got relevant lines, show them; otherwise show count
+                if ($relevantLines.Count -gt 0) {
+                    $relevantLines | Select-Object -First 10 | ForEach-Object {
+                        if ($_ -match "FAILED") {
+                            Write-Host $_ -ForegroundColor Red
+                        } else {
+                            Write-Host $_ -ForegroundColor Gray
+                        }
+                    }
+                }
+                
                 throw "$ErrorMessage (exit code: $LASTEXITCODE)"
             }
         }
@@ -681,36 +712,43 @@ function Invoke-Tests {
 }
 
 function Invoke-QuickTests {
+    param(
+        [switch]$ReturnExitCode
+    )
+
     Write-Header "Running Quick Test Suite"
-    
+
     if (-not (Test-Prerequisites)) {
         Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        if ($ReturnExitCode) { return 1 }
         return
     }
-    
+
     Write-Step "Running essential unit tests (fast subset)..."
     Write-Info "Testing: database, auth, rate limiting, and validation"
     Write-Host ""
-    
+
     & "$($Script:Config.VenvPath)\python.exe" -m pytest `
         tests/unit/test_database.py `
         tests/unit/test_auth.py `
         tests/unit/test_ratelimit.py `
         tests/unit/test_validator.py `
         -v --tb=short
-    
+
     $exitCode = $LASTEXITCODE
-    
+
     Write-Host ""
     if ($exitCode -eq 0) {
-        Write-Success "Quick tests passed! [OK]"
+        Write-Success "Quick tests passed!"
         Write-Info "Run '.\quick-start.ps1 test' for full suite"
     } else {
         Write-Error "Some tests failed"
         Write-Info "See output above for details"
     }
-    
-    return $exitCode
+
+    if ($ReturnExitCode) {
+        return $exitCode
+    }
 }
 
 # ============================================================================
@@ -944,7 +982,7 @@ function Test-RateLimiting {
 
 function Test-AuthenticationMetrics {
     Write-Section "Testing Authentication & Metrics"
-    
+
     Write-Step "Testing unauthenticated access to /metrics..."
     try {
         Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/metrics" -Method GET -ErrorAction Stop | Out-Null
@@ -955,11 +993,34 @@ function Test-AuthenticationMetrics {
             Write-Success "Authentication required (as expected)"
         }
     }
-    
+
     Write-Host ""
-    Write-Info "To test with API key, register a key and use:"
-    Write-Host '  $headers = @{"Authorization" = "Bearer YOUR_API_KEY"}' -ForegroundColor DarkGray
-    Write-Host '  Invoke-WebRequest -Uri "$baseUrl/metrics" -Headers $headers' -ForegroundColor DarkGray
+
+    # Check for API key and demonstrate authenticated access
+    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
+    if (Test-Path $apiKeyFile) {
+        $content = Get-Content $apiKeyFile -Raw
+        if ($content -match 'DEV_KEY=([^\r\n]+)') {
+            $apiKey = $Matches[1]
+            Write-Step "Testing authenticated access with DEV_KEY..."
+
+            try {
+                $headers = @{"Authorization" = "Bearer $apiKey"}
+                $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/metrics" -Headers $headers -ErrorAction Stop
+                $data = $response.Content | ConvertFrom-Json
+
+                Write-ApiCall "GET" "/metrics" $response.StatusCode
+                Write-Success "Authenticated access successful!"
+                Write-Result "Total Requests" $data.total_requests "Cyan"
+                Write-Result "Active Users" $data.active_users "Cyan"
+            } catch {
+                Write-Warning "Could not fetch metrics: $($_.Exception.Message)"
+            }
+        }
+    } else {
+        Write-Info "To test with API key, generate keys first:"
+        Write-Host '  .\quick-start.ps1 keys' -ForegroundColor DarkGray
+    }
 }
 
 # ============================================================================
@@ -987,23 +1048,32 @@ function Invoke-Demo {
     Write-Host ""
     
     Read-Host "Press Enter to continue"
-    
+
     # Quick tests
-    $testResult = Invoke-QuickTests
+    $testResult = Invoke-QuickTests -ReturnExitCode
     if ($testResult -ne 0) {
         Write-Host ""
         Write-Warning "Quick tests failed. Continuing with demo anyway..."
-        Write-Host ""
         Start-Sleep -Seconds 2
     }
-    
-    # Start server
+
     Write-Host ""
+
+    # Check for API keys, generate if missing
+    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
+    if (-not (Test-Path $apiKeyFile)) {
+        Write-Step "No API keys found - generating development keys..."
+        Invoke-GenerateKeys
+        Write-Host ""
+    }
+
+    # Start server
     Start-Server -Background $true
-    
+
+    Write-Host ""
     Write-Step "Waiting for server to start..."
     Start-Sleep -Seconds 3
-    
+
     # Test endpoints
     $serverRunning = Test-HealthEndpoint
     
