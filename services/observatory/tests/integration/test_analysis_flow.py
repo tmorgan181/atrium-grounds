@@ -89,9 +89,7 @@ async def test_multiple_concurrent_analyses(test_app):
 
         analysis_ids = []
         for conv in conversations:
-            response = await client.post(
-                "/api/v1/analyze", json={"conversation_text": conv}
-            )
+            response = await client.post("/api/v1/analyze", json={"conversation_text": conv})
             assert response.status_code == 202
             analysis_ids.append(response.json()["id"])
 

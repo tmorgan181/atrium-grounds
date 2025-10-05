@@ -12,7 +12,7 @@ from app.core.config import settings
 def configure_logging() -> None:
     """Configure logging format and level."""
     log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
-    
+
     if settings.log_format == "json":
         # JSON structured logging
         logging.basicConfig(
@@ -36,7 +36,7 @@ logger = logging.getLogger("observatory")
 def log_json(level: str, event: str, **kwargs: Any) -> None:
     """
     Log a structured JSON event.
-    
+
     Args:
         level: Log level (info, warning, error, debug)
         event: Event type/name
@@ -47,13 +47,13 @@ def log_json(level: str, event: str, **kwargs: Any) -> None:
         "event": event,
         **kwargs,
     }
-    
+
     if settings.log_format == "json":
         log_message = json.dumps(log_data)
     else:
         # Format as readable text
         log_message = f"{event}: {', '.join(f'{k}={v}' for k, v in kwargs.items())}"
-    
+
     log_func = getattr(logger, level.lower(), logger.info)
     log_func(log_message)
 

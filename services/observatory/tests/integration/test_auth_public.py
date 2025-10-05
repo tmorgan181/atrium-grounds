@@ -116,10 +116,10 @@ async def test_public_tier_rate_limits(client):
 async def test_public_tier_rate_limit_headers(client):
     """Test that rate limit headers are present."""
     response = await client.get("/health")
-    
+
     assert "X-RateLimit-Limit" in response.headers
     assert "X-RateLimit-Remaining" in response.headers
     assert "X-RateLimit-Reset" in response.headers
-    
+
     # Public tier should have limit of 10
     assert int(response.headers["X-RateLimit-Limit"]) == 10

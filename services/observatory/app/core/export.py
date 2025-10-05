@@ -192,9 +192,7 @@ class ExportFormatter:
         flat_data = self._flatten_dict(data)
         return list(flat_data.keys())
 
-    def export(
-        self, data: Dict[str, Any], format: ExportFormat, **kwargs
-    ) -> str:
+    def export(self, data: Dict[str, Any], format: ExportFormat, **kwargs) -> str:
         """
         Export data in specified format.
 

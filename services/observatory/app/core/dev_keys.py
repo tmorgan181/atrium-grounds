@@ -22,13 +22,13 @@ def parse_dev_keys_file(file_path: Path) -> dict[str, str]:
     keys = {}
 
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             for line in f:
                 line = line.strip()
-                if line.startswith('DEV_KEY='):
-                    keys['dev_key'] = line.split('=', 1)[1]
-                elif line.startswith('PARTNER_KEY='):
-                    keys['partner_key'] = line.split('=', 1)[1]
+                if line.startswith("DEV_KEY="):
+                    keys["dev_key"] = line.split("=", 1)[1]
+                elif line.startswith("PARTNER_KEY="):
+                    keys["partner_key"] = line.split("=", 1)[1]
     except FileNotFoundError:
         pass
 
@@ -46,7 +46,7 @@ def auto_register_dev_keys() -> Optional[dict[str, str]]:
         Dictionary of registered keys, or None if file not found
     """
     # Only run in development (when running from source, not production container)
-    dev_keys_path = Path(__file__).parent.parent.parent / 'dev-api-keys.txt'
+    dev_keys_path = Path(__file__).parent.parent.parent / "dev-api-keys.txt"
 
     if not dev_keys_path.exists():
         return None
@@ -62,12 +62,12 @@ def auto_register_dev_keys() -> Optional[dict[str, str]]:
     # Register keys
     registered = {}
 
-    if 'dev_key' in keys:
-        register_api_key(keys['dev_key'], tier='api_key')
-        registered['dev_key'] = keys['dev_key']
+    if "dev_key" in keys:
+        register_api_key(keys["dev_key"], tier="api_key")
+        registered["dev_key"] = keys["dev_key"]
 
-    if 'partner_key' in keys:
-        register_api_key(keys['partner_key'], tier='partner')
-        registered['partner_key'] = keys['partner_key']
+    if "partner_key" in keys:
+        register_api_key(keys["partner_key"], tier="partner")
+        registered["partner_key"] = keys["partner_key"]
 
     return registered

@@ -4,7 +4,6 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 
 
-
 @pytest.mark.asyncio
 async def test_get_example_by_id_success(app):
     """Test retrieving a specific example conversation."""

@@ -4,58 +4,47 @@ import logging
 import sys
 from datetime import datetime, UTC
 
+
 # Custom formatter for clean, readable logs
 class CleanFormatter(logging.Formatter):
     """Clean formatter without ANSI codes, with timestamps."""
-    
+
     # Status code colors (for terminals that support them, optional)
-    COLORS = {
-        'INFO': '',
-        'WARNING': '',
-        'ERROR': '',
-        'CRITICAL': '',
-        'RESET': ''
-    }
-    
+    COLORS = {"INFO": "", "WARNING": "", "ERROR": "", "CRITICAL": "", "RESET": ""}
+
     def format(self, record):
         """Format log record cleanly."""
         # Get timestamp
-        timestamp = datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')
-        
+        timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S")
+
         # Format based on record type
-        if hasattr(record, 'status_code'):
+        if hasattr(record, "status_code"):
             # HTTP access log
             status = record.status_code
-            method = getattr(record, 'method', 'GET')
-            path = getattr(record, 'path', '/')
-            client = getattr(record, 'client', '?.?.?.?')
-            
+            method = getattr(record, "method", "GET")
+            path = getattr(record, "path", "/")
+            client = getattr(record, "client", "?.?.?.?")
+
             # Status indicator
             if status < 300:
-                indicator = '✓'
+                indicator = "OK"
             elif status < 400:
-                indicator = '→'
+                indicator = "->"
             elif status < 500:
-                indicator = '!'
+                indicator = "!"
             else:
-                indicator = '✗'
-            
+                indicator = "X"
+
             return f"[{timestamp}] {indicator} {method:4} {path:40} {status} - {client}"
         else:
             # Regular log message
             level = record.levelname
             message = record.getMessage()
-            
+
             # Level indicator
-            indicators = {
-                'INFO': 'ℹ',
-                'WARNING': '⚠',
-                'ERROR': '✗',
-                'CRITICAL': '✗✗',
-                'DEBUG': '·'
-            }
-            indicator = indicators.get(level, '·')
-            
+            indicators = {"INFO": "i", "WARNING": "!", "ERROR": "X", "CRITICAL": "XX", "DEBUG": "."}
+            indicator = indicators.get(level, ".")
+
             return f"[{timestamp}] {indicator} {level:8} {message}"
 
 
@@ -70,7 +59,7 @@ LOGGING_CONFIG = {
         "simple": {
             "format": "[%(asctime)s] %(levelname)-8s %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
-        }
+        },
     },
     "handlers": {
         "console": {
@@ -104,7 +93,7 @@ LOGGING_CONFIG = {
     "root": {
         "handlers": ["console"],
         "level": "INFO",
-    }
+    },
 }
 
 
@@ -133,5 +122,5 @@ LOGGING_CONFIG_SIMPLE = {
     "root": {
         "handlers": ["console"],
         "level": "INFO",
-    }
+    },
 }

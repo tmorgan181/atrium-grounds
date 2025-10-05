@@ -30,7 +30,7 @@ def test_tier_limits_partner():
 async def test_rate_limiter_allow_within_limit():
     """Test rate limiter allows requests within limit."""
     limiter = RateLimiter(redis_url=None)  # Use in-memory for testing
-    
+
     # Should allow first request
     result = await limiter.check_rate_limit("test_key", tier="public")
     assert result["allowed"] is True
@@ -41,12 +41,12 @@ async def test_rate_limiter_allow_within_limit():
 async def test_rate_limiter_block_over_limit():
     """Test rate limiter blocks requests over limit."""
     limiter = RateLimiter(redis_url=None)
-    
+
     # Make requests up to limit
     for i in range(10):
         result = await limiter.check_rate_limit("test_key_2", tier="public")
         assert result["allowed"] is True
-    
+
     # Next request should be blocked
     result = await limiter.check_rate_limit("test_key_2", tier="public")
     assert result["allowed"] is False
@@ -57,14 +57,14 @@ async def test_rate_limiter_block_over_limit():
 async def test_rate_limiter_different_tiers():
     """Test different tiers have different limits."""
     limiter = RateLimiter(redis_url=None)
-    
+
     # Public tier: 10 req/min
     for i in range(10):
         result = await limiter.check_rate_limit("public_key", tier="public")
         assert result["allowed"] is True
     result = await limiter.check_rate_limit("public_key", tier="public")
     assert result["allowed"] is False
-    
+
     # API key tier: 60 req/min
     for i in range(60):
         result = await limiter.check_rate_limit("api_key", tier="api_key")
@@ -77,9 +77,9 @@ async def test_rate_limiter_different_tiers():
 async def test_rate_limiter_reset_headers():
     """Test rate limiter provides reset timestamp."""
     limiter = RateLimiter(redis_url=None)
-    
+
     result = await limiter.check_rate_limit("test_key_3", tier="public")
-    
+
     assert "reset_at" in result
     assert result["reset_at"] > time.time()
     assert result["limit"] == 10  # Public tier
@@ -90,11 +90,11 @@ async def test_rate_limiter_reset_headers():
 async def test_rate_limiter_separate_keys():
     """Test different keys have separate rate limits."""
     limiter = RateLimiter(redis_url=None)
-    
+
     # Use up limit for key1
     for i in range(10):
         await limiter.check_rate_limit("key1", tier="public")
-    
+
     # key2 should still have full limit
     result = await limiter.check_rate_limit("key2", tier="public")
     assert result["allowed"] is True

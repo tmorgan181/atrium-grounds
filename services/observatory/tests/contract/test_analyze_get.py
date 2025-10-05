@@ -153,9 +153,7 @@ async def test_analyze_get_export_parameter(app):
         analysis_id = create_response.json()["id"]
 
         # Test JSON export (default)
-        response = await client.get(
-            f"/api/v1/analyze/{analysis_id}", params={"format": "json"}
-        )
+        response = await client.get(f"/api/v1/analyze/{analysis_id}", params={"format": "json"})
         assert response.status_code == 200
 
 

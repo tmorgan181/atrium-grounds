@@ -37,7 +37,10 @@ param(
     [string]$ApiKey = "",
 
     [Parameter()]
-    [switch]$Quick
+    [switch]$Quick,
+
+    [Parameter()]
+    [switch]$Quiet
 )
 
 # ============================================================================
@@ -51,6 +54,7 @@ $Script:Config = @{
     PassedTests = 0
     FailedTests = 0
     SkippedTests = 0
+    Quiet = $Quiet
 }
 
 # ============================================================================
@@ -59,11 +63,13 @@ $Script:Config = @{
 
 function Write-TestHeader {
     param([string]$Phase, [string]$Description)
-    Write-Host ""
-    Write-Host "===============================================================" -ForegroundColor Cyan
-    Write-Host "  Phase $Phase`: $Description" -ForegroundColor White
-    Write-Host "===============================================================" -ForegroundColor Cyan
-    Write-Host ""
+    if (-not $Script:Config.Quiet) {
+        Write-Host ""
+        Write-Host "===============================================================" -ForegroundColor Cyan
+        Write-Host "  Phase $Phase`: $Description" -ForegroundColor White
+        Write-Host "===============================================================" -ForegroundColor Cyan
+        Write-Host ""
+    }
 }
 
 function Write-TestResult {
@@ -76,13 +82,15 @@ function Write-TestResult {
     )
 
     if ($Passed) {
-        Write-Host "[OK] " -ForegroundColor Green -NoNewline
-        Write-Host "$TestName" -ForegroundColor White
+        if (-not $Script:Config.Quiet) {
+            Write-Host "[OK] " -ForegroundColor Green -NoNewline
+            Write-Host "$TestName" -ForegroundColor White
+        }
         $Script:Config.PassedTests++
     } else {
         Write-Host "[FAIL] " -ForegroundColor Red -NoNewline
         Write-Host "$TestName" -ForegroundColor White
-        if ($Expected) {
+        if ($Expected -and -not $Script:Config.Quiet) {
             Write-Host "  Expected: $Expected" -ForegroundColor Gray
         }
         if ($Actual) {
@@ -97,7 +105,7 @@ function Write-TestResult {
 
 function Write-TestSkipped {
     param([string]$TestName, [string]$Reason)
-    Write-Host "○ " -ForegroundColor Yellow -NoNewline
+    Write-Host "[SKIP] " -ForegroundColor Yellow -NoNewline
     Write-Host "$TestName" -ForegroundColor Gray
     Write-Host "  Skipped: $Reason" -ForegroundColor Yellow
     $Script:Config.SkippedTests++

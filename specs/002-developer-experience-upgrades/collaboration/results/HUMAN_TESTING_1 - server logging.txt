@@ -1,0 +1,145 @@
+
+======================================================================
+   ⚡ STARTING ATRIUM OBSERVATORY
+======================================================================
+
+INFO:     Will watch for changes in these directories: ['C:\\Users\\tmorg\\Projects\\atrium-grounds\\services\\observatory']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [7396] using WatchFiles
+
+======================================================================
+   ⚡ STARTING ATRIUM OBSERVATORY
+======================================================================
+
+INFO:     Started server process [30800]
+INFO:     Waiting for application startup.
+
+======================================================================
+   ⚡ ATRIUM OBSERVATORY
+   Conversation Analysis Service
+======================================================================
+   Version: 0.1.0
+   API Docs: http://localhost:8000/docs
+======================================================================
+
+🔧 Initializing database...
+✓ Database ready
+
+⏰ Starting cleanup scheduler...
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "TTL Cleanup Job" to job store "default"
+Scheduler started
+✓ TTL cleanup active
+
+🔑 Development API keys registered:
+   • API Key tier (60 req/min)
+   • Partner tier (600 req/min)
+   ✓ Loaded from dev-api-keys.txt
+
+======================================================================
+   🚀 SERVER READY
+   Press CTRL+C to stop
+======================================================================
+
+INFO:     Application startup complete.
+{"timestamp": "2025-10-05T20:37:40.702478", "event": "auth_success", "api_key_prefix": "CEMcCAQv", "tier": "partner"}
+{"timestamp": "2025-10-05T20:37:41.279356", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/openapi.json"}
+{"timestamp": "2025-10-05T20:37:41.497570", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/redoc"}
+{"timestamp": "2025-10-05T20:37:41.509320", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/api/v1/analyze"}
+{"timestamp": "2025-10-05T20:37:41.515823", "event": "auth_success", "api_key_prefix": "CEMcCAQv", "tier": "partner"}
+{"timestamp": "2025-10-05T20:37:41.530814", "event": "analysis_created", "analysis_id": "7674ac3c-02bc-4cb8-9c12-e66301c6941a", "conversation_size": 25, "pattern_types": ["dialectic", "sentiment", "topics", "dynamics"], "include_insights": true}
+{"timestamp": "2025-10-05T20:37:41.543096", "event": "analysis_completed", "analysis_id": "7674ac3c-02bc-4cb8-9c12-e66301c6941a", "status": "completed", "processing_time": 0.001001, "confidence_score": 0.525}
+{"timestamp": "2025-10-05T20:37:42.054882", "event": "auth_success", "api_key_prefix": "CEMcCAQv", "tier": "partner"}
+{"timestamp": "2025-10-05T20:37:42.586164", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/nonexistent-endpoint"}
+{"timestamp": "2025-10-05T20:37:42.802690", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/examples/nonexistent"}
+{"timestamp": "2025-10-05T20:37:43.019980", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/api/v1/analyze"}
+{"timestamp": "2025-10-05T20:38:03.200368", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:03.713005", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:04.228542", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:04.738385", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:05.249970", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:05.761843", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:06.277285", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:06.793557", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:07.306856", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:07.819286", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:08.333723", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:08.845670", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:09.361404", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:09.875561", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:10.384671", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:10.896896", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:11.409994", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:11.923013", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:12.437712", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:12.953711", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:26.576218", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:27.101357", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:27.618213", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:28.133010", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:28.647877", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:29.159286", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:29.669775", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:30.180472", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:30.693159", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:31.208243", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:31.725537", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:34.663483", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:35.177365", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:35.692770", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:36.204874", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:36.716642", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+{"timestamp": "2025-10-05T20:38:37.224907", "event": "rate_limit_exceeded", "ip_address": "127.0.0.1", "tier": "public", "endpoint": "/health"}
+WARNING:  WatchFiles detected changes in 'app\main.py', 'tests\contract\test_analyze_post.py', 'run_server.py'. Reloading...
+ INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+
+======================================================================
+   ⚠ Shutting down...
+======================================================================
+
+✓ Cleanup scheduler stopped
+
+======================================================================
+   👋 Server stopped
+======================================================================
+
+Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [30800]
+
+======================================================================
+   ⚡ STARTING ATRIUM OBSERVATORY
+======================================================================
+
+INFO:     Started server process [7140]
+INFO:     Waiting for application startup.
+
+======================================================================
+   ⚡ ATRIUM OBSERVATORY
+   Conversation Analysis Service
+======================================================================
+   Version: 0.1.0
+   API Docs: http://localhost:8000/docs
+======================================================================
+
+🔧 Initializing database...
+✓ Database ready
+
+⏰ Starting cleanup scheduler...
+Adding job tentatively -- it will be properly scheduled when the scheduler starts
+Added job "TTL Cleanup Job" to job store "default"
+Scheduler started
+✓ TTL cleanup active
+
+🔑 Development API keys registered:
+   • API Key tier (60 req/min)
+   • Partner tier (600 req/min)
+   ✓ Loaded from dev-api-keys.txt
+
+======================================================================
+   🚀 SERVER READY
+   Press CTRL+C to stop
+======================================================================
+
+INFO:     Application startup complete.

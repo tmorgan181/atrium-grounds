@@ -19,7 +19,7 @@ router = APIRouter()
 async def health_check():
     """
     Health check endpoint for monitoring.
-    
+
     Returns service status, version, and timestamp.
     """
     return HealthResponse(
@@ -36,7 +36,7 @@ async def get_metrics(
 ):
     """
     Get usage metrics for authenticated users.
-    
+
     Requires API key or higher authentication.
     Returns request counts, rate limit status, and database statistics.
     """
@@ -48,24 +48,23 @@ async def get_metrics(
             detail="Authentication required. Provide API key via Authorization header.",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # Get database statistics
     total_analyses = await db.scalar(select(func.count(Analysis.id)))
-    
+
     completed_analyses = await db.scalar(
         select(func.count(Analysis.id)).where(Analysis.status == "completed")
     )
-    
+
     avg_processing_time = await db.scalar(
-        select(func.avg(Analysis.processing_time)).where(
-            Analysis.processing_time.isnot(None)
-        )
+        select(func.avg(Analysis.processing_time)).where(Analysis.processing_time.isnot(None))
     )
-    
+
     # Get rate limit info from request state
     from app.middleware.ratelimit import TierLimits
+
     tier_limits = TierLimits.get_limits(tier)
-    
+
     return {
         "tier": tier,
         "rate_limits": {
