@@ -35,7 +35,7 @@
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'validate', 'lint', 'format', 'check', 'help')]
+    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'lint', 'format', 'check', 'help')]
     [string]$Action = 'help',
 
     [Parameter()]
@@ -531,7 +531,6 @@ function Invoke-Setup {
     Write-Host ""
     Write-Success "Setup complete!"
     Write-Info "Run '.\quick-start.ps1 test' to verify installation"
-    Write-Info "Run '.\quick-start.ps1 validate' to test the service"
 }
 
 function Invoke-Clean {
@@ -739,12 +738,6 @@ function Invoke-Tests {
     $partnerKey = $null
 
     if ($needsServer) {
-        if (-not (Test-Path $apiKeyFile)) {
-            Write-Step "Generating API keys for testing..."
-            Invoke-GenerateKeys
-            Write-Host ""
-        }
-
         # Load partner key for testing (highest rate limits)
         if (Test-Path $apiKeyFile) {
             $content = Get-Content $apiKeyFile -Raw
@@ -753,6 +746,10 @@ function Invoke-Tests {
                 Write-Info "Using PARTNER_KEY for testing (600 req/min limit)"
                 Write-Host ""
             }
+        } else {
+            Write-Warning "No API keys found - some tests will be skipped"
+            Write-Info "Generate keys with: .\quick-start.ps1 keys"
+            Write-Host ""
         }
     }
 
@@ -1248,11 +1245,13 @@ function Invoke-Demo {
 
     Write-Host ""
 
-    # Check for API keys, generate if missing
+    # Check for API keys
     $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
     if (-not (Test-Path $apiKeyFile)) {
-        Write-Step "No API keys found - generating development keys..."
-        Invoke-GenerateKeys
+        Write-Warning "No API keys found"
+        Write-Info "Run '.\quick-start.ps1 keys' to generate API keys first"
+        Write-Host ""
+        Write-Info "Continuing demo with public-tier endpoints only..."
         Write-Host ""
     }
 
@@ -1287,136 +1286,6 @@ function Invoke-Demo {
     Write-Success "Demo completed successfully!"
 }
 
-# ============================================================================
-# VALIDATION FUNCTION
-# ============================================================================
-
-function Invoke-Validation {
-    Write-Header "Running Automated Validation Suite"
-    
-    # T011: Deprecation warning
-    Write-Warning "The 'validate' action is deprecated. Use 'test -Validation' instead."
-    Write-Info "Example: .\quick-start.ps1 test -Validation"
-    Write-Host ""
-
-    # Check if validation script exists
-    $validationScript = Join-Path $PSScriptRoot "scripts\validation.ps1"
-
-    if (-not (Test-Path $validationScript)) {
-        Write-Error "Validation script not found at: $validationScript"
-        return
-    }
-
-    # Check if server is running
-    Write-Step "Checking server status..."
-    $serverProcess = $null
-    try {
-        $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 2
-        Write-Success "Server is running at $($Script:Config.BaseUrl)"
-        $serverWasRunning = $true
-    } catch {
-        Write-Info "Server not running. Starting server for validation..."
-        $serverWasRunning = $false
-
-        # Check if port is already in use
-        $portInUse = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
-        if ($portInUse) {
-            Write-Error "Port $Port is already in use by another process"
-            Write-Info "Close the other process or use a different port: .\quick-start.ps1 validate -Port 8001"
-            return
-        }
-
-        # Start server as background process (not in new window)
-        Write-Info "Starting validation server in background..."
-        $serverProcess = Start-Process -FilePath "$($Script:Config.VenvPath)\python.exe" `
-            -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", $Port `
-            -PassThru -NoNewWindow -RedirectStandardOutput "nul" -RedirectStandardError "nul"
-
-        Write-Info "Waiting for server to start (this can take up to 45 seconds)..."
-        $retries = 0
-        $maxRetries = 45
-
-        while ($retries -lt $maxRetries) {
-            Start-Sleep -Milliseconds 1000
-            if ($retries % 5 -eq 0 -and $retries -gt 0) {
-                Write-Host " ${retries}s" -ForegroundColor DarkGray -NoNewline
-            } else {
-                Write-Host "." -NoNewline -ForegroundColor Gray
-            }
-
-            try {
-                $testResponse = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 3
-                Write-Host ""
-                Write-Success "Server is ready! (started in ${retries}s)"
-                break
-            } catch {
-                $retries++
-                if ($retries -eq $maxRetries) {
-                    Write-Host ""
-                    Write-Error "Server failed to start after $maxRetries seconds"
-                    Write-Warning "Check the server window for error messages"
-                    Write-Info "Common issues: Port already in use, missing dependencies"
-                    return
-                }
-            }
-        }
-    }
-
-    Write-Host ""
-
-    # Check for API key in dev-api-keys.txt
-    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
-    $apiKey = $null
-
-    if (Test-Path $apiKeyFile) {
-        $content = Get-Content $apiKeyFile -Raw
-        if ($content -match 'DEV_KEY=([^\r\n]+)') {
-            $apiKey = $Matches[1]
-            Write-Success "Using API key from dev-api-keys.txt"
-        }
-    } else {
-        Write-Warning "No API keys found - some tests will be skipped"
-        Write-Info "Generate keys with: .\quick-start.ps1 keys"
-    }
-
-    # Run validation script
-    Write-Section "Executing Validation Tests"
-    Write-Host ""
-
-    $validationArgs = @(
-        "-BaseUrl", $Script:Config.BaseUrl
-    )
-
-    if ($apiKey) {
-        $validationArgs += "-ApiKey", $apiKey
-    }
-
-    & $validationScript @validationArgs
-
-    $exitCode = $LASTEXITCODE
-
-    # Cleanup: Stop validation server if we started it
-    if ($serverProcess) {
-        Write-Host ""
-        Write-Step "Stopping validation server..."
-        try {
-            Stop-Process -Id $serverProcess.Id -Force -ErrorAction Stop
-            Write-Success "Validation server stopped"
-        } catch {
-            Write-Warning "Could not stop server process. You may need to close it manually."
-        }
-    }
-
-    Write-Host ""
-
-    if ($exitCode -eq 0) {
-        Write-Success "Validation passed!"
-    } else {
-        Write-Warning "Validation completed with failures"
-    }
-
-    exit $exitCode
-}
 
 # ============================================================================
 # CODE QUALITY ACTIONS (Feature 002 - T013-T015)
@@ -1716,9 +1585,6 @@ switch ($Action.ToLower()) {
     }
     'analyze' {
         Test-AnalyzeEndpoint
-    }
-    'validate' {
-        Invoke-Validation
     }
     'lint' {
         Invoke-Lint
