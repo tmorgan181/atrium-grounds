@@ -97,7 +97,7 @@ function Write-TestResult {
 
 function Write-TestSkipped {
     param([string]$TestName, [string]$Reason)
-    Write-Host "○ " -ForegroundColor Yellow -NoNewline
+    Write-Host "[SKIP] " -ForegroundColor Yellow -NoNewline
     Write-Host "$TestName" -ForegroundColor Gray
     Write-Host "  Skipped: $Reason" -ForegroundColor Yellow
     $Script:Config.SkippedTests++

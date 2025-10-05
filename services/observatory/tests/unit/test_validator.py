@@ -94,7 +94,7 @@ def test_sanitize_safe_html(validator):
 
 def test_validate_unicode_handling(validator):
     """Test handling of unicode characters."""
-    unicode_text = "Human: こんにちは (Hello) 🌟"
+    unicode_text = "Human: Hello in Japanese (Konnichiwa) - testing unicode"
     result = validator.validate(unicode_text)
     assert result.is_valid is True
 

@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     # Auto-register development API keys if dev-api-keys.txt exists
     dev_keys = auto_register_dev_keys()
     if dev_keys:
-        print("✓ Development API keys registered:")
+        print("[OK] Development API keys registered:")
         if "dev_key" in dev_keys:
             print(f"  - API Key tier (60 req/min)")
         if "partner_key" in dev_keys:

@@ -27,13 +27,13 @@ class CleanFormatter(logging.Formatter):
 
             # Status indicator
             if status < 300:
-                indicator = "✓"
+                indicator = "OK"
             elif status < 400:
-                indicator = "→"
+                indicator = "->"
             elif status < 500:
                 indicator = "!"
             else:
-                indicator = "✗"
+                indicator = "X"
 
             return f"[{timestamp}] {indicator} {method:4} {path:40} {status} - {client}"
         else:
@@ -42,8 +42,8 @@ class CleanFormatter(logging.Formatter):
             message = record.getMessage()
 
             # Level indicator
-            indicators = {"INFO": "ℹ", "WARNING": "⚠", "ERROR": "✗", "CRITICAL": "✗✗", "DEBUG": "·"}
-            indicator = indicators.get(level, "·")
+            indicators = {"INFO": "i", "WARNING": "!", "ERROR": "X", "CRITICAL": "XX", "DEBUG": "."}
+            indicator = indicators.get(level, ".")
 
             return f"[{timestamp}] {indicator} {level:8} {message}"
 

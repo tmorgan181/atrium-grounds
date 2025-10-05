@@ -74,7 +74,7 @@ Write-Host ""
 Write-Host "NFR-005 Requirement: <100ms overhead per action" -ForegroundColor Yellow
 Write-Host "Measured overhead: ~30-40ms (estimated)" -ForegroundColor Gray
 Write-Host ""
-Write-Host "Status: ✅ PASS" -ForegroundColor Green
+Write-Host "Status: [PASS]" -ForegroundColor Green
 Write-Host ""
 Write-Host "Notes:" -ForegroundColor Yellow
 Write-Host "  - Overhead is primarily in PowerShell script logic" -ForegroundColor Gray

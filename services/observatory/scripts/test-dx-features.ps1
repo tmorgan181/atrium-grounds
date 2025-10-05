@@ -34,11 +34,11 @@ function Write-TestResult {
     param([bool]$Passed, [string]$Message = "")
     if ($Passed) {
         $script:PassCount++
-        Write-Host "  [✓] PASS" -ForegroundColor Green
+        Write-Host "  [PASS]" -ForegroundColor Green
         if ($Message) { Write-Host "      $Message" -ForegroundColor Gray }
     } else {
         $script:FailCount++
-        Write-Host "  [✗] FAIL" -ForegroundColor Red
+        Write-Host "  [FAIL]" -ForegroundColor Red
         if ($Message) { Write-Host "      $Message" -ForegroundColor Red }
     }
 }
@@ -46,7 +46,7 @@ function Write-TestResult {
 function Write-TestSkip {
     param([string]$Reason)
     $script:SkipCount++
-    Write-Host "  [○] SKIP: $Reason" -ForegroundColor DarkGray
+    Write-Host "  [SKIP] $Reason" -ForegroundColor DarkGray
 }
 
 function Test-OutputLength {
@@ -265,9 +265,9 @@ Write-Host "  Pass Rate:    $passRate%" -ForegroundColor $(if ($passRate -ge 90)
 Write-Host ""
 
 if ($script:FailCount -gt 0) {
-    Write-Host "  ✗ Some tests failed. Review output above." -ForegroundColor Red
+    Write-Host "  [X] Some tests failed. Review output above." -ForegroundColor Red
     exit 1
 } else {
-    Write-Host "  ✓ All tests passed!" -ForegroundColor Green
+    Write-Host "  [OK] All tests passed!" -ForegroundColor Green
     exit 0
 }

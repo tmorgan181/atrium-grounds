@@ -672,7 +672,7 @@ function Invoke-Tests {
         
         Write-Host ""
         if ($allPassed) {
-            Write-Success "All tests passed! 🎉"
+            Write-Success "All tests passed!"
         } else {
             Write-Warning "Failed test suites: $($failedSuites -join ', ')"
             Write-Info "Run with -Detail flag for more information"
@@ -1303,7 +1303,7 @@ function Invoke-Check {
     Write-Section "Quality Check Summary"
 
     if ($allPassed) {
-        Write-Success "All quality checks passed! ✅"
+        Write-Success "All quality checks passed!"
         exit 0
     } else {
         Write-Warning "Some quality checks failed"
