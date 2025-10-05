@@ -268,17 +268,29 @@ function Test-Prerequisites {
 function Invoke-Setup {
     Write-Header "Setting Up Observatory Environment"
 
-    Write-Step "Creating virtual environment with uv..."
-    uv venv
+    # T005: Add venv existence check + verbosity control
+    if (-not (Test-Path ".venv")) {
+        Write-Step "Creating virtual environment with uv..."
+        Invoke-CommandWithVerbosity -Command {
+            uv venv
+        } -SuccessMessage "Virtual environment created" -ErrorMessage "Failed to create virtual environment"
+    } else {
+        if ($Detail) {
+            Write-Info "Virtual environment already exists (skipping creation)"
+        }
+    }
 
+    # T006: Apply verbosity to dependency installation
     Write-Step "Installing dependencies..."
-    uv pip install -e .
+    Invoke-CommandWithVerbosity -Command {
+        uv pip install -e .
+    } -SuccessMessage "Dependencies installed" -ErrorMessage "Failed to install dependencies"
 
+    # T007: Apply verbosity to dev dependencies
     Write-Step "Installing development dependencies..."
-    uv pip install -e ".[dev]"
-
-    Write-Host ""
-    Write-Success "Dependencies installed!"
+    Invoke-CommandWithVerbosity -Command {
+        uv pip install -e ".[dev]"
+    } -SuccessMessage "Development dependencies installed" -ErrorMessage "Failed to install development dependencies"
 
     # Auto-generate API keys if they don't exist
     Write-Host ""
