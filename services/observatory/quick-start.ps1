@@ -330,14 +330,18 @@ function Start-TestServer {
     $serverProcess = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -PassThru -WindowStyle Hidden
     
     # Wait for server to be ready (max 10 seconds)
+    # Suppress PowerShell's built-in verbose output during health checks
+    $oldVerbosePreference = $VerbosePreference
+    $VerbosePreference = 'SilentlyContinue'
+
     $maxWait = 10
     $waited = 0
     $ready = $false
-    
+
     while ($waited -lt $maxWait -and -not $ready) {
         Start-Sleep -Milliseconds 500
         $waited += 0.5
-        
+
         try {
             $response = Invoke-WebRequest -Uri "http://127.0.0.1:8000/health" -TimeoutSec 1 -ErrorAction Stop
             if ($response.StatusCode -eq 200) {
@@ -347,7 +351,10 @@ function Start-TestServer {
             # Server not ready yet, continue waiting
         }
     }
-    
+
+    # Restore verbose preference
+    $VerbosePreference = $oldVerbosePreference
+
     if ($ready) {
         Write-Success "Test server ready"
     } else {
