@@ -372,10 +372,10 @@ function Stop-TestServer {
         Process object returned from Start-TestServer
     #>
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         $ServerProcess
     )
-    
+
     if ($ServerProcess -and -not $ServerProcess.HasExited) {
         Write-Step "Stopping test server..."
         try {
@@ -384,6 +384,33 @@ function Stop-TestServer {
         } catch {
             Write-Warning "Could not stop server process: $_"
         }
+    }
+}
+
+function Stop-AllTestServers {
+    <#
+    .SYNOPSIS
+        Stop all uvicorn test servers (cleanup orphaned processes)
+    .DESCRIPTION
+        Kills any python processes running uvicorn for this project.
+        Useful for cleaning up servers that weren't properly stopped.
+    #>
+    $stopped = 0
+    Get-Process python -ErrorAction SilentlyContinue | ForEach-Object {
+        try {
+            # Check if this is a uvicorn process
+            $cmdline = (Get-CimInstance Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue).CommandLine
+            if ($cmdline -like "*uvicorn*app.main:app*") {
+                Write-Host "[INFO] Stopping orphaned server process (PID: $($_.Id))" -ForegroundColor Yellow
+                Stop-Process -Id $_.Id -Force -ErrorAction Stop
+                $stopped++
+            }
+        } catch {
+            # Ignore errors
+        }
+    }
+    if ($stopped -gt 0) {
+        Write-Host "[OK] Cleaned up $stopped orphaned server process(es)" -ForegroundColor Green
     }
 }
 
@@ -775,6 +802,9 @@ function Invoke-Tests {
 
     # Start server if integration or validation tests will run
     if ($needsServer) {
+        # First, clean up any orphaned servers from previous runs
+        Stop-AllTestServers
+
         $serverProcess = Start-TestServer
         Write-Host ""
     }
@@ -1277,6 +1307,9 @@ function Invoke-Demo {
         Write-Host ""
     }
 
+    # Clean up any orphaned servers first
+    Stop-AllTestServers
+
     # Start server
     Start-Server -Background $true
 
@@ -1304,6 +1337,8 @@ function Invoke-Demo {
     Write-Step "Stopping background server..."
     Get-Job | Stop-Job
     Get-Job | Remove-Job
+    # Also clean up any process-based servers
+    Stop-AllTestServers
     Write-Success "Server stopped"
     Write-Success "Demo completed successfully!"
 }
