@@ -773,10 +773,13 @@ function Invoke-Tests {
             Write-Step "Running validation suite..."
 
             if (Test-Path ".\scripts\validation.ps1") {
-                # Pass API key to validation script for authenticated tests
-                $validationArgs = @()
+                # Pass base URL and API key to validation script
+                $validationArgs = @{
+                    BaseUrl = $Script:Config.BaseUrl
+                }
+
                 if ($partnerKey) {
-                    $validationArgs += @("-ApiKey", $partnerKey)
+                    $validationArgs['ApiKey'] = $partnerKey
                 }
 
                 & ".\scripts\validation.ps1" @validationArgs
