@@ -921,19 +921,28 @@ function Start-Server {
     Write-Step "Starting FastAPI server..."
 
     if ($NewWindow) {
-        # Start server in new PowerShell window (prefer PowerShell Core)
-        $pwsh = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
-
+        # Start server in new Windows Terminal or cmd window
+        # Prefer Windows Terminal, fall back to cmd.exe
+        $useWindowsTerminal = Get-Command wt.exe -ErrorAction SilentlyContinue
+        
         # T012: Use clean server script if -Clean flag is set
         if ($Clean) {
-            $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' run_clean_server.py $Port --reload"
+            $pythonCmd = "& `"$($Script:Config.VenvPath)\python.exe`" run_clean_server.py $Port --reload"
         } else {
-            $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
+            $pythonCmd = "& `"$($Script:Config.VenvPath)\python.exe`" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
         }
 
-        Start-Process $pwsh -ArgumentList "-NoExit", "-Command", $serverScript
-
-        Write-Success "Server starting in new $pwsh window"
+        if ($useWindowsTerminal) {
+            # Use Windows Terminal with cmd profile
+            Start-Process wt.exe -ArgumentList "cmd", "/k", "cd /d `"$PWD`" && $pythonCmd"
+            Write-Success "Server starting in new Windows Terminal window"
+        } else {
+            # Fall back to classic cmd.exe
+            $cmdScript = "cd /d `"$PWD`" && $pythonCmd"
+            Start-Process cmd.exe -ArgumentList "/k", $cmdScript
+            Write-Success "Server starting in new cmd window"
+        }
+        
         if ($Clean) {
             Write-Info "Using clean logging (ANSI-free output)"
         }
