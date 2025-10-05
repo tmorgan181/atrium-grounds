@@ -4,7 +4,7 @@ import hashlib
 import hmac
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any, Optional
 
 import httpx
@@ -149,7 +149,7 @@ class WebhookNotifier:
         """
         return {
             "event": "batch.progress",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "batch_id": batch_id,
             "data": {
                 "total_conversations": total_conversations,
@@ -181,7 +181,7 @@ class WebhookNotifier:
         """
         return {
             "event": "batch.complete",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "batch_id": batch_id,
             "data": {
                 "total_conversations": total_conversations,
@@ -210,7 +210,7 @@ class WebhookNotifier:
         """
         return {
             "event": "batch.failed",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "batch_id": batch_id,
             "data": {
                 "error": error_message,
