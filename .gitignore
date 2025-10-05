@@ -1,5 +1,5 @@
-# Claude Code local settings
-.claude/settings.local.json
+# Claude Code local settings (ignore entire directory)
+.claude/
 
 # Python
 __pycache__/
