@@ -55,7 +55,7 @@ param(
 $Script:Config = @{
     ServiceName = "Atrium Observatory"
     Version     = "0.1.0"
-    BaseUrl     = "http://localhost:$Port"
+    BaseUrl     = "http://127.0.0.1:$Port"  # Use 127.0.0.1 instead of localhost for Windows compatibility
     VenvPath    = ".venv\Scripts"
     DataPath    = "data"
 }

@@ -8,7 +8,7 @@
     Validates endpoints, authentication, rate limiting, and analysis functionality.
 
 .PARAMETER BaseUrl
-    Base URL of the Observatory service (default: http://localhost:8000)
+    Base URL of the Observatory service (default: http://127.0.0.1:8000)
 
 .PARAMETER ApiKey
     Optional API key for authenticated tests
@@ -25,13 +25,13 @@
     Run quick validation checks only
 
 .EXAMPLE
-    .\scripts\validation.ps1 -ApiKey "dev_YOUR_KEY" -BaseUrl "http://localhost:8001"
+    .\scripts\validation.ps1 -ApiKey "dev_YOUR_KEY" -BaseUrl "http://127.0.0.1:8001"
     Validate with custom API key and port
 #>
 
 param(
     [Parameter()]
-    [string]$BaseUrl = "http://localhost:8000",
+    [string]$BaseUrl = "http://127.0.0.1:8000",  # Use 127.0.0.1 for Windows compatibility
 
     [Parameter()]
     [string]$ApiKey = "",
