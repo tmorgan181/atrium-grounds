@@ -343,7 +343,7 @@ function Test-ApiDocumentation {
             -Passed $hasPaths
     }
 
-    Start-Sleep -Milliseconds 200
+    Start-Sleep -Milliseconds 500
 
     # Test 4: ReDoc (returns HTML, not JSON)
     try {
@@ -406,8 +406,8 @@ function Test-AnalysisEndpoint {
 function Test-ErrorHandling {
     Write-TestHeader "8" "Error Handling"
 
-    # Add small delay to avoid rate limiting from previous tests
-    Start-Sleep -Milliseconds 500
+    # Add delay to let rate limit window reset (we've made ~25 requests so far)
+    Start-Sleep -Milliseconds 2000
 
     # Test 1: Invalid endpoint returns 404
     $response = Invoke-ApiRequest -Path "/nonexistent-endpoint"
@@ -417,7 +417,7 @@ function Test-ErrorHandling {
         -Expected "404" `
         -Actual "$($response.StatusCode)"
 
-    Start-Sleep -Milliseconds 200
+    Start-Sleep -Milliseconds 500
 
     # Test 2: Invalid example returns 404
     $response = Invoke-ApiRequest -Path "/examples/nonexistent"
