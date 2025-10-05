@@ -929,20 +929,21 @@ function Start-Server {
         $useWindowsTerminal = Get-Command wt.exe -ErrorAction SilentlyContinue
         
         # T012: Use clean server script if -Clean flag is set
+        # Build the command for cmd.exe (no PowerShell & operator)
+        $pythonExe = "$($Script:Config.VenvPath)\python.exe"
         if ($Clean) {
-            $pythonCmd = "& `"$($Script:Config.VenvPath)\python.exe`" run_clean_server.py $Port --reload"
+            $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" run_clean_server.py $Port --reload"
         } else {
-            $pythonCmd = "& `"$($Script:Config.VenvPath)\python.exe`" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
+            $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
         }
 
         if ($useWindowsTerminal) {
             # Use Windows Terminal with cmd profile
-            Start-Process wt.exe -ArgumentList "cmd", "/k", "cd /d `"$PWD`" && $pythonCmd"
+            Start-Process wt.exe -ArgumentList "cmd", "/k", $cmdCommand
             Write-Success "Server starting in new Windows Terminal window"
         } else {
             # Fall back to classic cmd.exe
-            $cmdScript = "cd /d `"$PWD`" && $pythonCmd"
-            Start-Process cmd.exe -ArgumentList "/k", $cmdScript
+            Start-Process cmd.exe -ArgumentList "/k", $cmdCommand
             Write-Success "Server starting in new cmd window"
         }
         
