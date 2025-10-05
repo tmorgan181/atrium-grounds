@@ -415,13 +415,26 @@ function Invoke-TestSuite {
     if ($Script:Verbose) {
         $argsString = $PytestArgs -join ' '
         Write-Host "$(Get-Timestamp) Running: pytest $TestPath $argsString" -ForegroundColor Gray
+        Write-Host ""
     }
 
-    $command = { & $pythonExe -m pytest $TestPath @PytestArgs }
+    # Run pytest directly in verbose mode to show output, or via helper in terse mode
+    if ($Script:Verbose) {
+        # Stream pytest output directly to console (don't capture)
+        & $pythonExe -m pytest $TestPath @PytestArgs | ForEach-Object { Write-Host $_ }
+        $exitCode = $LASTEXITCODE
+        Write-Host ""
+        if ($exitCode -eq 0) {
+            Write-Host "$(Get-Timestamp) $($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests: PASSED" -ForegroundColor Green
+        } else {
+            Write-Host "$(Get-Timestamp) $($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests: FAILED (exit code: $exitCode)" -ForegroundColor Red
+        }
+    } else {
+        $command = { & $pythonExe -m pytest $TestPath @PytestArgs }
+        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests passed"
+        $exitCode = $LASTEXITCODE
+    }
 
-    Invoke-CommandWithVerbosity -Command $command -SuccessMessage "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests passed"
-
-    $exitCode = $LASTEXITCODE
     $passed = ($exitCode -eq 0)
 
     if (-not $Script:Verbose -and -not $passed) {
@@ -803,6 +816,8 @@ function Invoke-Tests {
 
                 if ($partnerKey) {
                     $validationArgs['ApiKey'] = $partnerKey
+                } else {
+                    Write-Warning "No API key loaded - validation will skip authenticated tests"
                 }
 
                 # Use quiet mode unless -Verbose is specified

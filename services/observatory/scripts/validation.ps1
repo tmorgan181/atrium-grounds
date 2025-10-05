@@ -224,7 +224,10 @@ function Test-RateLimiting {
 
     if ($hasHeaders) {
         # Test 2: Limit value correct
-        $limit = [int]$response.Headers["x-ratelimit-limit"]
+        # PowerShell may return headers as string arrays, take first element
+        $limitValue = $response.Headers["x-ratelimit-limit"]
+        if ($limitValue -is [array]) { $limitValue = $limitValue[0] }
+        $limit = [int]$limitValue
         $correctLimit = $limit -eq 10
         Write-TestResult -TestName "Public tier limit is 10 req/min" `
             -Passed $correctLimit `
@@ -240,8 +243,15 @@ function Test-RateLimiting {
         $first.Headers -and $second.Headers -and
         $first.Headers.ContainsKey("x-ratelimit-remaining") -and
         $second.Headers.ContainsKey("x-ratelimit-remaining")) {
-        $firstRemaining = [int]$first.Headers["x-ratelimit-remaining"]
-        $secondRemaining = [int]$second.Headers["x-ratelimit-remaining"]
+        # PowerShell may return headers as string arrays, take first element
+        $firstRem = $first.Headers["x-ratelimit-remaining"]
+        if ($firstRem -is [array]) { $firstRem = $firstRem[0] }
+        $firstRemaining = [int]$firstRem
+
+        $secondRem = $second.Headers["x-ratelimit-remaining"]
+        if ($secondRem -is [array]) { $secondRem = $secondRem[0] }
+        $secondRemaining = [int]$secondRem
+
         $decreases = $secondRemaining -lt $firstRemaining
 
         Write-TestResult -TestName "Remaining count decrements correctly" `
