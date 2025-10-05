@@ -1,0 +1,83 @@
+{
+  "version": "1.0",
+  "description": "Curated example conversations demonstrating various conversation patterns for the Atrium Observatory",
+  "examples": [
+    {
+      "id": "philosophical-inquiry",
+      "name": "Philosophical Inquiry",
+      "category": "dialectic",
+      "description": "Deep philosophical exploration about life's meaning",
+      "file": "philosophical-inquiry.txt",
+      "tags": ["philosophy", "existentialism", "meaning"],
+      "expected_patterns": ["dialectic", "sentiment"],
+      "difficulty": "intermediate",
+      "participants": 2
+    },
+    {
+      "id": "dialectic-exchange",
+      "name": "Dialectic Exchange",
+      "category": "dialectic",
+      "description": "Thesis-antithesis discussion about AI and employment",
+      "file": "dialectic-exchange.txt",
+      "tags": ["debate", "AI", "future-of-work"],
+      "expected_patterns": ["dialectic", "topics"],
+      "difficulty": "beginner",
+      "participants": 2
+    },
+    {
+      "id": "technical-assistance",
+      "name": "Technical Assistance",
+      "category": "informational",
+      "description": "Technical problem-solving with code example",
+      "file": "technical-assistance.txt",
+      "tags": ["programming", "python", "algorithms"],
+      "expected_patterns": ["topics", "dynamics"],
+      "difficulty": "beginner",
+      "participants": 2
+    },
+    {
+      "id": "emotional-support",
+      "name": "Emotional Support",
+      "category": "sentiment",
+      "description": "Empathetic conversation addressing anxiety and public speaking fears",
+      "file": "emotional-support.txt",
+      "tags": ["mental-health", "anxiety", "support"],
+      "expected_patterns": ["sentiment", "dynamics"],
+      "difficulty": "intermediate",
+      "participants": 2
+    },
+    {
+      "id": "collaborative-problem-solving",
+      "name": "Collaborative Problem Solving",
+      "category": "synthesis",
+      "description": "Co-creating solutions for sustainable urban gardening",
+      "file": "collaborative-problem-solving.txt",
+      "tags": ["sustainability", "collaboration", "design"],
+      "expected_patterns": ["dialectic", "dynamics", "topics"],
+      "difficulty": "beginner",
+      "participants": 2
+    }
+  ],
+  "categories": [
+    {
+      "id": "dialectic",
+      "name": "Dialectic Patterns",
+      "description": "Conversations exploring thesis, antithesis, and synthesis"
+    },
+    {
+      "id": "sentiment",
+      "name": "Sentiment & Emotion",
+      "description": "Conversations with emotional content and empathetic responses"
+    },
+    {
+      "id": "informational",
+      "name": "Information Exchange",
+      "description": "Fact-based Q&A and knowledge transfer"
+    },
+    {
+      "id": "synthesis",
+      "name": "Collaborative Synthesis",
+      "description": "Joint problem-solving and creative ideation"
+    }
+  ]
+}

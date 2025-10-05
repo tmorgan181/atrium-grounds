@@ -22,7 +22,7 @@ Migrate the existing Observatory Flask application to a standalone microservice 
 - **Deployment**: Docker container with docker-compose for local dev
 
 ### Groundskeeper Data Curation Workflow
-**Sacred Boundary Protection**: Conversation data flows from private archives to public service only through manual curation by the groundskeeper (maintainer).
+**Ethical Boundary Protection**: Conversation data flows from private archives to public service only through manual curation by the groundskeeper (maintainer).
 
 **Curation Process**:
 1. Maintainer reviews conversations in private Atrium archives
@@ -81,6 +81,9 @@ Migrate the existing Observatory Flask application to a standalone microservice 
 ```
 
 ## Migration Strategy
+
+### Ethical Boundaries Enforcement (Constitution Compliance)
+**ABSOLUTE RULE:** The Observatory service MUST NEVER access private Atrium archives directly. All migration, data flows, and example curation must occur via manual groundskeeper review and explicit copying/sanitization. This is non-negotiable and required by the Atrium Grounds constitution's ethical boundaries principle.
 
 ### Phase 1: Core Service (Week 1)
 **Goal**: Functional API with existing analysis capabilities
@@ -263,7 +266,7 @@ services/observatory/
    - No conversation persistence beyond analysis
    - Encrypted data at rest (for cached results)
    - Audit logging for all requests
-   - Compliance with sacred boundaries principle
+   - Compliance with ethical boundaries principle
 
 3. **API Security**
    - HTTPS only in production

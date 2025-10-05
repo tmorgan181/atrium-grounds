@@ -8,26 +8,31 @@
 ## Execution Flow (main)
 ```
 1. Parse user description from Input
-   → Feature: Observatory service for analyzing conversations
+   ✓ Feature: Observatory service for analyzing conversations
 2. Extract key concepts from description
-   → Actors: API consumers (humans, synthient systems)
-   → Actions: Analyze conversations, detect patterns, extract insights
-   → Data: Conversation transcripts (from private Atrium archives)
-   → Constraints: Must not expose private archives directly (sacred boundaries principle)
+   ✓ Actors: API consumers (humans, synthient systems)
+   ✓ Actions: Analyze conversations, detect patterns, extract insights
+   ✓ Data: Conversation transcripts (from private Atrium archives)
+   ✓ Constraints: Must not expose private archives directly (ethical boundaries principle)
 3. For each unclear aspect:
-   → [NEEDS CLARIFICATION: What specific analysis capabilities? Pattern types?]
-   → [NEEDS CLARIFICATION: Authentication/authorization model for API access?]
-   → [NEEDS CLARIFICATION: Rate limits and usage constraints?]
-   → [NEEDS CLARIFICATION: Data retention policy for analysis results?]
+   ✓ Pattern types: dialectic, sentiment, topic clustering, interaction dynamics
+   ✓ Authentication: Public tier → API keys → OAuth/JWT for partners
+   ✓ Rate limits: 10/60/600 req/min for public/API/partner tiers
+   ✓ Data retention: 30-day results, 90-day metadata, indefinite aggregated insights
+   ✓ Batch processing: Up to 1,000 conversations, async with webhooks
 4. Fill User Scenarios & Testing section
    ✓ Primary scenarios identified
 5. Generate Functional Requirements
-   ✓ Requirements listed with testability markers
+   ✓ 14 requirements defined with concrete details
 6. Identify Key Entities
-   ✓ Conversation, Analysis, Pattern entities defined
+   ✓ Conversation, Analysis, Pattern, User/Consumer entities defined
 7. Run Review Checklist
-   ⚠ WARN "Spec has uncertainties - clarification needed"
-8. Return: SUCCESS (spec ready for planning after clarification)
+   ✓ All checks passed - requirements testable and unambiguous
+8. Constitution Audit
+   ✓ 100% compliance across all seven principles
+   ✓ Added FR-014 for data export
+   ✓ Groundskeeper curation workflow documented
+9. Return: SUCCESS (spec and plan ready for implementation)
 ```
 
 ---
@@ -64,16 +69,20 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 ### Functional Requirements
 - **FR-001**: System MUST accept conversation data for analysis without requiring direct access to private Atrium archives
 - **FR-002**: System MUST provide API endpoints accessible to both human users and synthient systems (progressive disclosure principle)
-- **FR-003**: System MUST detect patterns in conversations including dialectic patterns, sentiment analysis, topic clustering, interaction dynamics, and recursive patterns
+- **FR-003**: System MUST detect patterns in conversations including:
+  - **Dialectic patterns**: Question-answer flows, thesis-antithesis-synthesis progressions, Socratic exchanges
+  - **Sentiment analysis**: Emotional tone shifts, engagement levels, collaborative vs adversarial dynamics
+  - **Topic clustering**: Thematic groupings, subject transitions, concept relationships
+  - **Interaction dynamics**: Turn-taking patterns, response latencies, conversational reciprocity
 - **FR-004**: System MUST extract key themes and insights from conversation transcripts
 - **FR-005**: System MUST return structured analysis results in machine-readable format
 - **FR-006**: System MUST authenticate API consumers via public tier (no auth), API keys, or OAuth/JWT for partners
 - **FR-007**: System MUST respect sacred boundaries by never exposing private archive file paths or locations
-- **FR-008**: System MUST handle requests from curated public data sources without private archive dependencies
+- **FR-008**: System MUST handle requests using curated example conversations without private archive dependencies (examples managed via groundskeeper curation workflow)
 - **FR-009**: System MUST enforce rate limiting at 10/60/600 requests per minute for public/API key/partner tiers respectively
 - **FR-010**: System MUST log all analysis requests for transparency and debugging
 - **FR-011**: System MUST support both real-time and batch analysis modes with async processing and webhook notifications
-- **FR-012**: System MUST provide analysis confidence scores or quality indicators
+- **FR-012**: System MUST provide analysis confidence scores (0.0-1.0) or quality indicators based on conversation length, pattern clarity, and model certainty
 - **FR-013**: System MUST retain analysis results for 30 days after last access, metadata for 90 days, with indefinite aggregated insights
 - **FR-014**: System MUST provide analysis result export in standard formats (JSON, CSV, Markdown) enabling users to retain insights independently of the service
 
@@ -122,7 +131,7 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 
 **Clarifications Addressed**:
 
-1. **Pattern types**: Dialectic patterns, sentiment analysis, topic clustering, interaction dynamics, recursive patterns
+1. **Pattern types**: Dialectic patterns, sentiment analysis, topic clustering, interaction dynamics (recursive patterns deferred to future enhancement)
 2. **Authentication**: Public tier (strict limits) → API keys (higher limits) → OAuth/JWT for partners
 3. **Rate limits**: Public (10/min, 500/day), API key (60/min, 5K/day), Partner (600/min, 50K/day)
 4. **Data retention**: Analysis metadata (90 days), results (30 days after access), no raw conversation persistence, aggregated insights indefinite
