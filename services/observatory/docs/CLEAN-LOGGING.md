@@ -101,44 +101,13 @@ if __name__ == "__main__":
 
 ---
 
-## Integration with quick-start.ps1 (Pending)
+## Integration with quick-start.ps1 ✅
 
-**Note**: Claude is currently modifying `quick-start.ps1` for validation fixes. 
-Once Claude's changes are committed, add this enhancement:
+**Status**: Feature 002 (T012) - Implementation complete!
 
-### Add `-Clean` Flag Parameter
+The `-Clean` flag is now integrated into `quick-start.ps1` for the `serve` action.
 
-```powershell
-param(
-    # ... existing parameters ...
-    
-    [Parameter()]
-    [switch]$Clean  # Clean logs without ANSI codes
-)
-```
-
-### Update Invoke-Server Function
-
-```powershell
-function Invoke-Server {
-    # ... existing code ...
-    
-    if ($Clean) {
-        # Use clean logging
-        if ($NewWindow) {
-            $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' run_clean_server.py $Port $(if($Reload){'--reload'})"
-            Start-Process $pwsh -ArgumentList "-NoExit", "-Command", $serverScript
-        } else {
-            & "$($Script:Config.VenvPath)\python.exe" run_clean_server.py $Port $(if($Reload){'--reload'})
-        }
-    } else {
-        # Existing uvicorn command
-        # ...
-    }
-}
-```
-
-### Usage
+### Quick-Start Usage
 
 ```powershell
 # Clean logs in new window
@@ -147,9 +116,80 @@ function Invoke-Server {
 # Clean logs in foreground
 .\quick-start.ps1 serve -Clean
 
-# Demo with clean logs
-.\quick-start.ps1 demo -Clean
+# Default (with ANSI colors)
+.\quick-start.ps1 serve
 ```
+
+### How It Works
+
+The `-Clean` flag automatically:
+1. Checks for `run_clean_server.py` existence
+2. Uses clean logging configuration if available
+3. Falls back to standard uvicorn if script not found
+4. Works in all server modes: foreground, new window, background
+
+### Implementation Details
+
+**Parameter** (lines 50-51 in quick-start.ps1):
+```powershell
+[Parameter()]
+[switch]$Clean
+```
+
+**Validation** (lines 73-77):
+```powershell
+# Rule 1: -Clean only applies to serve action
+if ($Clean -and $Action -ne "serve") {
+    Write-Warning "-Clean flag only applies to 'serve' action (ignored)"
+    $Clean = $false
+}
+```
+
+**Server Launch** (Start-Server function, lines 702-776):
+```powershell
+# T012: Check if clean logging is requested and available
+if ($Clean) {
+    $cleanServerScript = Join-Path $PSScriptRoot "run_clean_server.py"
+    if (-not (Test-Path $cleanServerScript)) {
+        Write-Warning "Clean logging script not found (run_clean_server.py missing). Using standard mode."
+        $Clean = $false
+    } else {
+        Write-Result "Logging" "Clean (no ANSI codes)" "Yellow"
+    }
+}
+
+# ... server startup with run_clean_server.py when -Clean is true
+```
+
+### Examples
+
+**Basic Usage**:
+```powershell
+PS> .\quick-start.ps1 serve -Clean
+[OK] Server starting with clean logging (no ANSI codes)
+[INFO] Using clean logging (no ANSI escape codes)
+```
+
+**New Window**:
+```powershell
+PS> .\quick-start.ps1 serve -Clean -NewWindow
+[OK] Server starting in new pwsh window
+[INFO] Using clean logging (ANSI-free output)
+```
+
+### When to Use `-Clean`
+
+✅ **Recommended for:**
+- Windows PowerShell 5.1 (no ANSI support)
+- CI/CD pipelines
+- Log file capture
+- Screen readers
+- Terminal multiplexers (tmux, screen)
+
+❌ **Not needed for:**
+- PowerShell Core 7+ (supports ANSI)
+- Windows Terminal (supports ANSI)
+- Modern terminals with color support
 
 ---
 
