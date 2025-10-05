@@ -67,7 +67,9 @@ class JobManager:
         job_id = str(uuid.uuid4())
 
         # Create job record (using naive UTC datetime)
-        job = Job(id=job_id, status=JobStatus.PENDING, created_at=datetime.now(UTC).replace(tzinfo=None))
+        job = Job(
+            id=job_id, status=JobStatus.PENDING, created_at=datetime.now(UTC).replace(tzinfo=None)
+        )
 
         async with self._lock:
             self.jobs[job_id] = job

@@ -85,13 +85,14 @@ async def test_analysis_is_expired(test_db_session):
 async def test_analysis_update_last_accessed(test_db_session):
     """Test updating last accessed timestamp."""
     analysis = Analysis(conversation_text="Test")
-    
+
     # Manually set initial timestamp since default only applies on DB insert
     analysis.last_accessed_at = datetime.now(UTC).replace(tzinfo=None)
     original_time = analysis.last_accessed_at
 
     # Wait a moment and update
     import asyncio
+
     await asyncio.sleep(0.01)
 
     analysis.update_last_accessed()

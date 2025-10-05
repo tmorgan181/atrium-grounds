@@ -13,7 +13,9 @@ class AnalysisOptions(BaseModel):
         description="Types of patterns to detect",
     )
     include_insights: bool = Field(default=True, description="Include natural language insights")
-    callback_url: Optional[str] = Field(default=None, description="Webhook URL for async notifications")
+    callback_url: Optional[str] = Field(
+        default=None, description="Webhook URL for async notifications"
+    )
 
 
 class AnalysisRequest(BaseModel):
@@ -36,8 +38,12 @@ class AnalysisResponse(BaseModel):
     """Response containing analysis results."""
 
     id: str = Field(..., description="Unique analysis identifier")
-    status: str = Field(..., description="Analysis status: pending, processing, completed, failed, cancelled")
-    observer_output: Optional[str] = Field(default=None, description="Natural language analysis from Observer model")
+    status: str = Field(
+        ..., description="Analysis status: pending, processing, completed, failed, cancelled"
+    )
+    observer_output: Optional[str] = Field(
+        default=None, description="Natural language analysis from Observer model"
+    )
     patterns: Optional[PatternData] = Field(default=None, description="Detected patterns")
     summary_points: Optional[list[str]] = Field(default=None, description="Key insights summary")
     confidence_score: Optional[float] = Field(
@@ -45,7 +51,9 @@ class AnalysisResponse(BaseModel):
     )
     processing_time: Optional[float] = Field(default=None, description="Processing time in seconds")
     created_at: datetime = Field(..., description="Timestamp when analysis was created")
-    expires_at: Optional[datetime] = Field(default=None, description="Timestamp when results expire")
+    expires_at: Optional[datetime] = Field(
+        default=None, description="Timestamp when results expire"
+    )
     error: Optional[str] = Field(default=None, description="Error message if analysis failed")
 
 
