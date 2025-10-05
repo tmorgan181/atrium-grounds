@@ -35,7 +35,7 @@
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'validate', 'help')]
+    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'validate', 'lint', 'format', 'check', 'help')]
     [string]$Action = 'help',
 
     [Parameter()]
@@ -1094,6 +1094,157 @@ function Invoke-Validation {
 }
 
 # ============================================================================
+# CODE QUALITY ACTIONS (Feature 002 - T013-T015)
+# ============================================================================
+
+function Invoke-Lint {
+    <#
+    .SYNOPSIS
+        Run code linter using ruff
+    .DESCRIPTION
+        Executes ruff check on the codebase. In default mode, suppresses output
+        unless issues are found. In Detail mode, shows full linter output.
+    #>
+    Write-Header "Running Code Linter"
+
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
+
+    $pythonExe = "$($Script:Config.VenvPath)\python.exe"
+
+    Write-Step "Running ruff check..."
+
+    # T013: Apply verbosity control to linter
+    $command = { & $pythonExe -m ruff check . }
+
+    try {
+        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "No linting issues found" -ErrorMessage "Linting found issues"
+    } catch {
+        # Linting failed - error already displayed by helper
+        exit 1
+    }
+}
+
+function Invoke-Format {
+    <#
+    .SYNOPSIS
+        Format code using ruff
+    .DESCRIPTION
+        Executes ruff format on the codebase. Shows summary of files changed
+        in default mode, full output in Detail mode.
+    #>
+    Write-Header "Formatting Code"
+
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
+
+    $pythonExe = "$($Script:Config.VenvPath)\python.exe"
+
+    Write-Step "Running ruff format..."
+
+    # T014: Format with verbosity control
+    if ($Detail) {
+        # Detail mode: Show full formatting output
+        & $pythonExe -m ruff format .
+        $exitCode = $LASTEXITCODE
+
+        if ($exitCode -eq 0) {
+            Write-Success "Code formatted successfully"
+        } else {
+            Write-Error "Formatting failed (exit code: $exitCode)"
+            exit 1
+        }
+    } else {
+        # Default mode: Show summary only
+        $output = & $pythonExe -m ruff format . 2>&1
+        $exitCode = $LASTEXITCODE
+
+        if ($exitCode -eq 0) {
+            # Extract summary line (e.g., "12 files reformatted, 45 files left unchanged")
+            $summary = $output | Where-Object { $_ -match "files?" } | Select-Object -Last 1
+
+            if ($summary) {
+                Write-Success $summary.ToString().Trim()
+            } else {
+                Write-Success "Code formatted successfully"
+            }
+        } else {
+            # Formatting failed - show output
+            Write-Host $output -ForegroundColor Red
+            Write-Error "Formatting failed (exit code: $exitCode)"
+            exit 1
+        }
+    }
+}
+
+function Invoke-Check {
+    <#
+    .SYNOPSIS
+        Run all code quality checks
+    .DESCRIPTION
+        Executes both linting (ruff check) and type checking (mypy) on the codebase.
+        Reports results for each check and overall status.
+    #>
+    Write-Header "Running Code Quality Checks"
+
+    if (-not (Test-Prerequisites)) {
+        Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
+        return
+    }
+
+    $pythonExe = "$($Script:Config.VenvPath)\python.exe"
+    $allPassed = $true
+
+    # T015: Run linter
+    Write-Section "Running Linter (ruff check)"
+    Write-Step "Checking code style..."
+
+    & $pythonExe -m ruff check .
+    $lintExitCode = $LASTEXITCODE
+
+    Write-Host ""
+    if ($lintExitCode -eq 0) {
+        Write-Success "Linting passed"
+    } else {
+        Write-Error "Linting failed"
+        $allPassed = $false
+    }
+
+    # T015: Run type checker
+    Write-Host ""
+    Write-Section "Running Type Checker (mypy)"
+    Write-Step "Checking type annotations..."
+
+    & $pythonExe -m mypy app/
+    $mypyExitCode = $LASTEXITCODE
+
+    Write-Host ""
+    if ($mypyExitCode -eq 0) {
+        Write-Success "Type checking passed"
+    } else {
+        Write-Error "Type checking failed"
+        $allPassed = $false
+    }
+
+    # Summary
+    Write-Host ""
+    Write-Section "Quality Check Summary"
+
+    if ($allPassed) {
+        Write-Success "All quality checks passed! ✅"
+        exit 0
+    } else {
+        Write-Warning "Some quality checks failed"
+        Write-Info "Review the output above for details"
+        exit 1
+    }
+}
+
+# ============================================================================
 # HELP FUNCTION
 # ============================================================================
 
@@ -1125,6 +1276,12 @@ function Show-Help {
     Write-Host "  Generate development API keys"
     Write-Host "  validate   " -ForegroundColor Green -NoNewline
     Write-Host "  Run automated validation suite (starts server if needed)"
+    Write-Host "  lint       " -ForegroundColor Green -NoNewline
+    Write-Host "  Run code linter (ruff check)"
+    Write-Host "  format     " -ForegroundColor Green -NoNewline
+    Write-Host "  Format code with ruff"
+    Write-Host "  check      " -ForegroundColor Green -NoNewline
+    Write-Host "  Run all code quality checks (lint + type check)"
     Write-Host "  clean      " -ForegroundColor Green -NoNewline
     Write-Host "  Remove virtual environment and caches"
     Write-Host "  help       " -ForegroundColor Green -NoNewline
@@ -1225,6 +1382,15 @@ switch ($Action.ToLower()) {
     }
     'validate' {
         Invoke-Validation
+    }
+    'lint' {
+        Invoke-Lint
+    }
+    'format' {
+        Invoke-Format
+    }
+    'check' {
+        Invoke-Check
     }
     'clean' {
         Invoke-Clean
