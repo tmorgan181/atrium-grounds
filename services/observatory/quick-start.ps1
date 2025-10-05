@@ -232,59 +232,54 @@ function Invoke-CommandWithVerbosity {
         [string]$ErrorMessage = "Command failed"
     )
 
-    try {
-        if ($Detail) {
-            # Detail mode: Show all output (stdout and stderr)
-            & $Command
-        } else {
-            # Default mode: Suppress output, capture for error reporting
-            $output = & $Command 2>&1 | Out-String
-            if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
-                # Error occurred - show minimal summary instead of full output
-                # Extract just the summary lines for pytest failures
-                $lines = $output -split "`n"
-                $summaryStarted = $false
-                $relevantLines = @()
-                
-                foreach ($line in $lines) {
-                    # Show FAILED lines
-                    if ($line -match "^FAILED ") {
-                        $relevantLines += $line
-                    }
-                    # Show the short test summary
-                    elseif ($line -match "^=+ (FAILURES|short test summary|failed|passed)") {
-                        $summaryStarted = $true
-                        $relevantLines += $line
-                    }
-                    # Show summary content
-                    elseif ($summaryStarted -and $line -match "(FAILED|passed|failed|warnings)") {
-                        $relevantLines += $line
-                    }
+    if ($Detail) {
+        # Detail mode: Show all output (stdout and stderr)
+        & $Command
+    } else {
+        # Default mode: Suppress output, capture for error reporting
+        $output = & $Command 2>&1 | Out-String
+        if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) {
+            # Error occurred - show minimal summary instead of full output
+            # Extract just the summary lines for pytest failures
+            $lines = $output -split "`n"
+            $summaryStarted = $false
+            $relevantLines = @()
+            
+            foreach ($line in $lines) {
+                # Show FAILED lines
+                if ($line -match "^FAILED ") {
+                    $relevantLines += $line
                 }
-                
-                # If we got relevant lines, show them; otherwise show count
-                if ($relevantLines.Count -gt 0) {
-                    $relevantLines | Select-Object -First 10 | ForEach-Object {
-                        if ($_ -match "FAILED") {
-                            Write-Host $_ -ForegroundColor Red
-                        } else {
-                            Write-Host $_ -ForegroundColor Gray
-                        }
-                    }
+                # Show the short test summary
+                elseif ($line -match "^=+ (FAILURES|short test summary|failed|passed)") {
+                    $summaryStarted = $true
+                    $relevantLines += $line
                 }
-                
-                throw "$ErrorMessage (exit code: $LASTEXITCODE)"
+                # Show summary content
+                elseif ($summaryStarted -and $line -match "(FAILED|passed|failed|warnings)") {
+                    $relevantLines += $line
+                }
             }
-        }
-
-        # Show success message in default mode
-        if ($SuccessMessage -and -not $Detail) {
-            Write-Success $SuccessMessage
+            
+            # If we got relevant lines, show them; otherwise show count
+            if ($relevantLines.Count -gt 0) {
+                $relevantLines | Select-Object -First 10 | ForEach-Object {
+                    if ($_ -match "FAILED") {
+                        Write-Host $_ -ForegroundColor Red
+                    } else {
+                        Write-Host $_ -ForegroundColor Gray
+                    }
+                }
+            }
+            
+            # Don't throw - let the calling function handle the failure
+            # The LASTEXITCODE is still set and will be checked by caller
         }
     }
-    catch {
-        Write-Error "${ErrorMessage}: $_"
-        throw
+
+    # Show success message in default mode
+    if ($SuccessMessage -and -not $Detail -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
+        Write-Success $SuccessMessage
     }
 }
 
@@ -728,12 +723,16 @@ function Invoke-QuickTests {
     Write-Info "Testing: database, auth, rate limiting, and validation"
     Write-Host ""
 
+    # In demo context, use quieter output to match demo style
+    $quietMode = $ReturnExitCode
+    $pytestArgs = if ($quietMode) { @("-q", "--tb=line") } else { @("-v", "--tb=short") }
+
     & "$($Script:Config.VenvPath)\python.exe" -m pytest `
         tests/unit/test_database.py `
         tests/unit/test_auth.py `
         tests/unit/test_ratelimit.py `
         tests/unit/test_validator.py `
-        -v --tb=short
+        @pytestArgs
 
     $exitCode = $LASTEXITCODE
 
@@ -854,16 +853,16 @@ function Start-Server {
 
 function Test-HealthEndpoint {
     Write-Section "Testing Health Endpoint"
-    
+
     try {
         $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop
         $data = $response.Content | ConvertFrom-Json
-        
+
         Write-ApiCall "GET" "/health" $response.StatusCode
         Write-Result "Status" $data.status "Green"
         Write-Result "Version" $data.version
         Write-Result "Timestamp" $data.timestamp
-        
+
         return $true
     } catch {
         Write-ApiCall "GET" "/health" "ERROR"
@@ -875,7 +874,7 @@ function Test-HealthEndpoint {
 
 function Test-AnalyzeEndpoint {
     Write-Section "Testing Analysis Endpoint"
-    
+
     $conversationText = @"
 Human: What is the meaning of life?
 AI: The meaning of life is a profound philosophical question. Many find meaning through relationships, personal growth, and contributing to something larger than themselves.
@@ -942,18 +941,18 @@ AI: Certainly. From a practical perspective, meaning often comes from: pursuing 
 
 function Test-RateLimiting {
     Write-Section "Testing Rate Limiting"
-    
+
     Write-Step "Making rapid requests to test rate limiter..."
-    Write-Info "Public tier allows 10 requests/minute"
-    
+    Write-Info "Public tier: 10 requests/minute total (including previous health/analyze requests)"
+
     $successCount = 0
     $rateLimitedCount = 0
-    
+
     for ($i = 1; $i -le 12; $i++) {
         try {
             $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop
             $successCount++
-            
+
             if ($response.Headers["X-RateLimit-Remaining"]) {
                 $remaining = $response.Headers["X-RateLimit-Remaining"]
                 Write-Host "  Request $i`: " -ForegroundColor Gray -NoNewline
@@ -967,14 +966,14 @@ function Test-RateLimiting {
                 Write-Host "[FAIL] 429 Rate Limited" -ForegroundColor Yellow
             }
         }
-        
+
         Start-Sleep -Milliseconds 100
     }
-    
+
     Write-Host ""
     Write-Result "Successful Requests" $successCount "Green"
     Write-Result "Rate Limited" $rateLimitedCount "Yellow"
-    
+
     if ($rateLimitedCount -gt 0) {
         Write-Success "Rate limiting is working correctly!"
     }
@@ -1011,8 +1010,12 @@ function Test-AuthenticationMetrics {
 
                 Write-ApiCall "GET" "/metrics" $response.StatusCode
                 Write-Success "Authenticated access successful!"
-                Write-Result "Total Requests" $data.total_requests "Cyan"
-                Write-Result "Active Users" $data.active_users "Cyan"
+                Write-Result "Tier" $data.tier "Cyan"
+                Write-Result "Total Analyses" $data.database_stats.total_analyses "Cyan"
+                Write-Result "Completed" $data.database_stats.completed_analyses "Cyan"
+                if ($data.database_stats.avg_processing_time -gt 0) {
+                    Write-Result "Avg Processing Time" "$([math]::Round($data.database_stats.avg_processing_time, 2))s" "Cyan"
+                }
             } catch {
                 Write-Warning "Could not fetch metrics: $($_.Exception.Message)"
             }
