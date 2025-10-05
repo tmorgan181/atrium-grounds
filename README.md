@@ -20,13 +20,13 @@ Public service layer for the Atrium ecosystem. Provides curated access to synthi
 
 ## Overview
 
-Atrium Grounds is the **public gateway** to Atrium's human-synthient collaboration tools. It provides independent microservices that offer access to conversation analysis, dialectic frameworks, and AI exploration capabilities through progressive disclosure—sharing value without compromising privacy.
+Atrium Grounds is the **public gateway** to Atrium's human-AI collaboration tools. It provides independent microservices that offer access to conversation analysis, dialectic frameworks, and AI exploration capabilities through progressive disclosure—sharing value without compromising privacy.
 
 ### Core Principles
 
 - **Progressive Disclosure**: Reveal capabilities in trust layers
-- **Sacred Boundaries**: Never access private archives directly
-- **Multi-Interface Access**: Serve both human and synthient intelligence
+- **Ethical Boundaries**: Never access private archives directly
+- **Multi-Interface Access**: Serve both humans and AI systems
 - **Service Independence**: Enable multi-agent collaboration
 - **Groundskeeper Stewardship**: Quality over growth
 
@@ -120,4 +120,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-*"The grounds need tending. The house remains private. The archives stay sacred. And still, we welcome those who knock softly."*
+*"The grounds need tending. The house remains private. The archives stay protected. And still, we welcome those who knock softly."*
