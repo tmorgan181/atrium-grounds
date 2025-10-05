@@ -210,7 +210,7 @@ function Test-RateLimiting {
 
     # Test 1: Rate limit headers present
     $response = Invoke-ApiRequest -Path "/health"
-    $hasHeaders = $response.Headers.ContainsKey("x-ratelimit-limit")
+    $hasHeaders = $response.Success -and $response.Headers -and $response.Headers.ContainsKey("x-ratelimit-limit")
     Write-TestResult -TestName "Rate limit headers present" `
         -Passed $hasHeaders
 
@@ -228,7 +228,10 @@ function Test-RateLimiting {
     $first = Invoke-ApiRequest -Path "/health"
     $second = Invoke-ApiRequest -Path "/health"
 
-    if ($first.Headers.ContainsKey("x-ratelimit-remaining") -and $second.Headers.ContainsKey("x-ratelimit-remaining")) {
+    if ($first.Success -and $second.Success -and
+        $first.Headers -and $second.Headers -and
+        $first.Headers.ContainsKey("x-ratelimit-remaining") -and
+        $second.Headers.ContainsKey("x-ratelimit-remaining")) {
         $firstRemaining = [int]$first.Headers["x-ratelimit-remaining"]
         $secondRemaining = [int]$second.Headers["x-ratelimit-remaining"]
         $decreases = $secondRemaining -lt $firstRemaining
@@ -296,10 +299,19 @@ function Test-ExamplesEndpoint {
 function Test-ApiDocumentation {
     Write-TestHeader "6" "API Documentation"
 
-    # Test 1: Swagger UI
-    $response = Invoke-ApiRequest -Path "/docs"
-    Write-TestResult -TestName "Swagger UI accessible" `
-        -Passed $response.Success
+    # Add delay to avoid rate limiting
+    Start-Sleep -Milliseconds 300
+
+    # Test 1: Swagger UI (returns HTML, not JSON)
+    try {
+        $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/docs" -Method GET -ErrorAction Stop -TimeoutSec $Script:Config.Timeout
+        $swaggerOk = $response.StatusCode -eq 200
+    } catch {
+        $swaggerOk = $false
+    }
+    Write-TestResult -TestName "Swagger UI accessible" -Passed $swaggerOk
+
+    Start-Sleep -Milliseconds 200
 
     # Test 2: OpenAPI spec
     $response = Invoke-ApiRequest -Path "/openapi.json"
@@ -313,10 +325,16 @@ function Test-ApiDocumentation {
             -Passed $hasPaths
     }
 
-    # Test 4: ReDoc
-    $response = Invoke-ApiRequest -Path "/redoc"
-    Write-TestResult -TestName "ReDoc documentation accessible" `
-        -Passed $response.Success
+    Start-Sleep -Milliseconds 200
+
+    # Test 4: ReDoc (returns HTML, not JSON)
+    try {
+        $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/redoc" -Method GET -ErrorAction Stop -TimeoutSec $Script:Config.Timeout
+        $redocOk = $response.StatusCode -eq 200
+    } catch {
+        $redocOk = $false
+    }
+    Write-TestResult -TestName "ReDoc documentation accessible" -Passed $redocOk
 }
 
 function Test-AnalysisEndpoint {
@@ -370,6 +388,9 @@ function Test-AnalysisEndpoint {
 function Test-ErrorHandling {
     Write-TestHeader "8" "Error Handling"
 
+    # Add small delay to avoid rate limiting from previous tests
+    Start-Sleep -Milliseconds 500
+
     # Test 1: Invalid endpoint returns 404
     $response = Invoke-ApiRequest -Path "/nonexistent-endpoint"
     $is404 = $response.StatusCode -eq 404
@@ -378,11 +399,15 @@ function Test-ErrorHandling {
         -Expected "404" `
         -Actual "$($response.StatusCode)"
 
+    Start-Sleep -Milliseconds 200
+
     # Test 2: Invalid example returns 404
     $response = Invoke-ApiRequest -Path "/examples/nonexistent"
     $is404 = $response.StatusCode -eq 404
     Write-TestResult -TestName "Invalid example ID returns 404" `
         -Passed $is404
+
+    Start-Sleep -Milliseconds 200
 
     # Test 3: Malformed JSON returns 400/422
     try {

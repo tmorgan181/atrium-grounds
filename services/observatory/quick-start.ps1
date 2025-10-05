@@ -191,18 +191,34 @@ function Test-Prerequisites {
 
 function Invoke-Setup {
     Write-Header "Setting Up Observatory Environment"
-    
+
     Write-Step "Creating virtual environment with uv..."
     uv venv
-    
+
     Write-Step "Installing dependencies..."
     uv pip install -e .
-    
+
     Write-Step "Installing development dependencies..."
     uv pip install -e ".[dev]"
-    
+
+    Write-Host ""
+    Write-Success "Dependencies installed!"
+
+    # Auto-generate API keys if they don't exist
+    Write-Host ""
+    Write-Step "Checking for development API keys..."
+    if (Test-Path "dev-api-keys.txt") {
+        Write-Success "API keys already exist"
+    } else {
+        Write-Info "No API keys found. Generating now..."
+        Write-Host ""
+        Invoke-KeyManagement
+    }
+
+    Write-Host ""
     Write-Success "Setup complete!"
     Write-Info "Run '.\quick-start.ps1 test' to verify installation"
+    Write-Info "Run '.\quick-start.ps1 validate' to test the service"
 }
 
 function Invoke-Clean {
@@ -753,32 +769,45 @@ function Invoke-Validation {
 
     # Check if server is running
     Write-Step "Checking server status..."
+    $serverProcess = $null
     try {
         $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 2
         Write-Success "Server is running at $($Script:Config.BaseUrl)"
         $serverWasRunning = $true
     } catch {
-        Write-Info "Server not running. Starting server in new window..."
+        Write-Info "Server not running. Starting server for validation..."
         $serverWasRunning = $false
 
-        # Start server in new window (prefer PowerShell Core for better Unicode support)
-        $pwsh = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
-        Write-Info "Using: $pwsh"
-        
-        $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port"
-        Start-Process $pwsh -ArgumentList "-NoExit", "-Command", $serverScript
+        # Check if port is already in use
+        $portInUse = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+        if ($portInUse) {
+            Write-Error "Port $Port is already in use by another process"
+            Write-Info "Close the other process or use a different port: .\quick-start.ps1 validate -Port 8001"
+            return
+        }
 
-        Write-Info "Waiting for server to start (this can take up to 30 seconds)..."
+        # Start server as background process (not in new window)
+        Write-Info "Starting validation server in background..."
+        $serverProcess = Start-Process -FilePath "$($Script:Config.VenvPath)\python.exe" `
+            -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", $Port `
+            -PassThru -NoNewWindow -RedirectStandardOutput "nul" -RedirectStandardError "nul"
+
+        Write-Info "Waiting for server to start (this can take up to 45 seconds)..."
         $retries = 0
-        $maxRetries = 30  # Increased from 10 to 30 seconds
+        $maxRetries = 45
 
         while ($retries -lt $maxRetries) {
-            Start-Sleep -Seconds 1
-            Write-Host "." -NoNewline -ForegroundColor Gray
+            Start-Sleep -Milliseconds 1000
+            if ($retries % 5 -eq 0 -and $retries -gt 0) {
+                Write-Host " ${retries}s" -ForegroundColor DarkGray -NoNewline
+            } else {
+                Write-Host "." -NoNewline -ForegroundColor Gray
+            }
+
             try {
-                $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 2
+                $testResponse = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 3
                 Write-Host ""
-                Write-Success "Server is ready!"
+                Write-Success "Server is ready! (started in ${retries}s)"
                 break
             } catch {
                 $retries++
@@ -786,6 +815,7 @@ function Invoke-Validation {
                     Write-Host ""
                     Write-Error "Server failed to start after $maxRetries seconds"
                     Write-Warning "Check the server window for error messages"
+                    Write-Info "Common issues: Port already in use, missing dependencies"
                     return
                 }
             }
@@ -802,30 +832,47 @@ function Invoke-Validation {
         $content = Get-Content $apiKeyFile -Raw
         if ($content -match 'DEV_KEY=([^\r\n]+)') {
             $apiKey = $Matches[1]
-            Write-Info "Found API key in dev-api-keys.txt"
+            Write-Success "Using API key from dev-api-keys.txt"
         }
+    } else {
+        Write-Warning "No API keys found - some tests will be skipped"
+        Write-Info "Generate keys with: .\quick-start.ps1 keys"
     }
 
     # Run validation script
     Write-Section "Executing Validation Tests"
     Write-Host ""
 
-    $args = @(
+    $validationArgs = @(
         "-BaseUrl", $Script:Config.BaseUrl
     )
 
     if ($apiKey) {
-        $args += "-ApiKey", $apiKey
+        $validationArgs += "-ApiKey", $apiKey
     }
 
-    & $validationScript @args
+    & $validationScript @validationArgs
 
     $exitCode = $LASTEXITCODE
 
+    # Cleanup: Stop validation server if we started it
+    if ($serverProcess) {
+        Write-Host ""
+        Write-Step "Stopping validation server..."
+        try {
+            Stop-Process -Id $serverProcess.Id -Force -ErrorAction Stop
+            Write-Success "Validation server stopped"
+        } catch {
+            Write-Warning "Could not stop server process. You may need to close it manually."
+        }
+    }
+
     Write-Host ""
 
-    if (-not $serverWasRunning) {
-        Write-Info "Server was started for validation. You can close the server window when done."
+    if ($exitCode -eq 0) {
+        Write-Success "Validation passed!"
+    } else {
+        Write-Warning "Validation completed with failures"
     }
 
     exit $exitCode

@@ -2,11 +2,11 @@
 
 import pytest
 from httpx import AsyncClient, ASGITransport
-from app.main import app
+
 
 
 @pytest.mark.asyncio
-async def test_examples_list_success():
+async def test_examples_list_success(app):
     """Test retrieving list of example conversations."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples")
@@ -20,7 +20,7 @@ async def test_examples_list_success():
 
 
 @pytest.mark.asyncio
-async def test_examples_list_structure():
+async def test_examples_list_structure(app):
     """Test that example list has correct structure."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples")
@@ -28,16 +28,18 @@ async def test_examples_list_structure():
     data = response.json()
     example = data["examples"][0]
 
-    # Check required fields
+    # Check required fields from ExampleMetadata schema
     assert "id" in example
     assert "name" in example
     assert "category" in example
     assert "description" in example
-    assert "file" in example
     assert "tags" in example
+    assert "expected_patterns" in example
+    assert "difficulty" in example
+    assert "participants" in example
 
 @pytest.mark.asyncio
-async def test_examples_list_categories():
+async def test_examples_list_categories(app):
     """Test that categories are included."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples")
@@ -50,7 +52,7 @@ async def test_examples_list_categories():
 
 
 @pytest.mark.asyncio
-async def test_examples_filter_by_category():
+async def test_examples_filter_by_category(app):
     """Test filtering examples by category."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples?category=dialectic")
@@ -64,7 +66,7 @@ async def test_examples_filter_by_category():
 
 
 @pytest.mark.asyncio
-async def test_examples_filter_by_difficulty():
+async def test_examples_filter_by_difficulty(app):
     """Test filtering examples by difficulty."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples?difficulty=beginner")
@@ -78,7 +80,7 @@ async def test_examples_filter_by_difficulty():
 
 
 @pytest.mark.asyncio
-async def test_examples_invalid_category():
+async def test_examples_invalid_category(app):
     """Test handling of invalid category filter."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples?category=invalid")

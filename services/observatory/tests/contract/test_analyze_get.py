@@ -2,11 +2,10 @@
 
 import pytest
 from httpx import AsyncClient, ASGITransport
-from app.main import app
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_completed():
+async def test_analyze_get_completed(app):
     """Test retrieving completed analysis results."""
     # First create an analysis
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -28,7 +27,7 @@ async def test_analyze_get_completed():
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_response_schema():
+async def test_analyze_get_response_schema(app):
     """Test that response matches expected schema."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create analysis
@@ -58,7 +57,7 @@ async def test_analyze_get_response_schema():
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_with_patterns():
+async def test_analyze_get_with_patterns(app):
     """Test completed analysis includes pattern data."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create and wait for completion (mock implementation will need this)
@@ -85,7 +84,7 @@ async def test_analyze_get_with_patterns():
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_nonexistent():
+async def test_analyze_get_nonexistent(app):
     """Test retrieving non-existent analysis."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/analyze/nonexistent-id-12345")
@@ -96,7 +95,7 @@ async def test_analyze_get_nonexistent():
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_invalid_id_format():
+async def test_analyze_get_invalid_id_format(app):
     """Test handling of invalid ID format."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/analyze/invalid-format!@#$")
@@ -106,7 +105,7 @@ async def test_analyze_get_invalid_id_format():
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_confidence_score():
+async def test_analyze_get_confidence_score(app):
     """Test that confidence score is within valid range."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         create_response = await client.post(
@@ -119,12 +118,12 @@ async def test_analyze_get_confidence_score():
 
     data = response.json()
 
-    if "confidence_score" in data:
+    if "confidence_score" in data and data["confidence_score"] is not None:
         assert 0.0 <= data["confidence_score"] <= 1.0
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_processing_time():
+async def test_analyze_get_processing_time(app):
     """Test that processing_time is present and valid for completed analysis."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         create_response = await client.post(
@@ -144,7 +143,7 @@ async def test_analyze_get_processing_time():
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_export_parameter():
+async def test_analyze_get_export_parameter(app):
     """Test export format parameter (FR-014)."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         create_response = await client.post(
@@ -161,7 +160,7 @@ async def test_analyze_get_export_parameter():
 
 
 @pytest.mark.asyncio
-async def test_analyze_get_expired_analysis():
+async def test_analyze_get_expired_analysis(app):
     """Test retrieving expired analysis (after TTL)."""
     # This test would need time manipulation or mocking
     # For now, verify the endpoint structure

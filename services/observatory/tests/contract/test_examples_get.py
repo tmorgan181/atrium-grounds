@@ -2,11 +2,11 @@
 
 import pytest
 from httpx import AsyncClient, ASGITransport
-from app.main import app
+
 
 
 @pytest.mark.asyncio
-async def test_get_example_by_id_success():
+async def test_get_example_by_id_success(app):
     """Test retrieving a specific example conversation."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples/philosophical-inquiry")
@@ -21,7 +21,7 @@ async def test_get_example_by_id_success():
 
 
 @pytest.mark.asyncio
-async def test_get_example_content():
+async def test_get_example_content(app):
     """Test that example content is returned."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples/technical-assistance")
@@ -35,7 +35,7 @@ async def test_get_example_content():
 
 
 @pytest.mark.asyncio
-async def test_get_example_metadata():
+async def test_get_example_metadata(app):
     """Test that metadata is included."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples/dialectic-exchange")
@@ -51,7 +51,7 @@ async def test_get_example_metadata():
 
 
 @pytest.mark.asyncio
-async def test_get_example_not_found():
+async def test_get_example_not_found(app):
     """Test handling of non-existent example."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples/nonexistent-example")
@@ -62,7 +62,7 @@ async def test_get_example_not_found():
 
 
 @pytest.mark.asyncio
-async def test_get_example_invalid_id_format():
+async def test_get_example_invalid_id_format(app):
     """Test handling of invalid ID format."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples/invalid!@#$")
@@ -72,7 +72,7 @@ async def test_get_example_invalid_id_format():
 
 
 @pytest.mark.asyncio
-async def test_get_example_with_analyze_link():
+async def test_get_example_with_analyze_link(app):
     """Test that example includes link to analyze endpoint."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/examples/emotional-support")

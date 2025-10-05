@@ -77,50 +77,58 @@ async def create_analysis(
     
     # Start async analysis job
     async def run_analysis():
-        """Background task to run analysis."""
-        try:
-            # Update status to processing
-            analysis.status = AnalysisStatus.PROCESSING
-            await db.commit()
-            
-            # Run analysis
-            start_time = datetime.now(UTC).replace(tzinfo=None)
-            result = await analyzer.analyze(
-                conversation_text=request.conversation_text,
-                pattern_types=request.options.pattern_types,
-                include_insights=request.options.include_insights,
-            )
-            processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
-            
-            # Update database with results
-            analysis.status = AnalysisStatus.COMPLETED
-            analysis.observer_output = result.get("observer_output")
-            analysis.patterns = result.get("patterns")
-            analysis.confidence_score = result.get("confidence_score")
-            analysis.processing_time = processing_time
-            await db.commit()
-            
-            # Log completion
-            log_analysis_completed(
-                analysis_id=analysis_id,
-                status="completed",
-                processing_time=processing_time,
-                confidence_score=result.get("confidence_score"),
-            )
-            
-        except Exception as e:
-            # Update status to failed
-            analysis.status = AnalysisStatus.FAILED
-            analysis.error = str(e)
-            analysis.processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
-            await db.commit()
-            
-            # Log failure
-            log_analysis_failed(
-                analysis_id=analysis_id,
-                error=str(e),
-                processing_time=analysis.processing_time,
-            )
+        """Background task to run analysis - creates its own DB session."""
+        # Get a new database session for the background task
+        async for bg_db in get_db_session():
+            try:
+                # Fetch the analysis record
+                stmt = select(Analysis).where(Analysis.id == analysis_id)
+                result = await bg_db.execute(stmt)
+                bg_analysis = result.scalar_one()
+
+                # Update status to processing
+                bg_analysis.status = AnalysisStatus.PROCESSING
+                await bg_db.commit()
+
+                # Run analysis
+                start_time = datetime.now(UTC).replace(tzinfo=None)
+                analysis_result = await analyzer.analyze(
+                    conversation=request.conversation_text,
+                )
+                processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
+
+                # Update database with results
+                bg_analysis.status = AnalysisStatus.COMPLETED
+                bg_analysis.observer_output = analysis_result.get("observer_output")
+                bg_analysis.patterns = analysis_result.get("patterns")
+                bg_analysis.confidence_score = analysis_result.get("confidence_score")
+                bg_analysis.processing_time = processing_time
+                await bg_db.commit()
+
+                # Log completion
+                log_analysis_completed(
+                    analysis_id=analysis_id,
+                    status="completed",
+                    processing_time=processing_time,
+                    confidence_score=analysis_result.get("confidence_score"),
+                )
+
+            except Exception as e:
+                # Update status to failed
+                bg_analysis.status = AnalysisStatus.FAILED
+                bg_analysis.error = str(e)
+                bg_analysis.processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
+                await bg_db.commit()
+
+                # Log failure
+                log_analysis_failed(
+                    analysis_id=analysis_id,
+                    error=str(e),
+                    processing_time=bg_analysis.processing_time,
+                )
+            finally:
+                # Session cleanup is handled by the async context manager
+                break
     
     # Create background job
     await job_manager.create_job(

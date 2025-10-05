@@ -2,11 +2,11 @@
 
 import pytest
 from httpx import AsyncClient, ASGITransport
-from app.main import app
+
 
 
 @pytest.mark.asyncio
-async def test_cancel_pending_analysis():
+async def test_cancel_pending_analysis(app):
     """Test cancelling a pending analysis."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create analysis
@@ -27,7 +27,7 @@ async def test_cancel_pending_analysis():
 
 
 @pytest.mark.asyncio
-async def test_cancel_processing_analysis():
+async def test_cancel_processing_analysis(app):
     """Test cancelling an analysis that's currently processing."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create analysis
@@ -45,7 +45,7 @@ async def test_cancel_processing_analysis():
 
 
 @pytest.mark.asyncio
-async def test_cancel_nonexistent_analysis():
+async def test_cancel_nonexistent_analysis(app):
     """Test cancelling non-existent analysis."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/api/v1/analyze/nonexistent-id/cancel")
@@ -56,7 +56,7 @@ async def test_cancel_nonexistent_analysis():
 
 
 @pytest.mark.asyncio
-async def test_cancel_completed_analysis():
+async def test_cancel_completed_analysis(app):
     """Test attempting to cancel already completed analysis."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create analysis
@@ -76,7 +76,7 @@ async def test_cancel_completed_analysis():
 
 
 @pytest.mark.asyncio
-async def test_cancel_response_schema():
+async def test_cancel_response_schema(app):
     """Test cancel response matches expected schema."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create analysis
@@ -97,7 +97,7 @@ async def test_cancel_response_schema():
 
 
 @pytest.mark.asyncio
-async def test_cancel_idempotency():
+async def test_cancel_idempotency(app):
     """Test that cancelling twice is idempotent."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create analysis
@@ -119,7 +119,7 @@ async def test_cancel_idempotency():
 
 
 @pytest.mark.asyncio
-async def test_cancel_invalid_id_format():
+async def test_cancel_invalid_id_format(app):
     """Test cancelling with invalid ID format."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/api/v1/analyze/invalid-format!@#/cancel")
@@ -128,7 +128,7 @@ async def test_cancel_invalid_id_format():
 
 
 @pytest.mark.asyncio
-async def test_cancel_audit_logging():
+async def test_cancel_audit_logging(app):
     """Test that cancellation is logged for audit (FR-013)."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create analysis

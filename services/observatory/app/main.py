@@ -9,6 +9,7 @@ from app import __version__
 from app.models.database import init_database, start_cleanup_scheduler, stop_cleanup_scheduler
 from app.api.v1 import analyze, health, batch, examples
 from app.middleware import AuthMiddleware, RateLimitMiddleware
+from app.core.dev_keys import auto_register_dev_keys
 
 
 @asynccontextmanager
@@ -17,6 +18,17 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize database and start TTL cleanup scheduler
     await init_database()
     start_cleanup_scheduler()
+
+    # Auto-register development API keys if dev-api-keys.txt exists
+    dev_keys = auto_register_dev_keys()
+    if dev_keys:
+        print("✓ Development API keys registered:")
+        if 'dev_key' in dev_keys:
+            print(f"  - API Key tier (60 req/min)")
+        if 'partner_key' in dev_keys:
+            print(f"  - Partner tier (600 req/min)")
+        print(f"  Keys loaded from dev-api-keys.txt")
+
     yield
     # Shutdown: Stop scheduler
     stop_cleanup_scheduler()
