@@ -2,14 +2,13 @@
 
 import asyncio
 import pytest
-from httpx import AsyncClient
-from app.main import app
+from httpx import AsyncClient, ASGITransport
 
 
 @pytest.mark.asyncio
-async def test_complete_analysis_flow():
+async def test_complete_analysis_flow(test_app):
     """Test complete flow: submit -> poll -> retrieve results."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
         # Step 1: Submit analysis
         submit_response = await client.post(
             "/api/v1/analyze",
@@ -54,9 +53,9 @@ async def test_complete_analysis_flow():
 
 
 @pytest.mark.asyncio
-async def test_cancel_during_processing():
+async def test_cancel_during_processing(test_app):
     """Test cancelling an analysis while it's processing."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
         # Submit long analysis
         submit_response = await client.post(
             "/api/v1/analyze",
@@ -78,9 +77,9 @@ async def test_cancel_during_processing():
 
 
 @pytest.mark.asyncio
-async def test_multiple_concurrent_analyses():
+async def test_multiple_concurrent_analyses(test_app):
     """Test handling multiple concurrent analysis requests."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
         # Submit multiple analyses
         conversations = [
             "Human: Question 1?\nAI: Answer 1.",
@@ -102,9 +101,9 @@ async def test_multiple_concurrent_analyses():
 
 
 @pytest.mark.asyncio
-async def test_analysis_with_validation_failure():
+async def test_analysis_with_validation_failure(test_app):
     """Test that validation failures are handled properly."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
         # Submit invalid conversation
         response = await client.post(
             "/api/v1/analyze",
@@ -117,9 +116,9 @@ async def test_analysis_with_validation_failure():
 
 
 @pytest.mark.asyncio
-async def test_analysis_result_expiration():
+async def test_analysis_result_expiration(test_app):
     """Test that analysis results respect TTL (FR-013)."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
         # Submit analysis
         response = await client.post(
             "/api/v1/analyze",
@@ -138,9 +137,9 @@ async def test_analysis_result_expiration():
 
 
 @pytest.mark.asyncio
-async def test_pattern_detection_accuracy():
+async def test_pattern_detection_accuracy(test_app):
     """Test that pattern detection works for known patterns."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
         # Conversation with clear dialectic pattern
         response = await client.post(
             "/api/v1/analyze",
@@ -174,9 +173,9 @@ async def test_pattern_detection_accuracy():
 
 
 @pytest.mark.asyncio
-async def test_confidence_scoring_correlation():
+async def test_confidence_scoring_correlation(test_app):
     """Test that confidence scores correlate with conversation quality."""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=test_app), base_url="http://test") as client:
         # Short, low-quality conversation
         short_response = await client.post(
             "/api/v1/analyze", json={"conversation_text": "Human: Hi\nAI: Hello"}
