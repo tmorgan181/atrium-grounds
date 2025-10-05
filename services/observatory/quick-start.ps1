@@ -484,11 +484,12 @@ function Start-Server {
     Write-Step "Starting FastAPI server..."
 
     if ($NewWindow) {
-        # Start server in new PowerShell window
+        # Start server in new PowerShell window (prefer PowerShell Core)
+        $pwsh = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
         $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
-        Start-Process powershell -ArgumentList "-NoExit", "-Command", $serverScript
+        Start-Process $pwsh -ArgumentList "-NoExit", "-Command", $serverScript
 
-        Write-Success "Server starting in new window"
+        Write-Success "Server starting in new $pwsh window"
         Write-Info "Waiting for server to initialize..."
         Start-Sleep -Seconds 3
 
@@ -760,24 +761,31 @@ function Invoke-Validation {
         Write-Info "Server not running. Starting server in new window..."
         $serverWasRunning = $false
 
-        # Start server in new window
+        # Start server in new window (prefer PowerShell Core for better Unicode support)
+        $pwsh = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
+        Write-Info "Using: $pwsh"
+        
         $serverScript = "cd '$PWD'; & '$($Script:Config.VenvPath)\python.exe' -m uvicorn app.main:app --host 0.0.0.0 --port $Port"
-        Start-Process powershell -ArgumentList "-NoExit", "-Command", $serverScript
+        Start-Process $pwsh -ArgumentList "-NoExit", "-Command", $serverScript
 
-        Write-Info "Waiting for server to start..."
+        Write-Info "Waiting for server to start (this can take up to 30 seconds)..."
         $retries = 0
-        $maxRetries = 10
+        $maxRetries = 30  # Increased from 10 to 30 seconds
 
         while ($retries -lt $maxRetries) {
             Start-Sleep -Seconds 1
+            Write-Host "." -NoNewline -ForegroundColor Gray
             try {
                 $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 2
+                Write-Host ""
                 Write-Success "Server is ready!"
                 break
             } catch {
                 $retries++
                 if ($retries -eq $maxRetries) {
+                    Write-Host ""
                     Write-Error "Server failed to start after $maxRetries seconds"
+                    Write-Warning "Check the server window for error messages"
                     return
                 }
             }
