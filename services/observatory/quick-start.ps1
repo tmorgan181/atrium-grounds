@@ -759,11 +759,13 @@ function Invoke-Tests {
     }
     
     # T009: Define pytest arguments based on verbosity
-    $pytestArgs = @()
+    # Note: pytest-sugar provides beautiful output by default
     if ($Verbose) {
-        $pytestArgs += @("-v", "--tb=short")
+        # Verbose: Show test names as they run
+        $pytestArgs = @("-v")
     } else {
-        $pytestArgs += @("-q", "--tb=line")
+        # Default: Let pytest-sugar show its beautiful progress bar
+        $pytestArgs = @("--tb=short")
     }
 
     # T010: Add coverage if requested
@@ -949,9 +951,9 @@ function Invoke-QuickTests {
     Write-Info "Testing: database, auth, rate limiting, and validation"
     Write-Host ""
 
-    # In demo context, use quieter output to match demo style
+    # In demo context, use pytest-sugar's beautiful output
     $quietMode = $ReturnExitCode
-    $pytestArgs = if ($quietMode) { @("-q", "--tb=line") } else { @("-v", "--tb=short") }
+    $pytestArgs = if ($quietMode) { @("-q") } else { @("--tb=short") }
 
     & "$($Script:Config.VenvPath)\python.exe" -m pytest `
         tests/unit/test_database.py `
