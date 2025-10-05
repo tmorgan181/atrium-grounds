@@ -118,7 +118,6 @@ $Script:Config = @{
 
 function Write-Header {
     param([string]$Text)
-    Write-Host ""
     Write-Host "===============================================================" -ForegroundColor Cyan
     Write-Host "  $Text" -ForegroundColor White
     Write-Host "===============================================================" -ForegroundColor Cyan
@@ -169,7 +168,6 @@ function Write-Result {
 
 function Write-Section {
     param([string]$Text)
-    Write-Host ""
     Write-Host "-------------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host $Text -ForegroundColor Yellow
     Write-Host "-------------------------------------------------------------" -ForegroundColor DarkGray
@@ -927,6 +925,7 @@ function Start-Server {
             } -ArgumentList $Script:Config.VenvPath, $Port
         }
 
+        Write-Host ""
         Write-Success "Server started in background"
         if ($Clean) {
             Write-Info "Using clean logging (ANSI-free output)"
@@ -993,6 +992,7 @@ AI: Certainly. From a practical perspective, meaning often comes from: pursuing 
     
     Write-Step "Sending analysis request..."
     Write-Info "Conversation length: $($conversationText.Length) characters"
+    Write-Host ""
     
     try {
         $response = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/api/v1/analyze" `
@@ -1045,6 +1045,8 @@ function Test-RateLimiting {
 
     Write-Step "Making rapid requests to test rate limiter..."
     Write-Info "Public tier: 10 requests/minute total (including previous health/analyze requests)"
+    Write-Info "Expect some requests to be rate limited (429) if limit exceeded"
+    Write-Host ""
 
     $successCount = 0
     $rateLimitedCount = 0
@@ -1076,6 +1078,7 @@ function Test-RateLimiting {
     Write-Result "Rate Limited" $rateLimitedCount "Yellow"
 
     if ($rateLimitedCount -gt 0) {
+        Write-Host ""
         Write-Success "Rate limiting is working correctly!"
     }
 }
@@ -1083,7 +1086,7 @@ function Test-RateLimiting {
 function Test-AuthenticationMetrics {
     Write-Section "Testing Authentication & Metrics"
 
-    Write-Step "Testing unauthenticated access to /metrics..."
+    Write-Info "Testing unauthenticated access to /metrics..."
     try {
         Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/metrics" -Method GET -ErrorAction Stop | Out-Null
         Write-Error "Unexpected: Metrics accessible without auth"
@@ -1132,6 +1135,7 @@ function Test-AuthenticationMetrics {
 # ============================================================================
 
 function Invoke-Demo {
+    Write-Host ""
     Write-Header "$($Script:Config.ServiceName) - Full Demo"
     
     # Get test counts for info
@@ -1201,9 +1205,7 @@ function Invoke-Demo {
     Get-Job | Stop-Job
     Get-Job | Remove-Job
     Write-Success "Server stopped"
-    
-    Write-Host ""
-    Write-Success "Demo completed successfully! "
+    Write-Success "Demo completed successfully!"
 }
 
 # ============================================================================
