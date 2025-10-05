@@ -936,7 +936,7 @@ function Start-Server {
         if ($Clean) {
             $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" run_clean_server.py $Port --reload"
         } else {
-            $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" -m uvicorn app.main:app --host 0.0.0.0 --port $Port --reload"
+            $cmdCommand = "cd /d `"$PWD`" && `"$pythonExe`" run_server.py $Port --reload"
         }
 
         # Use Windows Terminal with Orion profile
