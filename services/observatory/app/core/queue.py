@@ -3,10 +3,10 @@
 import asyncio
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum
 from typing import Any, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import redis.asyncio as redis
 
 from app.core.config import settings
@@ -23,6 +23,8 @@ class JobPriority(int, Enum):
 class BatchJob(BaseModel):
     """Represents a batch analysis job."""
 
+    model_config = ConfigDict(use_enum_values=True)
+
     batch_id: str
     conversation_ids: list[str]
     options: dict[str, Any]
@@ -31,11 +33,8 @@ class BatchJob(BaseModel):
 
     def __init__(self, **data):
         if "created_at" not in data:
-            data["created_at"] = datetime.utcnow()
+            data["created_at"] = datetime.now(UTC).replace(tzinfo=None)
         super().__init__(**data)
-
-    class Config:
-        use_enum_values = True
 
 
 class JobQueue:

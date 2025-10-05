@@ -1,7 +1,7 @@
 """Tests for TTL enforcement and cleanup."""
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -44,7 +44,7 @@ async def test_db_session():
 @pytest.mark.asyncio
 async def test_ttl_30_day_results_expiration(test_db_session):
     """Test that results older than 30 days are deleted."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
     
     # Create fresh analysis (should NOT be deleted)
     fresh_analysis = Analysis(
@@ -86,7 +86,7 @@ async def test_ttl_30_day_results_expiration(test_db_session):
 @pytest.mark.asyncio
 async def test_ttl_90_day_metadata_tracking(test_db_session):
     """Test that metadata older than 90 days is tracked."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
     
     # Create analysis with old metadata (created 91 days ago)
     old_metadata = Analysis(
@@ -121,7 +121,7 @@ async def test_ttl_90_day_metadata_tracking(test_db_session):
 @pytest.mark.asyncio
 async def test_ttl_cleanup_preserves_recent_records(test_db_session):
     """Test that recently accessed records are preserved."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
     
     # Create multiple recent analyses
     for i in range(5):
@@ -153,7 +153,7 @@ async def test_ttl_cleanup_handles_empty_database(test_db_session):
 @pytest.mark.asyncio
 async def test_ttl_cleanup_handles_mixed_statuses(test_db_session):
     """Test cleanup with different analysis statuses."""
-    now = datetime.utcnow()
+    now = datetime.now(UTC).replace(tzinfo=None)
     
     # Old completed analysis (should be deleted)
     old_completed = Analysis(
@@ -200,7 +200,7 @@ async def test_ttl_expiration_with_custom_settings(test_db_session):
         settings.ttl_results = 7  # 7 days instead of 30
         settings.ttl_metadata = 14  # 14 days instead of 90
         
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         
         # Create analysis older than custom TTL
         old_analysis = Analysis(

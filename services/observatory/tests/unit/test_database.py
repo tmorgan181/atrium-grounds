@@ -1,7 +1,7 @@
 """Tests for database models and operations."""
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -58,7 +58,7 @@ async def test_analysis_set_expiration(test_db_session):
 
     assert analysis.expires_at is not None
     # Should expire 30 days from now (default TTL)
-    expected_expiry = datetime.utcnow() + timedelta(days=30)
+    expected_expiry = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=30)
     # Allow 1 second tolerance
     assert abs((analysis.expires_at - expected_expiry).total_seconds()) < 1
 
@@ -68,12 +68,12 @@ async def test_analysis_is_expired(test_db_session):
     """Test expiration check."""
     # Not expired
     analysis_fresh = Analysis(conversation_text="Test")
-    analysis_fresh.expires_at = datetime.utcnow() + timedelta(days=1)
+    analysis_fresh.expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=1)
     assert not analysis_fresh.is_expired()
 
     # Expired
     analysis_old = Analysis(conversation_text="Test")
-    analysis_old.expires_at = datetime.utcnow() - timedelta(days=1)
+    analysis_old.expires_at = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
     assert analysis_old.is_expired()
 
     # No expiration set
@@ -87,7 +87,7 @@ async def test_analysis_update_last_accessed(test_db_session):
     analysis = Analysis(conversation_text="Test")
     
     # Manually set initial timestamp since default only applies on DB insert
-    analysis.last_accessed_at = datetime.utcnow()
+    analysis.last_accessed_at = datetime.now(UTC).replace(tzinfo=None)
     original_time = analysis.last_accessed_at
 
     # Wait a moment and update

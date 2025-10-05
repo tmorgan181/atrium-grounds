@@ -1,6 +1,6 @@
 """API endpoints for conversation analysis."""
 
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 from uuid import uuid4
 
@@ -84,13 +84,13 @@ async def create_analysis(
             await db.commit()
             
             # Run analysis
-            start_time = datetime.utcnow()
+            start_time = datetime.now(UTC).replace(tzinfo=None)
             result = await analyzer.analyze(
                 conversation_text=request.conversation_text,
                 pattern_types=request.options.pattern_types,
                 include_insights=request.options.include_insights,
             )
-            processing_time = (datetime.utcnow() - start_time).total_seconds()
+            processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
             
             # Update database with results
             analysis.status = AnalysisStatus.COMPLETED
@@ -112,7 +112,7 @@ async def create_analysis(
             # Update status to failed
             analysis.status = AnalysisStatus.FAILED
             analysis.error = str(e)
-            analysis.processing_time = (datetime.utcnow() - start_time).total_seconds()
+            analysis.processing_time = (datetime.now(UTC).replace(tzinfo=None) - start_time).total_seconds()
             await db.commit()
             
             # Log failure

@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any, Optional
 
 from app.core.config import settings
@@ -43,7 +43,7 @@ def log_json(level: str, event: str, **kwargs: Any) -> None:
         **kwargs: Additional fields to include in log
     """
     log_data = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
         "event": event,
         **kwargs,
     }

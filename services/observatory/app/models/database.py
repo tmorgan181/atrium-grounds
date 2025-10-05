@@ -1,7 +1,7 @@
 """SQLAlchemy database models and connection management."""
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, AsyncGenerator
 
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text, JSON, Enum as SQLEnum
@@ -53,8 +53,8 @@ class Analysis(Base):
     error = Column(Text, nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    last_accessed_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC).replace(tzinfo=None))
+    last_accessed_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC).replace(tzinfo=None), onupdate=lambda: datetime.now(UTC).replace(tzinfo=None))
     expires_at = Column(DateTime, nullable=True)
 
     def __repr__(self) -> str:
@@ -63,17 +63,17 @@ class Analysis(Base):
 
     def set_expiration(self) -> None:
         """Set expiration date based on TTL configuration."""
-        self.expires_at = datetime.utcnow() + timedelta(days=settings.ttl_results)
+        self.expires_at = datetime.now(UTC).replace(tzinfo=None) + timedelta(days=settings.ttl_results)
 
     def update_last_accessed(self) -> None:
         """Update last_accessed_at timestamp."""
-        self.last_accessed_at = datetime.utcnow()
+        self.last_accessed_at = datetime.now(UTC).replace(tzinfo=None)
 
     def is_expired(self) -> bool:
         """Check if analysis result has expired."""
         if self.expires_at is None:
             return False
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(UTC).replace(tzinfo=None) > self.expires_at
 
 
 # Database engine and session management
@@ -158,7 +158,7 @@ async def cleanup_expired_records() -> dict[str, int]:
 
     try:
         async with async_session_maker() as session:
-            now = datetime.utcnow()
+            now = datetime.now(UTC).replace(tzinfo=None)
 
             # Calculate cutoff dates
             results_cutoff = now - timedelta(days=settings.ttl_results)

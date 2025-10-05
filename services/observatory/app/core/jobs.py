@@ -2,10 +2,10 @@
 
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from enum import Enum
 from typing import Any, Callable, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class JobStatus(str, Enum):
@@ -21,15 +21,14 @@ class JobStatus(str, Enum):
 class Job(BaseModel):
     """Represents an analysis job."""
 
+    model_config = ConfigDict(use_enum_values=True)
+
     id: str
     status: JobStatus
     created_at: datetime
     completed_at: Optional[datetime] = None
     result: Optional[dict[str, Any]] = None
     error: Optional[str] = None
-
-    class Config:
-        use_enum_values = True
 
 
 class JobManager:
@@ -67,8 +66,8 @@ class JobManager:
         """
         job_id = str(uuid.uuid4())
 
-        # Create job record
-        job = Job(id=job_id, status=JobStatus.PENDING, created_at=datetime.utcnow())
+        # Create job record (using naive UTC datetime)
+        job = Job(id=job_id, status=JobStatus.PENDING, created_at=datetime.now(UTC).replace(tzinfo=None))
 
         async with self._lock:
             self.jobs[job_id] = job
@@ -112,27 +111,27 @@ class JobManager:
                 if self.jobs[job_id].status != JobStatus.CANCELLED:
                     self.jobs[job_id].status = JobStatus.COMPLETED
                     self.jobs[job_id].result = result
-                    self.jobs[job_id].completed_at = datetime.utcnow()
+                    self.jobs[job_id].completed_at = datetime.now(UTC).replace(tzinfo=None)
 
         except asyncio.CancelledError:
             # Job was cancelled
             async with self._lock:
                 self.jobs[job_id].status = JobStatus.CANCELLED
-                self.jobs[job_id].completed_at = datetime.utcnow()
+                self.jobs[job_id].completed_at = datetime.now(UTC).replace(tzinfo=None)
 
         except asyncio.TimeoutError:
             # Job timed out
             async with self._lock:
                 self.jobs[job_id].status = JobStatus.FAILED
                 self.jobs[job_id].error = f"Job timed out after {timeout} seconds"
-                self.jobs[job_id].completed_at = datetime.utcnow()
+                self.jobs[job_id].completed_at = datetime.now(UTC).replace(tzinfo=None)
 
         except Exception as e:
             # Job failed with error
             async with self._lock:
                 self.jobs[job_id].status = JobStatus.FAILED
                 self.jobs[job_id].error = str(e)
-                self.jobs[job_id].completed_at = datetime.utcnow()
+                self.jobs[job_id].completed_at = datetime.now(UTC).replace(tzinfo=None)
 
     async def cancel_job(self, job_id: str) -> bool:
         """
@@ -160,7 +159,7 @@ class JobManager:
 
             # Update status
             job.status = JobStatus.CANCELLED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(UTC).replace(tzinfo=None)
 
         return True
 

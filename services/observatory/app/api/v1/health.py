@@ -1,6 +1,6 @@
 """Health check and metrics endpoints."""
 
-from datetime import datetime
+from datetime import datetime, UTC
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select, func
@@ -25,7 +25,7 @@ async def health_check():
     return HealthResponse(
         status="healthy",
         version=__version__,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC).replace(tzinfo=None),
     )
 
 
@@ -77,5 +77,5 @@ async def get_metrics(
             "completed_analyses": completed_analyses or 0,
             "avg_processing_time": float(avg_processing_time) if avg_processing_time else 0.0,
         },
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
     }
