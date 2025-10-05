@@ -228,10 +228,10 @@ function Test-RateLimiting {
         $limitValue = $response.Headers["x-ratelimit-limit"]
         if ($limitValue -is [array]) { $limitValue = $limitValue[0] }
         $limit = [int]$limitValue
-        $correctLimit = $limit -eq 10
-        Write-TestResult -TestName "Public tier limit is 10 req/min" `
+        $correctLimit = $limit -eq 100  # Updated from 10 to 100 (see specs/005-adjust-api-key-limits.md)
+        Write-TestResult -TestName "Public tier limit is 100 req/min" `
             -Passed $correctLimit `
-            -Expected "10" `
+            -Expected "100" `
             -Actual $limit.ToString()
     }
 
