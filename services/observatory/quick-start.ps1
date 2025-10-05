@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Atrium Observatory Quick Start Script
@@ -466,69 +466,149 @@ PARTNER_KEY=$($keys.partner_key)
 # ============================================================================
 
 function Invoke-Tests {
-    Write-Header "Running Observatory Test Suite"
+    # T008: Determine which tests to run based on flags
+    $runAll = -not ($Unit -or $Contract -or $Integration -or $Validation)
+    
+    # Determine title based on what's running
+    if ($runAll) {
+        Write-Header "Running Observatory Test Suite"
+    } elseif ($Validation) {
+        Write-Header "Running Validation Suite"
+    } else {
+        $types = @()
+        if ($Unit) { $types += "Unit" }
+        if ($Contract) { $types += "Contract" }
+        if ($Integration) { $types += "Integration" }
+        Write-Header "Running $($types -join ' + ') Tests"
+    }
     
     if (-not (Test-Prerequisites)) {
         Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
         return
     }
     
-    # Get test counts dynamically
-    Write-Step "Collecting test information..."
-    $unitCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
-    $contractCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/contract/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
-    $integCount = (& "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ --collect-only -q 2>&1 | Select-String "(\d+) test" | ForEach-Object { $_.Matches.Groups[1].Value })
-    
-    Write-Section "Unit Tests ($unitCount tests)"
-    Write-Step "Running unit tests..."
-    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/unit/ -v --tb=short
-    $unitExitCode = $LASTEXITCODE
-    
-    Write-Host ""
-    Write-Section "Contract Tests ($contractCount tests)"
-    Write-Step "Running contract tests..."
-    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/contract/ -v --tb=short
-    $contractExitCode = $LASTEXITCODE
-    
-    Write-Host ""
-    Write-Section "Integration Tests ($integCount tests)"
-    Write-Step "Running integration tests..."
-    & "$($Script:Config.VenvPath)\python.exe" -m pytest tests/integration/ -v --tb=short
-    $integExitCode = $LASTEXITCODE
-    
-    Write-Host ""
-    Write-Section "Test Summary"
-    
-    $totalTests = [int]$unitCount + [int]$contractCount + [int]$integCount
-    
-    if ($unitExitCode -eq 0) {
-        Write-Success "Unit tests passed ($unitCount/$unitCount)"
+    # T009: Define pytest arguments based on verbosity
+    $pytestArgs = @()
+    if ($Detail) {
+        $pytestArgs += @("-v", "--tb=short")
     } else {
-        Write-Error "Unit tests failed (exit code: $unitExitCode)"
+        $pytestArgs += @("-q", "--tb=line")
     }
     
-    if ($contractExitCode -eq 0) {
-        Write-Success "Contract tests passed ($contractCount/$contractCount)"
-    } else {
-        Write-Error "Contract tests failed (exit code: $contractExitCode)"
+    # T010: Add coverage if requested
+    if ($Coverage) {
+        $pytestArgs += @("--cov=app", "--cov-report=term-missing")
+        if ($Detail) {
+            Write-Info "Coverage reporting enabled"
+        }
     }
-    
-    if ($integExitCode -eq 0) {
-        Write-Success "Integration tests passed ($integCount/$integCount)"
-    } else {
-        Write-Warning "Integration tests failed (exit code: $integExitCode)"
-        Write-Info "Some integration tests may require the server running"
+
+    # Track results
+    $results = @{}
+    $exitCodes = @{}
+
+    # T008: Run unit tests if requested
+    if ($Unit -or $runAll) {
+        Write-Step "Running unit tests..."
+        
+        $testPath = "tests/unit/"
+        $command = { & "$($Script:Config.VenvPath)\python.exe" -m pytest $testPath @pytestArgs }
+        
+        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "Unit tests passed"
+        $exitCodes['unit'] = $LASTEXITCODE
+        $results['unit'] = ($LASTEXITCODE -eq 0)
+        
+        if (-not $Detail -and $LASTEXITCODE -ne 0) {
+            Write-Error "Unit tests failed (exit code: $LASTEXITCODE)"
+        }
+        Write-Host ""
     }
-    
-    Write-Host ""
-    if ($unitExitCode -eq 0 -and $contractExitCode -eq 0 -and $integExitCode -eq 0) {
-        Write-Success "All $totalTests tests passed! "
-    } else {
+
+    # T008: Run contract tests if requested
+    if ($Contract -or $runAll) {
+        Write-Step "Running contract tests..."
+        
+        $testPath = "tests/contract/"
+        $command = { & "$($Script:Config.VenvPath)\python.exe" -m pytest $testPath @pytestArgs }
+        
+        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "Contract tests passed"
+        $exitCodes['contract'] = $LASTEXITCODE
+        $results['contract'] = ($LASTEXITCODE -eq 0)
+        
+        if (-not $Detail -and $LASTEXITCODE -ne 0) {
+            Write-Error "Contract tests failed (exit code: $LASTEXITCODE)"
+        }
+        Write-Host ""
+    }
+
+    # T008: Run integration tests if requested
+    if ($Integration -or $runAll) {
+        Write-Step "Running integration tests..."
+        
+        $testPath = "tests/integration/"
+        $command = { & "$($Script:Config.VenvPath)\python.exe" -m pytest $testPath @pytestArgs }
+        
+        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "Integration tests passed"
+        $exitCodes['integration'] = $LASTEXITCODE
+        $results['integration'] = ($LASTEXITCODE -eq 0)
+        
+        if (-not $Detail -and $LASTEXITCODE -ne 0) {
+            Write-Warning "Integration tests failed (exit code: $LASTEXITCODE)"
+            Write-Info "Some integration tests may require the server running"
+        }
+        Write-Host ""
+    }
+
+    # T008: Run validation suite if requested
+    if ($Validation -or $runAll) {
+        Write-Step "Running validation suite..."
+        
+        if (Test-Path ".\scripts\validation.ps1") {
+            $validationArgs = @()
+            if ($Detail) { $validationArgs += "-Verbose" }
+            
+            & ".\scripts\validation.ps1" @validationArgs
+            $exitCodes['validation'] = $LASTEXITCODE
+            $results['validation'] = ($LASTEXITCODE -eq 0)
+            
+            if ($LASTEXITCODE -eq 0) {
+                if (-not $Detail) {
+                    Write-Success "Validation suite passed"
+                }
+            } else {
+                Write-Warning "Validation suite failed (exit code: $LASTEXITCODE)"
+            }
+        } else {
+            Write-Warning "Validation script not found at .\scripts\validation.ps1"
+            $results['validation'] = $false
+        }
+        Write-Host ""
+    }
+
+    # Summary
+    if ($results.Count -gt 0) {
+        Write-Section "Test Summary"
+        
+        $allPassed = $true
         $failedSuites = @()
-        if ($unitExitCode -ne 0) { $failedSuites += "unit" }
-        if ($contractExitCode -ne 0) { $failedSuites += "contract" }
-        if ($integExitCode -ne 0) { $failedSuites += "integration" }
-        Write-Warning "Failed test suites: $($failedSuites -join ', ')"
+        
+        foreach ($suite in $results.Keys) {
+            if ($results[$suite]) {
+                Write-Success "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests passed"
+            } else {
+                Write-Error "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests failed"
+                $failedSuites += $suite
+                $allPassed = $false
+            }
+        }
+        
+        Write-Host ""
+        if ($allPassed) {
+            Write-Success "All tests passed! 🎉"
+        } else {
+            Write-Warning "Failed test suites: $($failedSuites -join ', ')"
+            Write-Info "Run with -Detail flag for more information"
+        }
     }
 }
 
@@ -846,6 +926,11 @@ function Invoke-Demo {
 
 function Invoke-Validation {
     Write-Header "Running Automated Validation Suite"
+    
+    # T011: Deprecation warning
+    Write-Warning "The 'validate' action is deprecated. Use 'test -Validation' instead."
+    Write-Info "Example: .\quick-start.ps1 test -Validation"
+    Write-Host ""
 
     # Check if validation script exists
     $validationScript = Join-Path $PSScriptRoot "scripts\validation.ps1"
@@ -1010,7 +1095,19 @@ function Show-Help {
     Write-Host "  -NewWindow      " -ForegroundColor Cyan -NoNewline
     Write-Host "  Start server in new PowerShell window (for 'serve' action)"
     Write-Host "  -Detail         " -ForegroundColor Cyan -NoNewline
-    Write-Host "  Enable detailed output"
+    Write-Host "  Enable detailed output with progress steps"
+    Write-Host ""
+    Write-Host "  Test Filtering:" -ForegroundColor Yellow
+    Write-Host "  -Unit           " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only unit tests (fast, no external dependencies)"
+    Write-Host "  -Contract       " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only contract tests (API contract validation)"
+    Write-Host "  -Integration    " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only integration tests (requires server/services)"
+    Write-Host "  -Validation     " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Run only validation suite (automated API tests)"
+    Write-Host "  -Coverage       " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Generate code coverage report (works with any test type)"
     Write-Host ""
     
     Write-Host "EXAMPLES:" -ForegroundColor Yellow
@@ -1018,7 +1115,16 @@ function Show-Help {
     Write-Host "    Initialize the development environment" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  .\quick-start.ps1 test" -ForegroundColor White
-    Write-Host "    Run all tests" -ForegroundColor Gray
+    Write-Host "    Run all tests (unit + contract + integration + validation)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 test -Unit" -ForegroundColor White
+    Write-Host "    Run only unit tests (fast, ~2 seconds)" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 test -Unit -Coverage" -ForegroundColor White
+    Write-Host "    Run unit tests with code coverage report" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  .\quick-start.ps1 test -Detail" -ForegroundColor White
+    Write-Host "    Run all tests with verbose output" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  .\quick-start.ps1 serve -Port 8001" -ForegroundColor White
     Write-Host "    Start server on port 8001" -ForegroundColor Gray
