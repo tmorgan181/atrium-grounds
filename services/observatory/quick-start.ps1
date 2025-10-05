@@ -811,7 +811,11 @@ function Invoke-QuickTests {
 
     if (-not (Test-Prerequisites)) {
         Write-Error "Prerequisites not met. Run: .\quick-start.ps1 setup"
-        if ($ReturnExitCode) { return 1 }
+        if ($ReturnExitCode) {
+            # Set global variable and exit early
+            $global:LastQuickTestExitCode = 1
+            return
+        }
         return
     }
 
@@ -842,7 +846,8 @@ function Invoke-QuickTests {
     }
 
     if ($ReturnExitCode) {
-        return $exitCode
+        # Store exit code in global variable instead of returning
+        $global:LastQuickTestExitCode = $exitCode
     }
 }
 
@@ -1148,8 +1153,10 @@ function Invoke-Demo {
     
     Read-Host "Press Enter to continue"
 
-    # Quick tests
-    $testResult = Invoke-QuickTests -ReturnExitCode
+    # Quick tests - use global variable to avoid PowerShell output capture issues
+    Invoke-QuickTests -ReturnExitCode
+    $testResult = $global:LastQuickTestExitCode
+
     if ($testResult -ne 0) {
         Write-Host ""
         Write-Warning "Quick tests failed. Continuing with demo anyway..."
