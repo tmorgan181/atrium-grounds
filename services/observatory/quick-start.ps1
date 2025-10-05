@@ -117,8 +117,10 @@ function Write-Warning {
 
 function Write-Step {
     param([string]$Text)
-    Write-Host "-> " -ForegroundColor Magenta -NoNewline
-    Write-Host $Text -ForegroundColor White
+    if ($Detail) {
+        Write-Host "-> " -ForegroundColor Magenta -NoNewline
+        Write-Host $Text -ForegroundColor White
+    }
 }
 
 function Write-Result {
