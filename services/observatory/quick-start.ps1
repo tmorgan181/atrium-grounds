@@ -114,8 +114,18 @@ $Script:Config = @{
 }
 
 # ============================================================================
-# COLOR SCHEME
+# COLOR SCHEME AND HELPERS
 # ============================================================================
+
+function Get-Timestamp {
+    <#
+    .SYNOPSIS
+        Get consistently formatted timestamp for verbose output
+    .DESCRIPTION
+        Returns timestamp in format [YYYY-MM-DD HH:mm:ss] for use in verbose logging
+    #>
+    return "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')]"
+}
 
 function Write-Header {
     param([string]$Text)
@@ -151,9 +161,8 @@ function Write-Warning {
 
 function Write-Step {
     param([string]$Text)
-    if ($Verbose) {
-        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-        Write-Host "[$timestamp] " -ForegroundColor DarkGray -NoNewline
+    if ($Script:Verbose) {
+        Write-Host "$(Get-Timestamp) " -ForegroundColor DarkGray -NoNewline
         Write-Host $Text -ForegroundColor White
     }
 }
@@ -232,10 +241,9 @@ function Invoke-CommandWithVerbosity {
         [string]$ErrorMessage = "Command failed"
     )
 
-    if ($Verbose) {
+    if ($Script:Verbose) {
         # Verbose mode: Show all output (stdout and stderr) with timestamp
-        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-        Write-Host "[$timestamp] Running command..." -ForegroundColor DarkGray
+        # Note: Command details should be logged by calling function before invoking this
         & $Command
     } else {
         # Default mode: Suppress output, capture for error reporting
@@ -280,7 +288,7 @@ function Invoke-CommandWithVerbosity {
     }
 
     # Show success message in default mode
-    if ($SuccessMessage -and -not $Verbose -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
+    if ($SuccessMessage -and -not $Script:Verbose -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
         Write-Success $SuccessMessage
     }
 }
@@ -402,6 +410,13 @@ function Invoke-TestSuite {
     Write-Step "Running $TestType tests..."
 
     $pythonExe = Get-PythonExePath
+
+    # Show command in verbose mode
+    if ($Script:Verbose) {
+        $argsString = $PytestArgs -join ' '
+        Write-Host "$(Get-Timestamp) Running: pytest $TestPath $argsString" -ForegroundColor Gray
+    }
+
     $command = { & $pythonExe -m pytest $TestPath @PytestArgs }
 
     Invoke-CommandWithVerbosity -Command $command -SuccessMessage "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests passed"
@@ -409,7 +424,7 @@ function Invoke-TestSuite {
     $exitCode = $LASTEXITCODE
     $passed = ($exitCode -eq 0)
 
-    if (-not $Verbose -and -not $passed) {
+    if (-not $Script:Verbose -and -not $passed) {
         if ($TestType -eq "integration") {
             Write-Host "[FAIL] " -ForegroundColor Red -NoNewline
             Write-Host "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)" -ForegroundColor Yellow
@@ -479,19 +494,25 @@ function Invoke-Setup {
             uv venv
         } -SuccessMessage "Virtual environment created" -ErrorMessage "Failed to create virtual environment"
     } else {
-        if ($Verbose) {
+        if ($Script:Verbose) {
             Write-Info "Virtual environment already exists (skipping creation)"
         }
     }
 
     # T006: Apply verbosity to dependency installation
     Write-Step "Installing dependencies..."
+    if ($Script:Verbose) {
+        Write-Host "$(Get-Timestamp) Running: uv pip install -e ." -ForegroundColor Gray
+    }
     Invoke-CommandWithVerbosity -Command {
         uv pip install -e .
     } -SuccessMessage "Dependencies installed" -ErrorMessage "Failed to install dependencies"
 
     # T007: Apply verbosity to dev dependencies
     Write-Step "Installing development dependencies..."
+    if ($Script:Verbose) {
+        Write-Host "$(Get-Timestamp) Running: uv pip install -e .[dev]" -ForegroundColor Gray
+    }
     Invoke-CommandWithVerbosity -Command {
         uv pip install -e ".[dev]"
     } -SuccessMessage "Development dependencies installed" -ErrorMessage "Failed to install development dependencies"
@@ -702,7 +723,7 @@ function Invoke-Tests {
     # T010: Add coverage if requested
     if ($Coverage) {
         $pytestArgs += @("--cov=app", "--cov-report=term-missing")
-        if ($Verbose) {
+        if ($Script:Verbose) {
             Write-Info "Coverage reporting enabled"
         }
     }
@@ -788,16 +809,24 @@ function Invoke-Tests {
                 }
 
                 # Use quiet mode unless -Verbose is specified
-                if (-not $Verbose) {
+                if (-not $Script:Verbose) {
                     $validationArgs['Quiet'] = $true
                 }
 
+                # Suppress PowerShell's built-in verbose output (VERBOSE: messages)
+                # We want our own verbose format, not PowerShell's
+                $oldVerbosePreference = $VerbosePreference
+                $VerbosePreference = 'SilentlyContinue'
+
                 & ".\scripts\validation.ps1" @validationArgs
+
+                # Restore verbose preference
+                $VerbosePreference = $oldVerbosePreference
                 $exitCodes['validation'] = $LASTEXITCODE
                 $results['validation'] = ($LASTEXITCODE -eq 0)
 
                 if ($LASTEXITCODE -eq 0) {
-                    if (-not $Verbose) {
+                    if (-not $Script:Verbose) {
                         Write-Success "Validation suite passed"
                     }
                 } else {
@@ -1444,7 +1473,7 @@ function Invoke-Format {
     Write-Step "Running ruff format..."
 
     # T014: Format with verbosity control
-    if ($Verbose) {
+    if ($Script:Verbose) {
         # Verbose mode: Show full formatting output
         & $pythonExe -m ruff format .
         $exitCode = $LASTEXITCODE
