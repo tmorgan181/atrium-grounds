@@ -48,7 +48,7 @@ As a developer working on the Observatory service, I want a streamlined command-
 
 ### Acceptance Scenarios
 
-#### Scenario 1: Clean Default Output
+#### Scenario 1: Minimal Default Output
 1. **Given** I am setting up the Observatory service for the first time
 2. **When** I run `.\quick-start.ps1 setup`
 3. **Then** I see only high-level progress and success/failure indicators
@@ -62,7 +62,7 @@ As a developer working on the Observatory service, I want a streamlined command-
 4. **And** full output from all external tools (pip, uv, pytest)
 5. **And** detailed error traces for debugging
 
-#### Scenario 3: Clean Windows Logging
+#### Scenario 3: ANSI-Free Server Logging (Windows)
 1. **Given** I am running the server on Windows PowerShell
 2. **When** I run `.\quick-start.ps1 serve -Clean`
 3. **Then** server logs display without ANSI escape codes
@@ -85,15 +85,15 @@ As a developer working on the Observatory service, I want a streamlined command-
 
 ### Edge Cases
 - What happens when user provides conflicting flags (e.g., `-Detail` and `-Quiet`)?
-  → System should warn about conflicts and use most verbose flag
+  - System should warn about conflicts and use most verbose flag
 - How does system handle missing dependencies for linting tools?
-  → Clear error message directing user to run `setup` action
+  - Clear error message directing user to run `setup` action
 - What if clean logging files don't exist?
-  → Gracefully fall back to standard uvicorn with warning message
+  - Gracefully fall back to standard uvicorn with warning message
 - How do test filters interact with coverage flags?
-  → `-Unit -Coverage` runs unit tests with coverage report
+  - `-Unit -Coverage` runs unit tests with coverage report
 - What happens on non-Windows platforms with `-Clean` flag?
-  → Flag works on all platforms (ANSI codes are always optional)
+  - Flag works on all platforms (ANSI codes are always optional)
 
 ---
 

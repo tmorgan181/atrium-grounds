@@ -99,6 +99,8 @@ Add comprehensive verbosity controls and developer experience enhancements to th
 
 **Initial Assessment**: ✅ NO VIOLATIONS - All principles satisfied, ready for Phase 0 research
 
+**Style Note**: Spec.md uses RFC 2119 keywords (MUST, SHOULD) for requirements precision. Plan.md uses conversational style for readability.
+
 ## Project Structure
 
 ### Documentation (this feature)
@@ -250,4 +252,4 @@ services/observatory/
 - [ ] tasks.md (awaiting /tasks command)
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v1.3.0 - See `.specify/memory/constitution.md`*
