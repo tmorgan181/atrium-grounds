@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Atrium Observatory Quick Start Script
@@ -281,15 +281,15 @@ print(json.dumps(result))
         Write-Host ""
         
         # Display keys
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "---------------------------------------------------------" -ForegroundColor Cyan
         Write-Host "  DEVELOPMENT API KEY (60 req/min)" -ForegroundColor Yellow
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "---------------------------------------------------------" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "  $($keys.dev_key)" -ForegroundColor Green
         Write-Host ""
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "---------------------------------------------------------" -ForegroundColor Cyan
         Write-Host "  PARTNER API KEY (600 req/min)" -ForegroundColor Yellow
-        Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+        Write-Host "---------------------------------------------------------" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "  $($keys.partner_key)" -ForegroundColor Green
         Write-Host ""
@@ -418,7 +418,7 @@ function Invoke-Tests {
     
     Write-Host ""
     if ($unitExitCode -eq 0 -and $contractExitCode -eq 0 -and $integExitCode -eq 0) {
-        Write-Success "All $totalTests tests passed! 🎉"
+        Write-Success "All $totalTests tests passed! "
     } else {
         $failedSuites = @()
         if ($unitExitCode -ne 0) { $failedSuites += "unit" }
@@ -732,7 +732,7 @@ function Invoke-Demo {
     Write-Success "Server stopped"
     
     Write-Host ""
-    Write-Success "Demo completed successfully! 🎉"
+    Write-Success "Demo completed successfully! "
 }
 
 # ============================================================================
@@ -830,7 +830,7 @@ function Invoke-Validation {
 function Show-Help {
     Write-Host ""
     Write-Host "===============================================================" -ForegroundColor Cyan
-    Write-Host "  🚀 Atrium Observatory Quick Start" -ForegroundColor White
+    Write-Host "   Atrium Observatory Quick Start" -ForegroundColor White
     Write-Host "===============================================================" -ForegroundColor Cyan
     Write-Host ""
     
