@@ -1215,7 +1215,6 @@ function Test-AuthenticationMetrics {
 # ============================================================================
 
 function Invoke-Demo {
-    Write-Host ""
     Write-Header "$($Script:Config.ServiceName) - Full Demo"
     
     # Get test counts for info
@@ -1691,6 +1690,9 @@ function Show-Help {
 # MAIN EXECUTION
 # ============================================================================
 
+# Add blank line before action output for better readability
+Write-Host ""
+
 switch ($Action.ToLower()) {
     'setup' {
         Invoke-Setup
@@ -1709,7 +1711,6 @@ switch ($Action.ToLower()) {
     }
     'health' {
         if (Test-HealthEndpoint) {
-            Write-Host ""
             Write-Success "Health check passed!"
         }
     }
