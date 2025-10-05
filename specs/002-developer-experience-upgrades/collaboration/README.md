@@ -18,14 +18,19 @@ The spec-kit provides feature specifications (`spec.md`, `plan.md`, `tasks.md`).
 ```
 collaboration/
 ├── README.md                    # This file
+├── COPILOT-HANDOFF.md           # Handoff document for Copilot (T016+T024)
 ├── HUMAN-VALIDATION-GUIDE.md    # Reference guide for manual testing
-├── decisions/                   # Implementation decisions & tradeoffs
+├── planning/                    # Planning documents (archived after implementation)
+│   ├── README.md                # Planning docs index
+│   ├── LINTING.md               # Code quality planning (implemented T013-T015)
+│   ├── TEST-FILTERING.md        # Test filtering planning (implemented T008-T011)
+│   └── NEXT-STEPS.md            # Feature 002 roadmap (completed)
 ├── proposals/                   # Change proposals & suggestions
 ├── results/                     # Analysis, reviews, validation reports
 ├── reviews/                     # Code reviews & task reviews
 ├── sessions/                    # Session logs from agent work
 │   └── archive/                 # Archived/completed sessions
-└── status/                      # Active handoffs & delegation docs
+└── status/                      # Active handoffs & delegation docs (deprecated, use root)
 ```
 
 ---
@@ -79,14 +84,25 @@ Record session logs showing:
 
 **Archive**: Move completed sessions to `archive/` to reduce clutter
 
+### `planning/`
+Archive planning documents after implementation:
+- Design documents created during planning phase
+- Superseded by actual implementation
+- Kept for historical reference and context
+- Indexed with README explaining what was implemented
+
+**Format**: `[TOPIC].md` with README.md explaining implementation status
+
 ### `status/`
-Maintain active coordination docs:
+**Note**: This directory is deprecated. Place handoff documents in collaboration root instead.
+
+Historically maintained active coordination docs:
 - Handoff documents (delegation between agents)
 - Current work assignments
 - Blocking issues
 - Coordination state
 
-**Format**: `[AGENT]-HANDOFF.md` for delegations, `STATUS-[date].md` for snapshots
+**Current Practice**: Use `[AGENT]-HANDOFF.md` in collaboration root for active handoffs
 
 ---
 
