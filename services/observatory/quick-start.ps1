@@ -296,6 +296,80 @@ function Get-PythonExePath {
     return "$($Script:Config.VenvPath)\python.exe"
 }
 
+function Start-TestServer {
+    <#
+    .SYNOPSIS
+        Start server in background for integration/validation tests
+    .DESCRIPTION
+        Starts uvicorn server as background process for testing.
+        Waits for server to be ready before returning.
+    .OUTPUTS
+        Process object for the server (to stop later)
+    #>
+    Write-Step "Starting test server in background..."
+    
+    $pythonExe = Get-PythonExePath
+    $uvicornArgs = @(
+        "-m", "uvicorn",
+        "app.main:app",
+        "--host", "127.0.0.1",
+        "--port", "8000",
+        "--log-level", "warning"
+    )
+    
+    $serverProcess = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -PassThru -WindowStyle Hidden
+    
+    # Wait for server to be ready (max 10 seconds)
+    $maxWait = 10
+    $waited = 0
+    $ready = $false
+    
+    while ($waited -lt $maxWait -and -not $ready) {
+        Start-Sleep -Milliseconds 500
+        $waited += 0.5
+        
+        try {
+            $response = Invoke-WebRequest -Uri "http://127.0.0.1:8000/health" -TimeoutSec 1 -ErrorAction Stop
+            if ($response.StatusCode -eq 200) {
+                $ready = $true
+            }
+        } catch {
+            # Server not ready yet, continue waiting
+        }
+    }
+    
+    if ($ready) {
+        Write-Success "Test server ready"
+    } else {
+        Write-Warning "Server may still be starting (waited ${waited}s)"
+    }
+    
+    return $serverProcess
+}
+
+function Stop-TestServer {
+    <#
+    .SYNOPSIS
+        Stop the test server process
+    .PARAMETER ServerProcess
+        Process object returned from Start-TestServer
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        $ServerProcess
+    )
+    
+    if ($ServerProcess -and -not $ServerProcess.HasExited) {
+        Write-Step "Stopping test server..."
+        try {
+            Stop-Process -Id $ServerProcess.Id -Force -ErrorAction Stop
+            Write-Success "Test server stopped"
+        } catch {
+            Write-Warning "Could not stop server process: $_"
+        }
+    }
+}
+
 function Invoke-TestSuite {
     <#
     .SYNOPSIS
@@ -633,66 +707,88 @@ function Invoke-Tests {
     # Track results
     $results = @{}
     $exitCodes = @{}
+    $serverProcess = $null
+    $needsServer = ($Integration -or $Validation -or $runAll)
 
-    # T008: Run unit tests if requested
-    if ($Unit -or $runAll) {
-        $result = Invoke-TestSuite -TestType "unit" -TestPath "tests/unit/" -PytestArgs $pytestArgs
-        $exitCodes['unit'] = $result.ExitCode
-        $results['unit'] = $result.Passed
+    # Start server if integration or validation tests will run
+    if ($needsServer) {
+        $serverProcess = Start-TestServer
+        Write-Host ""
     }
 
-    # T008: Run contract tests if requested
-    if ($Contract -or $runAll) {
-        $result = Invoke-TestSuite -TestType "contract" -TestPath "tests/contract/" -PytestArgs $pytestArgs
-        $exitCodes['contract'] = $result.ExitCode
-        $results['contract'] = $result.Passed
-    }
+    try {
+        # T008: Run unit tests if requested
+        if ($Unit -or $runAll) {
+            $result = Invoke-TestSuite -TestType "unit" -TestPath "tests/unit/" -PytestArgs $pytestArgs
+            $exitCodes['unit'] = $result.ExitCode
+            $results['unit'] = $result.Passed
+        }
 
-    # T008: Run integration tests if requested
-    if ($Integration -or $runAll) {
-        $result = Invoke-TestSuite -TestType "integration" -TestPath "tests/integration/" -PytestArgs $pytestArgs
-        $exitCodes['integration'] = $result.ExitCode
-        $results['integration'] = $result.Passed
-    }
+        # T008: Run contract tests if requested
+        if ($Contract -or $runAll) {
+            $result = Invoke-TestSuite -TestType "contract" -TestPath "tests/contract/" -PytestArgs $pytestArgs
+            $exitCodes['contract'] = $result.ExitCode
+            $results['contract'] = $result.Passed
+        }
 
-    # T008: Run validation suite if requested
-    if ($Validation -or $runAll) {
-        Write-Step "Running validation suite..."
+        # T008: Run integration tests if requested
+        if ($Integration -or $runAll) {
+            $result = Invoke-TestSuite -TestType "integration" -TestPath "tests/integration/" -PytestArgs $pytestArgs
+            $exitCodes['integration'] = $result.ExitCode
+            $results['integration'] = $result.Passed
+        }
 
-        if (Test-Path ".\scripts\validation.ps1") {
-            # Note: Validation script has its own output control, -Detail not needed
-            & ".\scripts\validation.ps1"
-            $exitCodes['validation'] = $LASTEXITCODE
-            $results['validation'] = ($LASTEXITCODE -eq 0)
-            
-            if ($LASTEXITCODE -eq 0) {
-                if (-not $Detail) {
-                    Write-Success "Validation suite passed"
+        # T008: Run validation suite if requested
+        if ($Validation -or $runAll) {
+            Write-Step "Running validation suite..."
+
+            if (Test-Path ".\scripts\validation.ps1") {
+                # Note: Validation script has its own output control, -Detail not needed
+                & ".\scripts\validation.ps1"
+                $exitCodes['validation'] = $LASTEXITCODE
+                $results['validation'] = ($LASTEXITCODE -eq 0)
+                
+                if ($LASTEXITCODE -eq 0) {
+                    if (-not $Detail) {
+                        Write-Success "Validation suite passed"
+                    }
+                } else {
+                    Write-Warning "Validation suite failed (exit code: $LASTEXITCODE)"
                 }
             } else {
-                Write-Warning "Validation suite failed (exit code: $LASTEXITCODE)"
+                Write-Warning "Validation script not found at .\scripts\validation.ps1"
+                $results['validation'] = $false
             }
-        } else {
-            Write-Warning "Validation script not found at .\scripts\validation.ps1"
-            $results['validation'] = $false
+            Write-Host ""
         }
-        Write-Host ""
+    }
+    finally {
+        # Always stop the server if we started it
+        if ($serverProcess) {
+            Write-Host ""
+            Stop-TestServer -ServerProcess $serverProcess
+        }
     }
 
     # Summary
     if ($results.Count -gt 0) {
         Write-Section "Test Summary"
         
+        # Show results in the order they were run
+        $testOrder = @('unit', 'contract', 'integration', 'validation')
         $allPassed = $true
         $failedSuites = @()
         
-        foreach ($suite in $results.Keys) {
-            if ($results[$suite]) {
-                Write-Success "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests passed"
-            } else {
-                Write-Error "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests failed"
-                $failedSuites += $suite
-                $allPassed = $false
+        # Show results in execution order
+        foreach ($suite in $testOrder) {
+            if ($results.ContainsKey($suite)) {
+                if ($results[$suite]) {
+                    Write-Success "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests passed"
+                } else {
+                    Write-Error "$($suite.Substring(0,1).ToUpper())$($suite.Substring(1)) tests failed"
+                    $failedSuites += $suite
+                    $allPassed = $false
+                }
             }
         }
         
