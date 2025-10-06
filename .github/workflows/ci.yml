@@ -33,24 +33,24 @@ jobs:
         if: steps.check-python.outputs.has_python == 'true'
         run: |
           if [ -f pyproject.toml ] || [ -f requirements.txt ]; then
-            uv sync --dev
+            uv sync --dev --system
           else
-            uv pip install ruff pytest mypy
+            uv pip install --system ruff pytest mypy
           fi
 
       - name: Lint with ruff
         if: steps.check-python.outputs.has_python == 'true'
-        run: uv run ruff check .
+        run: uv run --system ruff check .
 
       - name: Type check with mypy
         if: steps.check-python.outputs.has_python == 'true'
-        run: uv run mypy . --ignore-missing-imports
+        run: uv run --system mypy . --ignore-missing-imports
 
       - name: Run tests
         if: steps.check-python.outputs.has_python == 'true'
         run: |
           if [ -d "tests" ]; then
-            uv run pytest tests/ -v
+            uv run --system pytest tests/ -v
           else
             echo "No tests directory found yet"
           fi
