@@ -146,13 +146,13 @@ EXAMPLES = [
 
 async def generate_examples():
     """Generate all cached examples."""
-    print("🔧 Generating cached conversation examples...")
-    print(f"📍 Observatory URL: {settings.observatory_url}")
+    print("Generating cached conversation examples...")
+    print(f"Observatory URL: {settings.observatory_url}")
 
     # Create output directory
     output_dir = Path(__file__).parent.parent / "app" / "static" / "examples"
     output_dir.mkdir(parents=True, exist_ok=True)
-    print(f"📁 Output directory: {output_dir}")
+    print(f"Output directory: {output_dir}")
 
     # Initialize Observatory client
     client = ObservatoryClient()
@@ -161,7 +161,7 @@ async def generate_examples():
     failed_count = 0
 
     for example in EXAMPLES:
-        print(f"\n⚡ Generating: {example['id']}")
+        print(f"\nGenerating: {example['id']}")
         print(f"   Type: {example['type']}, Complexity: {example['complexity']}")
         print(f"   Turns: {len(example['conversation'])}")
 
@@ -191,11 +191,11 @@ async def generate_examples():
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(cached_example, f, indent=2, ensure_ascii=False)
 
-            print(f"   ✅ Saved to {output_file.name}")
+            print(f"   [OK] Saved to {output_file.name}")
             generated_count += 1
 
         except Exception as e:
-            print(f"   ❌ Failed: {str(e)}")
+            print(f"   [FAIL] Failed: {str(e)}")
             failed_count += 1
 
     # Close client
@@ -203,13 +203,13 @@ async def generate_examples():
 
     # Summary
     print(f"\n{'='*60}")
-    print(f"📊 Generation complete:")
-    print(f"   ✅ Generated: {generated_count}")
-    print(f"   ❌ Failed: {failed_count}")
-    print(f"   📁 Location: {output_dir}")
+    print(f"Generation complete:")
+    print(f"   Generated: {generated_count}")
+    print(f"   Failed: {failed_count}")
+    print(f"   Location: {output_dir}")
 
     if failed_count > 0:
-        print(f"\n⚠️  Some examples failed to generate.")
+        print(f"\nWARNING: Some examples failed to generate.")
         print(f"   Check that Observatory is running at {settings.observatory_url}")
         print(f"   Run: curl {settings.observatory_url}/health")
 
