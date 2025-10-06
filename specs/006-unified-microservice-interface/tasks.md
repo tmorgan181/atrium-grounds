@@ -89,6 +89,46 @@ services/web-interface/
 
 ---
 
+## TDD Gate: Validate Before Phase 3.3
+
+**CRITICAL**: Before proceeding to T011, run validation script to ensure TDD compliance:
+
+```bash
+# Run TDD gate validator
+bash scripts/validate-tdd-gate.sh
+```
+
+**Gate Requirements**:
+1. ✅ At least 7 tests exist (T004-T010 complete)
+2. ✅ All tests FAIL with ImportError/AttributeError (no implementation yet)
+3. ❌ If tests PASS: Implementation may already exist - review before proceeding
+4. ❌ If tests missing: Write tests first (return to T004-T010)
+
+**Expected output**:
+```
+🔍 TDD Gate Validation
+=====================
+Step 1: Verify tests exist...
+✅ Found 7+ tests
+Step 2: Verify tests fail (no implementation)...
+✅ Tests fail as expected (no implementation yet)
+
+🎉 TDD Gate PASSED - Proceed to implementation (T011+)
+```
+
+**Manual verification** (if script unavailable):
+```bash
+# Check tests exist
+uv run pytest tests/ --collect-only
+# Must show 7+ tests collected
+
+# Check tests fail
+uv run pytest tests/ -v
+# Must show failures with import/attribute errors (not passes)
+```
+
+---
+
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
 - [ ] **T011** Create FastAPI application in `app/main.py`
@@ -116,7 +156,7 @@ services/web-interface/
 - [ ] **T015** [P] Create navigation component in `app/templates/components/nav.html`
   - Links: Home, Demo, API Docs
   - Responsive layout
-  - Service status indicator placeholder
+  - Service status indicator (include T029 status badge)
 
 - [ ] **T016** [P] Implement page routes in `app/routers/pages.py`
   - GET /: Render index.html with context
@@ -133,7 +173,11 @@ services/web-interface/
   - Extends base.html
   - Example cards (cached demos)
   - Live demo section (with API key input)
-  - Results display area
+  - Results display area with:
+    * Pattern cards (badge + confidence bar)
+    * Sentiment graph (line chart or emoji trajectory)
+    * Topic tags (colored badges)
+    * JSON toggle (expandable <details> element)
 
 - [ ] **T019** [P] Implement example loading in `app/routers/examples.py`
   - GET /examples/{id}
@@ -153,16 +197,25 @@ services/web-interface/
   - Results display styling
   - Responsive design (mobile-friendly)
 
+- [ ] **T029** [P] Create health status component in `app/templates/components/status.html`
+  - Display Observatory operational/degraded/offline status
+  - Show response time in ms
+  - Auto-refresh every 30s (JavaScript fetch to /api/health)
+  - Status badge with color coding (green=operational, yellow=degraded, red=offline)
+  - Include in navigation component (referenced in T015)
+
 ---
 
 ## Phase 3.4: Static Content & Scripts
 
 - [ ] **T022** Create example generator script in `scripts/generate_examples.py`
-  - Load curated conversations from inline list
+  - Load curated conversations from `specs/006-unified-microservice-interface/example-conversations.md`
+  - Parse markdown JSON blocks (8 examples: 2 dialectic, 2 collaborative, 2 debate, 2 exploration)
+  - Validate format before calling Observatory (speaker A-Z, content 50-500 chars)
   - Call Observatory /analyze for each
   - Save to app/static/examples/{id}.json
-  - Include metadata (type, complexity)
-  - Generate 5-10 examples
+  - Include metadata (type inferred from section, complexity from name suffix, generated_at timestamp)
+  - Generate 5 examples minimum for MVP (all 8 recommended)
 
 - [ ] **T023** Generate cached examples
   - Run: `uv run python scripts/generate_examples.py`
@@ -215,10 +268,11 @@ services/web-interface/
 - T012 (config) blocks T013 (client)
 - T013 (client) blocks T020 (proxy), T022 (generator)
 - T014 (base template) blocks T017, T018, T024
+- T015 (navigation) blocks T029 (status badge component)
 - T019 (example loader) needs T023 (examples generated)
 - T022 (generator) blocks T023 (run generator)
 
-**Deployment needs core**: T011-T024 before T025-T028
+**Deployment needs core**: T011-T029 before T025-T028
 
 ---
 
@@ -263,6 +317,7 @@ Task: "Create landing page template in app/templates/index.html" (T017)
 Task: "Create demo page template in app/templates/demo.html" (T018)
 Task: "Implement example loading in app/routers/examples.py" (T019)
 Task: "Create minimal CSS in app/static/css/style.css" (T021)
+Task: "Create health status component in app/templates/components/status.html" (T029)
 ```
 
 ### Parallel Group 6: Final Polish (after T025 complete)
@@ -280,9 +335,10 @@ Task: "Performance validation" (T027)
 Setup:        T001 → T002 → T003
 Tests:        T004, T005, T006, T007, T008 (parallel)
               T009, T010 (parallel)
+              [TDD Gate - validate tests fail before continuing]
 Core:         T011 → T012
               T013, T014, T015 (parallel after T012)
-              T016, T017, T018, T019, T021 (parallel after T014-T015)
+              T016, T017, T018, T019, T021, T029 (parallel after T014-T015)
               T020 (after T013)
 Static:       T022 (after T013) → T023
               T024 (parallel with T022)
@@ -297,21 +353,24 @@ Polish:       T026, T027 (parallel after T025)
 *GATE: Verify before marking complete*
 
 - [x] All contracts have corresponding tests (T004-T008 cover api.openapi.yaml)
-- [x] All entities have tasks (CachedExample→T022-T023, Observatory client→T013)
-- [x] All tests come before implementation (T004-T010 before T011-T024)
+- [x] All entities have tasks (CachedExample→T022-T023, Observatory client→T013, HealthStatus→T029)
+- [x] All requirements have tasks (FR-015 health status→T029 added)
+- [x] All tests come before implementation (T004-T010 before T011-T029)
 - [x] Parallel tasks truly independent (verified file paths)
 - [x] Each task specifies exact file path
 - [x] No task modifies same file as another [P] task
+- [x] TDD gate enforced (validation script created)
 
 ---
 
 ## Notes
 
 - **[P] tasks** = Different files, no dependencies, can run in parallel
-- **Verify tests fail** before implementing (TDD principle)
+- **Verify tests fail** before implementing (TDD principle) - Use `scripts/validate-tdd-gate.sh`
 - **Commit after each task** for clean history
 - **Observatory must be running** for T010 (live demo test) and T023 (example generation)
-- **Estimated total**: 28 tasks, ~3-5 days with parallelization
+- **Example conversations defined** in `specs/006-unified-microservice-interface/example-conversations.md`
+- **Estimated total**: 29 tasks, ~3-5 days with parallelization (19 parallelizable = 66%)
 
 ---
 

@@ -35,6 +35,13 @@ The web interface is a stateless proxy to Observatory API. It maintains no persi
 - `conversation` must have ≥2 turns
 - `analysis` must match Observatory response schema
 
+**Conversation Format** (required for all examples):
+- Each turn: `{"speaker": str, "content": str}`
+- Speaker IDs: Single capital letter (A, B, C...) or role name ("User", "Assistant")
+- Content: 50-500 characters per turn recommended
+- Total turns: 2-20 (optimized for analysis)
+- Character whitelist: UTF-8 alphanumeric + standard punctuation
+
 **Example**:
 ```json
 {
@@ -60,18 +67,23 @@ The web interface is a stateless proxy to Observatory API. It maintains no persi
 
 ### 2. DemoRequest
 
-**Purpose**: User-initiated live demo request (ephemeral, not stored)
+**Purpose**: User-initiated LIVE demo request (not for cached examples)
 
 **Fields**:
-- `example_id` (string): ID of cached example to analyze live
-- `api_key` (string | null): Optional Observatory API key (for authenticated demos)
+- `conversation` (list[dict]): Conversation from cached example OR user-provided
+- `source` (string): "cached_example" | "user_input"
+- `example_id` (string | null): ID if source is cached_example
+- `api_key` (string | null): Optional Observatory API key
 - `timestamp` (datetime): When request was made
 
-**Lifecycle**: Created on demo button click → sent to Observatory → response rendered → discarded
+**Lifecycle**:
+- **Cached demo flow**: User clicks "Try Live" → Load example conversation → Create DemoRequest with source="cached_example" → Call Observatory → Render → Discard
+- **Custom input flow**: User pastes conversation → Create DemoRequest with source="user_input" → Call Observatory → Render → Discard
 
 **Validation**:
-- `example_id` must exist in `app/static/examples/`
-- If `api_key` provided, must be valid Observatory key (validated by Observatory)
+- If source="cached_example", example_id MUST be valid
+- If source="user_input", conversation MUST be provided
+- api_key optional for both flows
 
 ### 3. AnalysisRequest
 

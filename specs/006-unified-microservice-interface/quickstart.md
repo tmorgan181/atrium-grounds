@@ -7,8 +7,13 @@
 
 - Python 3.11+
 - uv package manager
-- Observatory service running on http://localhost:8000
+- **Observatory service running on http://localhost:8000** ⚠️
+  - Verify: `curl http://localhost:8000/health` returns 200
+  - If not running: `cd services/observatory && uv run uvicorn app.main:app`
+  - If not built: Complete Feature 001 first (see `specs/001-atrium-observatory-service/`)
 - Observatory API keys generated (dev-api-keys.txt)
+  - Generate: `cd services/observatory && uv run python scripts/generate_api_keys.py`
+  - At least one dev or partner key required for live demos
 
 ## Setup
 

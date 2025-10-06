@@ -303,6 +303,30 @@ Every line of code should align with constitution v1.3.1:
 - **VII. Stewardship**: Quality examples, curator-controlled
 - **VIII. Pragmatism**: Minimal code, justified choices
 
+### Technical Documentation Exception
+
+**Constitution I** (Language & Tone) applies to public pages ONLY:
+- `/` (landing) - ❌ No technical jargon (say "Try conversation analysis" not "POST to /api/v1/analyze")
+- `/demo` (demo interface) - ❌ No technical jargon (say "Example results" not "JSON response from REST endpoint")
+- `/docs` (API documentation) - ✅ Technical terms allowed (developer-facing content)
+
+**Why this matters**: API documentation at `/docs` is explicitly for developers who need precise technical language. Using "endpoint", "REST", "JSON schema" is appropriate and expected in this context. This does not violate Constitution I because:
+1. Docs are opt-in (not landing page)
+2. Target audience is technical (developers integrating with API)
+3. Precision required for correct API usage
+
+**Example**:
+```python
+# Landing page template - NO jargon
+<h1>Explore Conversation Patterns</h1>
+<p>See how ideas develop and connect in dialogue</p>
+
+# API docs template - Technical terms OK
+<h1>API Reference</h1>
+<p>POST /api/v1/analyze - Submit conversation for pattern analysis</p>
+<code>Content-Type: application/json</code>
+```
+
 ## Success Metrics
 
 - ✅ Cached demos <100ms

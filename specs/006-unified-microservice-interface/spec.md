@@ -99,11 +99,11 @@ A curious visitor lands on atrium-grounds.com and wants to understand what the p
 - **FR-002**: System MUST provide "try it now" demos for each exposed microservice using curated examples
 - **FR-003**: System MUST show real API responses from actual microservices (not mocked data)
 - **FR-004**: Public users MUST be able to explore all demos without authentication
-- **FR-005**: System MUST present results visually and textually for accessibility
+- **FR-005**: System MUST present results in multiple formats: (1) Visual: Pattern badges with confidence meters, sentiment trajectory graph, topic tag cloud, (2) Textual: Expandable JSON view, plain-English summary, copy-to-clipboard buttons, (3) Accessible: ARIA labels, semantic HTML, keyboard navigation
 
 **Progressive Disclosure**
 - **FR-006**: System MUST provide clear navigation to deeper content (API docs, authentication, source code)
-- **FR-007**: System MUST display different content/features based on [NEEDS CLARIFICATION: authentication tiers - public vs. API key vs. partner?]
+- **FR-007**: System MUST display different content/features based on authentication tier (Public: cached demos only, API Key: custom input + 1000 req/min, Partner: production usage + 5000 req/min)
 - **FR-008**: System MUST show clear calls-to-action for next steps (get API key, read docs, try advanced features)
 
 **API Integration**
@@ -113,9 +113,9 @@ A curious visitor lands on atrium-grounds.com and wants to understand what the p
 - **FR-012**: System MUST [NEEDS CLARIFICATION: cache results vs. live calls for demos?]
 
 **Multi-Service Support**
-- **FR-013**: System MUST support adding new microservices without redesign
+- **FR-013**: System MUST support adding new microservices with <50 LOC changes (excluding new service-specific templates/routes). Changes limited to: (1) Add service card to landing page, (2) Add route import to main.py, (3) Add navigation link.
 - **FR-014**: System MUST provide consistent UX patterns across all microservices (common navigation, similar demo formats)
-- **FR-015**: System MUST display service health status [NEEDS CLARIFICATION: real-time monitoring or static status?]
+- **FR-015**: System MUST display service health status via direct health check endpoint calls on page load
 
 **Content Management**
 - **FR-016**: System MUST serve curated conversation examples for Observatory demos
@@ -128,7 +128,7 @@ A curious visitor lands on atrium-grounds.com and wants to understand what the p
 - **FR-021**: System MUST degrade gracefully when microservices are unavailable
 
 **Documentation**
-- **FR-022**: System MUST provide embedded API documentation for each microservice
+- **FR-022**: System MUST provide embedded API documentation for developers at `/docs` path (separate from public landing/demo pages). Technical terminology allowed in docs section only.
 - **FR-023**: API docs MUST include example requests and responses
 - **FR-024**: System MUST link to OpenAPI specifications for each service
 

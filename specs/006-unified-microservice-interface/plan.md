@@ -37,6 +37,23 @@ Build a public-facing web interface for Atrium Grounds that exposes the Observat
 **Constraints**: No direct private data access, must respect Observatory rate limits, progressive disclosure tiers
 **Scale/Scope**: MVP with 10-15 cached examples, ~10 HTML templates, ~500 LOC total
 
+## External Dependencies
+
+**Critical prerequisites** (must be complete before implementation):
+
+1. **Feature 001 (Observatory Service)**: MUST be deployed and accessible at http://localhost:8000
+   - Verify with: `curl http://localhost:8000/health`
+   - If not running: `cd services/observatory && uv run uvicorn app.main:app`
+   - If not built: Complete Feature 001 implementation first
+
+2. **Observatory API Keys**: At least one dev or partner key generated
+   - Generate with: `cd services/observatory && uv run python scripts/generate_api_keys.py`
+   - Required for: T023 (example generation), live demo testing
+
+3. **Curated Examples**: 5-10 conversation examples defined
+   - Source: `specs/006-unified-microservice-interface/example-conversations.md` (created)
+   - Used for: Cached demo generation (T022-T023)
+
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
