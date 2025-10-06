@@ -76,32 +76,59 @@ jobs:
 
   commit-attribution:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0  # Fetch full history for PR checks
 
       - name: Check AI agent attribution
         run: |
-          # Get the latest commit message
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-
-          # Check if commit is from an AI agent (has Claude Code footer or Co-Authored-By: Claude)
-          if echo "$COMMIT_MSG" | grep -qE "(Generated with \[Claude Code\]|Co-Authored-By: Claude)"; then
-            echo "✅ AI agent commit detected - checking attribution..."
-
-            # Verify it has model/agent info somewhere
-            if echo "$COMMIT_MSG" | grep -qE "(claude-|sonnet|opus|haiku|gpt-|gemini)"; then
-              echo "✅ Model information found in commit"
-            else
-              echo "⚠️  Warning: AI commit but no model mentioned"
-              echo "Consider adding model info (e.g., 'via claude-sonnet-4') for tracking"
-            fi
+          # Determine which commits to check
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For PRs, check all commits in the PR
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            COMMITS=$(git log --pretty=format:"%H" $BASE_SHA..$HEAD_SHA)
+            echo "Checking commits in PR..."
           else
-            echo "ℹ️  Human commit or commit attribution unclear"
+            # For pushes, check just the latest commit
+            COMMITS=$(git log -1 --pretty=format:"%H")
+            echo "Checking latest commit..."
+          fi
+
+          # Check each commit
+          AI_COMMITS=0
+          HUMAN_COMMITS=0
+          MISSING_MODEL=0
+
+          for COMMIT_SHA in $COMMITS; do
+            COMMIT_MSG=$(git log -1 --pretty=%B $COMMIT_SHA)
+            SHORT_SHA=$(echo $COMMIT_SHA | cut -c1-7)
+
+            # Check if commit is from an AI agent
+            if echo "$COMMIT_MSG" | grep -qE "(Generated with \[Claude Code\]|Co-Authored-By: Claude)"; then
+              AI_COMMITS=$((AI_COMMITS + 1))
+
+              # Verify it has model/agent info
+              if echo "$COMMIT_MSG" | grep -qE "(claude-|sonnet|opus|haiku|gpt-|gemini)"; then
+                echo "✅ $SHORT_SHA: AI commit with model info"
+              else
+                echo "⚠️  $SHORT_SHA: AI commit but no model mentioned"
+                MISSING_MODEL=$((MISSING_MODEL + 1))
+              fi
+            else
+              HUMAN_COMMITS=$((HUMAN_COMMITS + 1))
+              echo "ℹ️  $SHORT_SHA: Human commit or attribution unclear"
+            fi
+          done
+
+          echo ""
+          echo "Summary: $AI_COMMITS AI commits, $HUMAN_COMMITS human commits"
+          if [ $MISSING_MODEL -gt 0 ]; then
+            echo "⚠️  $MISSING_MODEL AI commit(s) missing model information"
+            echo "Consider adding model info (e.g., 'via claude-sonnet-4') for tracking"
           fi
 
           # Always pass - this is informational only
