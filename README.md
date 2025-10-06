@@ -7,7 +7,7 @@
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Public service layer for the Atrium ecosystem. Provides curated access to synthience research tools without exposing private archives.
+Public service layer for the Atrium ecosystem. Provides curated access to AI collaboration research tools without exposing private archives.
 
 ## Table of Contents
 
