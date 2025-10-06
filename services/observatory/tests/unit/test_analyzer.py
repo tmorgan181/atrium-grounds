@@ -1,6 +1,7 @@
 """Unit tests for the analyzer engine."""
 
 import pytest
+
 from app.core.analyzer import AnalyzerEngine
 
 
@@ -24,9 +25,11 @@ async def test_analyze_conversation():
 
     conversation = """
     Human: What is the meaning of life?
-    AI: The meaning of life is a philosophical question that has been debated for millennia.
+    AI: The meaning of life is a philosophical question that has been debated for
+    millennia.
     Human: Can you be more specific?
-    AI: From a practical perspective, meaning often comes from relationships, growth, and contribution.
+    AI: From a practical perspective, meaning often comes from relationships, growth,
+    and contribution.
     """
 
     result = await analyzer.analyze(conversation)

@@ -2,18 +2,16 @@
 
 import hashlib
 import secrets
-from typing import Optional, Dict
 
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
-from app.core.logging import log_auth_success, log_auth_failure
-
+from app.core.logging import log_auth_failure, log_auth_success
 
 # In-memory API key registry for Phase 2
 # Phase 5 will move this to database
-API_KEY_REGISTRY: Dict[str, str] = {}
+API_KEY_REGISTRY: dict[str, str] = {}
 
 
 def generate_api_key() -> str:
@@ -40,7 +38,7 @@ def hash_api_key(api_key: str) -> str:
     return hashlib.sha256(salted).hexdigest()
 
 
-def validate_api_key(api_key: Optional[str], registry: Dict[str, str]) -> bool:
+def validate_api_key(api_key: str | None, registry: dict[str, str]) -> bool:
     """
     Validate an API key against the registry.
 

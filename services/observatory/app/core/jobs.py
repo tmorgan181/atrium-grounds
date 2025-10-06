@@ -2,9 +2,11 @@
 
 import asyncio
 import uuid
-from datetime import datetime, UTC
+from collections.abc import Callable
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -26,9 +28,9 @@ class Job(BaseModel):
     id: str
     status: JobStatus
     created_at: datetime
-    completed_at: Optional[datetime] = None
-    result: Optional[dict[str, Any]] = None
-    error: Optional[str] = None
+    completed_at: datetime | None = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
 
 
 class JobManager:
@@ -50,7 +52,7 @@ class JobManager:
         self._lock = asyncio.Lock()
 
     async def create_job(
-        self, task_func: Callable, *args, timeout: Optional[float] = None, **kwargs
+        self, task_func: Callable, *args, timeout: float | None = None, **kwargs
     ) -> str:
         """
         Create and start a new job.
@@ -87,7 +89,7 @@ class JobManager:
         self,
         job_id: str,
         task_func: Callable,
-        timeout: Optional[float],
+        timeout: float | None,
         *args,
         **kwargs,
     ):
@@ -121,7 +123,7 @@ class JobManager:
                 self.jobs[job_id].status = JobStatus.CANCELLED
                 self.jobs[job_id].completed_at = datetime.now(UTC).replace(tzinfo=None)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Job timed out
             async with self._lock:
                 self.jobs[job_id].status = JobStatus.FAILED
@@ -165,7 +167,7 @@ class JobManager:
 
         return True
 
-    async def get_job_status(self, job_id: str) -> Optional[JobStatus]:
+    async def get_job_status(self, job_id: str) -> JobStatus | None:
         """
         Get the status of a job.
 
@@ -180,7 +182,7 @@ class JobManager:
                 return None
             return self.jobs[job_id].status
 
-    async def get_job_result(self, job_id: str) -> Optional[dict[str, Any]]:
+    async def get_job_result(self, job_id: str) -> dict[str, Any] | None:
         """
         Get the result of a completed job.
 
@@ -201,7 +203,7 @@ class JobManager:
 
             return job.result
 
-    async def get_job(self, job_id: str) -> Optional[Job]:
+    async def get_job(self, job_id: str) -> Job | None:
         """
         Get full job information.
 

@@ -1,8 +1,7 @@
 """Custom logging configuration for clean, readable logs."""
 
 import logging
-import sys
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 
 # Custom formatter for clean, readable logs

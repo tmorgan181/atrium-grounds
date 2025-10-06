@@ -1,12 +1,13 @@
 """Tests for TTL enforcement and cleanup."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, UTC
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.models.database import Base, Analysis, AnalysisStatus, cleanup_expired_records
 from app.core.config import settings
+from app.models.database import Analysis, AnalysisStatus, Base, cleanup_expired_records
 
 
 @pytest.fixture

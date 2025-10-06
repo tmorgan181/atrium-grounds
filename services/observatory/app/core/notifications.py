@@ -4,8 +4,8 @@ import hashlib
 import hmac
 import json
 import logging
-from datetime import datetime, UTC
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 
@@ -75,7 +75,7 @@ class WebhookNotifier:
         total_conversations: int,
         completed_count: int,
         failed_count: int,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         max_retries: int = 0,
     ) -> bool:
         """
@@ -100,7 +100,9 @@ class WebhookNotifier:
             failed_count=failed_count,
         )
 
-        return await self._send_webhook(callback_url, payload, timeout=timeout, max_retries=max_retries)
+        return await self._send_webhook(
+            callback_url, payload, timeout=timeout, max_retries=max_retries
+        )
 
     async def send_batch_failed(
         self,
@@ -233,14 +235,10 @@ class WebhookNotifier:
             Hexadecimal signature string
         """
         # Convert payload to JSON with sorted keys for consistency
-        payload_bytes = json.dumps(payload, sort_keys=True).encode('utf-8')
+        payload_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
 
         # Generate HMAC-SHA256 signature
-        signature = hmac.new(
-            secret.encode('utf-8'),
-            payload_bytes,
-            hashlib.sha256
-        )
+        signature = hmac.new(secret.encode("utf-8"), payload_bytes, hashlib.sha256)
 
         return signature.hexdigest()
 
@@ -248,7 +246,7 @@ class WebhookNotifier:
         self,
         url: str,
         payload: dict[str, Any],
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         max_retries: int = 0,
     ) -> bool:
         """
@@ -281,24 +279,42 @@ class WebhookNotifier:
 
                 if response.status_code >= 200 and response.status_code < 300:
                     if attempt > 0:
-                        logger.info(f"Webhook sent successfully to {url} on attempt {attempt + 1}: {payload['event']}")
+                        event = payload['event']
+                        logger.info(
+                            f"Webhook sent successfully to {url} "
+                            f"on attempt {attempt + 1}: {event}"
+                        )
                     else:
-                        logger.info(f"Webhook sent successfully to {url}: {payload['event']}")
+                        logger.info(
+                            f"Webhook sent successfully to {url}: "
+                            f"{payload['event']}"
+                        )
                     return True
                 else:
                     logger.warning(
-                        f"Webhook failed with status {response.status_code}: {url} (attempt {attempt + 1}/{max_retries + 1})"
+                        f"Webhook failed with status {response.status_code}: {url} "
+                        f"(attempt {attempt + 1}/{max_retries + 1})"
                     )
                     # Don't retry on client errors (4xx), only server errors (5xx)
                     if response.status_code < 500:
                         return False
 
             except httpx.TimeoutException as e:
-                logger.error(f"Webhook timeout to {url}: {e} (attempt {attempt + 1}/{max_retries + 1})")
+                logger.error(
+                    f"Webhook timeout to {url}: {e} "
+                    f"(attempt {attempt + 1}/{max_retries + 1})"
+                )
             except httpx.RequestError as e:
-                logger.error(f"Webhook request error to {url}: {e} (attempt {attempt + 1}/{max_retries + 1})")
+                logger.error(
+                    f"Webhook request error to {url}: {e} "
+                    f"(attempt {attempt + 1}/{max_retries + 1})"
+                )
             except Exception as e:
-                logger.error(f"Unexpected webhook error to {url}: {e} (attempt {attempt + 1}/{max_retries + 1})", exc_info=True)
+                logger.error(
+                    f"Unexpected webhook error to {url}: {e} "
+                    f"(attempt {attempt + 1}/{max_retries + 1})",
+                    exc_info=True,
+                )
                 return False
 
         # All attempts failed

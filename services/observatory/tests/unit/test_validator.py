@@ -1,6 +1,7 @@
 """Unit tests for the input validator (SecurityMediator patterns)."""
 
 import pytest
+
 from app.core.validator import InputValidator
 
 

@@ -1,17 +1,18 @@
 """Integration tests for public tier access (no authentication)."""
 
-import pytest
 from contextlib import asynccontextmanager
-from httpx import AsyncClient, ASGITransport
+
+import pytest
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from httpx import ASGITransport, AsyncClient
 
 from app import __version__
-from app.models.database import init_database
-from app.api.v1 import analyze, health, batch, examples
+from app.api.v1 import analyze, batch, examples, health
+from app.core.config import settings
 from app.middleware import AuthMiddleware, RateLimitMiddleware
 from app.middleware.ratelimit import RateLimiter
-from app.core.config import settings
+from app.models.database import init_database
 
 
 @asynccontextmanager
@@ -33,6 +34,7 @@ def rate_limit_app():
     """
     # Create a fresh rate limiter for this test to avoid contamination
     from app.middleware import ratelimit
+
     ratelimit.rate_limiter = RateLimiter(redis_url=None)
 
     app = FastAPI(
