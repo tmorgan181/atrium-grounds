@@ -3,8 +3,9 @@ Observatory API client.
 
 HTTP client for proxying requests to Observatory conversation analysis service.
 """
+
 import httpx
-from typing import Any
+from typing import Any, AsyncGenerator
 from datetime import datetime
 from app.config import settings
 
@@ -26,9 +27,7 @@ class ObservatoryClient:
         )
 
     async def analyze(
-        self,
-        conversation: list[dict[str, str]],
-        api_key: str | None = None
+        self, conversation: list[dict[str, str]], api_key: str | None = None
     ) -> dict[str, Any]:
         """
         Analyze conversation via Observatory API.
@@ -51,7 +50,7 @@ class ObservatoryClient:
         response = await self.client.post(
             f"{self.base_url}/api/v1/analyze",
             json={"conversation": conversation},
-            headers=headers
+            headers=headers,
         )
         response.raise_for_status()
         return response.json()
@@ -79,21 +78,21 @@ class ObservatoryClient:
                 return {
                     "status": "operational",
                     "response_time_ms": elapsed_ms,
-                    "last_checked": datetime.now().isoformat()
+                    "last_checked": datetime.now().isoformat(),
                 }
             else:
                 return {
                     "status": "degraded",
                     "response_time_ms": elapsed_ms,
                     "last_checked": datetime.now().isoformat(),
-                    "error": f"HTTP {response.status_code}"
+                    "error": f"HTTP {response.status_code}",
                 }
         except (httpx.HTTPError, httpx.RequestError) as e:
             return {
                 "status": "offline",
                 "response_time_ms": -1,
                 "last_checked": datetime.now().isoformat(),
-                "error": str(e)
+                "error": str(e),
             }
 
     async def close(self):
@@ -102,7 +101,7 @@ class ObservatoryClient:
 
 
 # Dependency for FastAPI routes
-async def get_observatory_client() -> ObservatoryClient:
+async def get_observatory_client() -> AsyncGenerator[ObservatoryClient, None]:
     """
     FastAPI dependency to get Observatory client instance.
 

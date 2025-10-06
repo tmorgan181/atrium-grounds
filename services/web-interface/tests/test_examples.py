@@ -4,7 +4,7 @@ Contract tests for cached examples endpoint.
 Test T006: GET /examples/{id} contract validation.
 These tests MUST fail initially (TDD approach).
 """
-import pytest
+
 from fastapi.testclient import TestClient
 
 

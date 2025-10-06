@@ -4,6 +4,7 @@ Integration tests for full user flows.
 Tests T009-T010: End-to-end user journey validation.
 These tests MUST fail initially (TDD approach).
 """
+
 import pytest
 import time
 from fastapi.testclient import TestClient
@@ -27,12 +28,14 @@ def test_visitor_sees_value_proposition_in_30_seconds():
     text_lower = response.text.lower()
 
     # Looking for key value prop indicators
-    has_value_prop = any([
-        "conversation" in text_lower and "analysis" in text_lower,
-        "pattern" in text_lower,
-        "explore" in text_lower,
-        "understand" in text_lower
-    ])
+    has_value_prop = any(
+        [
+            "conversation" in text_lower and "analysis" in text_lower,
+            "pattern" in text_lower,
+            "explore" in text_lower,
+            "understand" in text_lower,
+        ]
+    )
     assert has_value_prop, "Landing page should have clear value proposition"
 
 
@@ -54,7 +57,7 @@ def test_cached_example_loads_in_under_100ms():
 
 @pytest.mark.skipif(
     "OBSERVATORY_URL" not in __import__("os").environ,
-    reason="Observatory not configured"
+    reason="Observatory not configured",
 )
 def test_live_demo_completes_in_under_3_seconds():
     """T010: Test live analysis (with Observatory) completes in <3s."""
@@ -74,10 +77,10 @@ def test_live_demo_completes_in_under_3_seconds():
         json={
             "conversation": [
                 {"speaker": "A", "content": "What is truth?"},
-                {"speaker": "B", "content": "Truth is subjective."}
+                {"speaker": "B", "content": "Truth is subjective."},
             ]
         },
-        headers={"X-API-Key": api_key}
+        headers={"X-API-Key": api_key},
     )
     response_time = (time.time() - start_time) * 1000  # Convert to ms
 

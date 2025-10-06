@@ -4,6 +4,7 @@ Atrium Grounds - Web Interface
 FastAPI application serving as public-facing interface to Observatory API.
 Provides cached demos, live analysis proxy, and API documentation.
 """
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -32,7 +33,8 @@ static_path = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
 # Import and include routers
-from app.routers import pages, examples, proxy
+from app.routers import pages, examples, proxy  # noqa: E402
+
 app.include_router(pages.router)
 app.include_router(examples.router)
 app.include_router(proxy.router)

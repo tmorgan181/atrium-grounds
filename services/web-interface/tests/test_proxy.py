@@ -4,6 +4,7 @@ Contract tests for Observatory API proxy endpoints.
 Tests T007-T008: POST /api/analyze and GET /api/health contract validation.
 These tests MUST fail initially (TDD approach).
 """
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -18,9 +19,9 @@ def test_analyze_endpoint_requires_api_key():
         json={
             "conversation": [
                 {"speaker": "A", "content": "Test message"},
-                {"speaker": "B", "content": "Test response"}
+                {"speaker": "B", "content": "Test response"},
             ]
-        }
+        },
     )
 
     # Without API key, should return 401 (or 403 depending on implementation)
@@ -44,10 +45,10 @@ def test_analyze_endpoint_with_api_key_returns_200():
         json={
             "conversation": [
                 {"speaker": "A", "content": "What is truth?"},
-                {"speaker": "B", "content": "Truth is subjective."}
+                {"speaker": "B", "content": "Truth is subjective."},
             ]
         },
-        headers={"X-API-Key": api_key}
+        headers={"X-API-Key": api_key},
     )
 
     # May return 200 (success) or 503 (Observatory down) - both acceptable
@@ -69,10 +70,10 @@ def test_analyze_endpoint_proxies_to_observatory():
         json={
             "conversation": [
                 {"speaker": "A", "content": "Hello"},
-                {"speaker": "B", "content": "Hi there"}
+                {"speaker": "B", "content": "Hi there"},
             ]
         },
-        headers={"X-API-Key": api_key}
+        headers={"X-API-Key": api_key},
     )
 
     if response.status_code == 200:

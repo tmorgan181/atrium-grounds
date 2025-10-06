@@ -37,4 +37,6 @@ python_functions = "test_*"
 dev = [
     "pytest>=8.4.2",
     "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.4",
+    "mypy>=1.14.0",
 ]

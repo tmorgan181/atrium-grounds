@@ -4,7 +4,7 @@ Contract tests for HTML page routes.
 Tests T004-T005: Landing page and demo page contract validation.
 These tests MUST fail initially (TDD approach).
 """
-import pytest
+
 from fastapi.testclient import TestClient
 
 
@@ -66,8 +66,8 @@ def test_demo_page_contains_example_buttons():
     # Should have some form of example selection (buttons, links, cards)
     # Looking for common HTML patterns
     has_examples = (
-        "example" in response.text.lower() or
-        "demo" in response.text.lower() or
-        "try" in response.text.lower()
+        "example" in response.text.lower()
+        or "demo" in response.text.lower()
+        or "try" in response.text.lower()
     )
     assert has_examples, "Demo page should contain example/demo elements"

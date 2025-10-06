@@ -3,6 +3,7 @@ Configuration settings for Web Interface.
 
 Loads from environment variables with sensible defaults.
 """
+
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 

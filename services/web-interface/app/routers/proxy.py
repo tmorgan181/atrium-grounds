@@ -3,6 +3,7 @@ Observatory API proxy.
 
 Proxies requests to Observatory service with authentication and error handling.
 """
+
 from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel
 from app.client import ObservatoryClient, get_observatory_client
@@ -13,6 +14,7 @@ router = APIRouter(prefix="/api")
 
 class AnalyzeRequest(BaseModel):
     """Request body for analyze endpoint."""
+
     conversation: list[dict[str, str]]
 
 
@@ -20,7 +22,7 @@ class AnalyzeRequest(BaseModel):
 async def analyze_conversation(
     request: AnalyzeRequest,
     x_api_key: str | None = Header(None),
-    client: ObservatoryClient = Depends(get_observatory_client)
+    client: ObservatoryClient = Depends(get_observatory_client),
 ):
     """
     Proxy conversation analysis to Observatory.
@@ -44,60 +46,47 @@ async def analyze_conversation(
     # Require API key for custom analysis
     if not x_api_key:
         raise HTTPException(
-            status_code=401,
-            detail="API key required. Include X-API-Key header."
+            status_code=401, detail="API key required. Include X-API-Key header."
         )
 
     try:
         # Forward to Observatory
         result = await client.analyze(
-            conversation=request.conversation,
-            api_key=x_api_key
+            conversation=request.conversation, api_key=x_api_key
         )
         return result
 
     except httpx.HTTPStatusError as e:
         # Observatory returned error status
         if e.response.status_code == 401 or e.response.status_code == 403:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid API key"
-            )
+            raise HTTPException(status_code=401, detail="Invalid API key")
         elif e.response.status_code == 429:
             raise HTTPException(
                 status_code=429,
                 detail="Rate limit exceeded. Please try again later.",
-                headers=e.response.headers
+                headers=dict(e.response.headers),
             )
         elif e.response.status_code == 400:
             raise HTTPException(
-                status_code=400,
-                detail=f"Invalid request: {e.response.text}"
+                status_code=400, detail=f"Invalid request: {e.response.text}"
             )
         else:
-            raise HTTPException(
-                status_code=503,
-                detail="Observatory service error"
-            )
+            raise HTTPException(status_code=503, detail="Observatory service error")
 
     except httpx.RequestError as e:
         # Connection error
         raise HTTPException(
-            status_code=503,
-            detail=f"Unable to reach Observatory service: {str(e)}"
+            status_code=503, detail=f"Unable to reach Observatory service: {str(e)}"
         )
 
     except Exception as e:
         # Unexpected error
-        raise HTTPException(
-            status_code=500,
-            detail=f"Analysis failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 @router.get("/health")
 async def observatory_health(
-    client: ObservatoryClient = Depends(get_observatory_client)
+    client: ObservatoryClient = Depends(get_observatory_client),
 ):
     """
     Check Observatory service health.
@@ -120,7 +109,4 @@ async def observatory_health(
     if health_status["status"] == "operational":
         return health_status
     else:
-        raise HTTPException(
-            status_code=503,
-            detail=health_status
-        )
+        raise HTTPException(status_code=503, detail=health_status)
