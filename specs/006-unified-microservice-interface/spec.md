@@ -154,7 +154,7 @@ A curious visitor lands on atrium-grounds.com and wants to understand what the p
 - [x] All mandatory sections completed
 
 ### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain - **8 clarifications needed**
+- [x] No [NEEDS CLARIFICATION] markers remain - **All 8 clarifications resolved**
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable (30-second value prop, 3-second demos, no auth for public)
 - [x] Scope is clearly bounded (web UI exposing microservices, starting with Observatory)
@@ -170,20 +170,20 @@ A curious visitor lands on atrium-grounds.com and wants to understand what the p
 - [x] User scenarios defined (5 scenarios covering discovery to API usage)
 - [x] Requirements generated (24 functional requirements)
 - [x] Entities identified (8 key entities)
-- [ ] Review checklist passed - **PENDING CLARIFICATIONS**
+- [x] Review checklist passed - **CLARIFICATIONS RESOLVED**
 
 ---
 
-## Clarifications Needed
+## Clarifications Resolved
 
-1. **Which microservices beyond Observatory?** (Currently only Observatory exists - build for it now, design for future services?)
-2. **Interactivity level?** (Read-only demos vs. user-provided input vs. live API playground?)
-3. **Authentication tiers?** (Show different features for public vs. authenticated users?)
-4. **Caching strategy?** (Cache demo results for speed or always call live API?)
-5. **Service health monitoring?** (Real-time status dashboard or static "last checked" info?)
-6. **Concurrent user target?** (Design for 10, 100, or 1000 simultaneous users?)
-7. **User-submitted examples?** (Allow public to submit conversation examples or curator-only?)
-8. **Content moderation?** (If user input allowed, what content policies and enforcement?)
+1. **Microservices**: Observatory ONLY for MVP. Design UI for multiple services but implement one. Add placeholder cards for future services.
+2. **Interactivity**: Tiered - (1) Cached demos for public (instant), (2) Live API calls for select demos (3s target), (3) Custom input for authenticated users.
+3. **Authentication**: Three tiers matching Observatory - Public (no auth, limited demos), API Key (custom input, 100 req/min), Partner (production, 1000 req/min).
+4. **Caching**: Hybrid - Cache 10-15 curated demo results as static JSON. Live API calls for authenticated custom input only. No user data caching.
+5. **Health monitoring**: Simple - Web interface calls Observatory `/health` on page load, displays status directly. No separate monitoring system.
+6. **Concurrent users**: Design for 100, comfortable with 10. Static caching handles reads, Observatory handles rate-limited writes.
+7. **User submissions**: NOT for MVP. Curator-only examples via admin interface. Future: community submissions with moderation.
+8. **Moderation**: Minimal - Content policy doc, basic input validation, rate limiting. No UGC in MVP means minimal moderation needed.
 
 ---
 
