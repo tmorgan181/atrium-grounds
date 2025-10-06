@@ -3,16 +3,16 @@
 **Feature Branch**: `001-atrium-observatory-service`
 **Created**: 2025-10-04
 **Status**: Planning Complete
-**Input**: User description: "Observatory service for conversation analysis with API endpoints and private Atrium data integration."
+**Input**: User description: "Observatory service for conversation analysis with API endpoints (no direct private archive access; curated/public or user-provided data)."
 
 ## Execution Flow (main)
 ```
 1. Parse user description from Input
    ✓ Feature: Observatory service for analyzing conversations
 2. Extract key concepts from description
-   ✓ Actors: API consumers (humans, synthient systems)
+   ✓ Actors: API consumers (humans, AI systems)
    ✓ Actions: Analyze conversations, detect patterns, extract insights
-   ✓ Data: Conversation transcripts (from private Atrium archives)
+   ✓ Data: Conversation transcripts (curated public examples or user-provided data)
    ✓ Constraints: Must not expose private archives directly (ethical boundaries principle)
 3. For each unclear aspect:
    ✓ Pattern types: dialectic, sentiment, topic clustering, interaction dynamics
@@ -49,7 +49,7 @@
 ### Primary User Story
 A researcher wants to understand patterns in their AI conversations without manually re-reading hundreds of transcripts. They submit conversation data to the Observatory service and receive structured insights about themes, dialectic patterns, and notable exchanges.
 
-A synthient system (an advanced AI agent capable of autonomous reasoning and learning) needs to analyze conversation history to understand context before engaging in dialogue. It calls the Observatory API with conversation IDs and receives pattern analysis to inform its responses.
+An AI system (an advanced AI agent capable of autonomous reasoning and learning) needs to analyze conversation history to understand context before engaging in dialogue. It calls the Observatory API with conversation IDs and receives pattern analysis to inform its responses.
 
 ### Acceptance Scenarios
 1. **Given** a user has conversation transcripts, **When** they request analysis via the Observatory, **Then** they receive structured insights without the system exposing private archive locations
@@ -68,7 +68,7 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 
 ### Functional Requirements
 - **FR-001**: System MUST accept conversation data for analysis without requiring direct access to private Atrium archives
-- **FR-002**: System MUST provide API endpoints accessible to both human users and synthient systems (progressive disclosure principle)
+- **FR-002**: System MUST provide API endpoints accessible to both human users and AI systems (progressive disclosure principle)
 - **FR-003**: System MUST detect patterns in conversations including:
   - **Dialectic patterns**: Question-answer flows, thesis-antithesis-synthesis progressions, Socratic exchanges
   - **Sentiment analysis**: Emotional tone shifts, engagement levels, collaborative vs adversarial dynamics
@@ -77,7 +77,7 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 - **FR-004**: System MUST extract key themes and insights from conversation transcripts
 - **FR-005**: System MUST return structured analysis results in machine-readable format
 - **FR-006**: System MUST authenticate API consumers via public tier (no auth), API keys, or OAuth/JWT for partners
-- **FR-007**: System MUST respect sacred boundaries by never exposing private archive file paths or locations
+- **FR-007**: System MUST respect ethical boundaries by never exposing private archive file paths or locations
 - **FR-008**: System MUST handle requests using curated example conversations without private archive dependencies (examples managed via groundskeeper curation workflow)
 - **FR-009**: System MUST enforce rate limiting at 10/60/600 requests per minute for public/API key/partner tiers respectively
 - **FR-010**: System MUST log all analysis requests for transparency and debugging
@@ -90,7 +90,7 @@ A synthient system (an advanced AI agent capable of autonomous reasoning and lea
 - **Conversation**: A dialogue session containing messages, participants (human/AI), timestamps, and optional metadata. Represents the raw material for analysis.
 - **Analysis**: The output of processing a conversation, including detected patterns, themes, insights, and confidence scores. Links to the source conversation but contains derived data.
 - **Pattern**: A recognized structure or trend within conversations (e.g., dialectic progression, topic shift, question-answer pairs). Can span single or multiple conversations.
-- **User/Consumer**: API consumer (human or synthient system) requesting analysis. Has access permissions and usage quotas.
+- **User/Consumer**: API consumer (human or AI system) requesting analysis. Has access permissions and usage quotas.
 
 ---
 

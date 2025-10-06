@@ -35,7 +35,7 @@ Atrium Grounds is the **public gateway** to Atrium's human-AI collaboration tool
 The project follows a three-layer model:
 
 1. **Public Services** (this repo): APIs, web interfaces, CLI tools
-2. **Private Playground**: Experimental research space (separate repo)
+2. **Private Development (Main Atrium Repo)**: Experimental research space (separate repo)
 3. **Raw Archives**: Protected conversation data (never exposed)
 
 Each service is:

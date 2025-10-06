@@ -13,7 +13,7 @@ From your history, I found key insights:
 
 1. **Three-layer architecture** already established (Sept 2024):
    - Layer 1: Public microservices (atrium-grounds, no private access)
-   - Layer 2: Personal playground (Atrium repo, experimental)
+   - Layer 2: Private Development (Main Atrium Repo, experimental)
    - Layer 3: Raw archives (strictly private)
 
 2. **Polyglot web ecosystem** in development:
