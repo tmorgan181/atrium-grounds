@@ -48,6 +48,20 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+# Colorful output settings
+addopts = [
+    "--color=yes",           # Force color output
+    "--tb=short",            # Shorter tracebacks
+    "--strict-markers",      # Strict marker validation
+    "-ra",                   # Show summary of all test outcomes
+]
+# Markers for organizing tests
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: integration tests",
+    "unit: unit tests",
+    "contract: contract tests",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
@@ -62,5 +76,6 @@ dev = [
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
+    "pytest-sugar>=1.0.0",    # Beautiful progress bar and instant failures
     "ruff>=0.13.3",
 ]

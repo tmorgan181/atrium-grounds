@@ -3,26 +3,27 @@
 import pytest
 import time
 from app.middleware.ratelimit import RateLimiter, TierLimits
+from app.core.config import settings
 
 
 def test_tier_limits_public():
-    """Test public tier limits."""
+    """Test public tier limits match configuration."""
     limits = TierLimits.PUBLIC
-    assert limits["requests_per_minute"] == 10
+    assert limits["requests_per_minute"] == settings.rate_limit_public
     assert limits["requests_per_day"] == 500
 
 
 def test_tier_limits_api_key():
-    """Test API key tier limits."""
+    """Test API key tier limits match configuration."""
     limits = TierLimits.API_KEY
-    assert limits["requests_per_minute"] == 60
+    assert limits["requests_per_minute"] == settings.rate_limit_api_key
     assert limits["requests_per_day"] == 5000
 
 
 def test_tier_limits_partner():
-    """Test partner tier limits."""
+    """Test partner tier limits match configuration."""
     limits = TierLimits.PARTNER
-    assert limits["requests_per_minute"] == 600
+    assert limits["requests_per_minute"] == settings.rate_limit_partner
     assert limits["requests_per_day"] == 50000
 
 
@@ -43,7 +44,8 @@ async def test_rate_limiter_block_over_limit():
     limiter = RateLimiter(redis_url=None)
 
     # Make requests up to limit
-    for i in range(10):
+    limit = settings.rate_limit_public
+    for i in range(limit):
         result = await limiter.check_rate_limit("test_key_2", tier="public")
         assert result["allowed"] is True
 
@@ -58,15 +60,17 @@ async def test_rate_limiter_different_tiers():
     """Test different tiers have different limits."""
     limiter = RateLimiter(redis_url=None)
 
-    # Public tier: 10 req/min
-    for i in range(10):
+    # Public tier
+    public_limit = settings.rate_limit_public
+    for i in range(public_limit):
         result = await limiter.check_rate_limit("public_key", tier="public")
         assert result["allowed"] is True
     result = await limiter.check_rate_limit("public_key", tier="public")
     assert result["allowed"] is False
 
-    # API key tier: 60 req/min
-    for i in range(60):
+    # API key tier
+    api_key_limit = settings.rate_limit_api_key
+    for i in range(api_key_limit):
         result = await limiter.check_rate_limit("api_key", tier="api_key")
         assert result["allowed"] is True
     result = await limiter.check_rate_limit("api_key", tier="api_key")
@@ -82,8 +86,8 @@ async def test_rate_limiter_reset_headers():
 
     assert "reset_at" in result
     assert result["reset_at"] > time.time()
-    assert result["limit"] == 10  # Public tier
-    assert result["remaining"] == 9  # After first request
+    assert result["limit"] == settings.rate_limit_public
+    assert result["remaining"] == settings.rate_limit_public - 1  # After first request
 
 
 @pytest.mark.asyncio
@@ -92,10 +96,11 @@ async def test_rate_limiter_separate_keys():
     limiter = RateLimiter(redis_url=None)
 
     # Use up limit for key1
-    for i in range(10):
+    limit = settings.rate_limit_public
+    for i in range(limit):
         await limiter.check_rate_limit("key1", tier="public")
 
     # key2 should still have full limit
     result = await limiter.check_rate_limit("key2", tier="public")
     assert result["allowed"] is True
-    assert result["remaining"] == 9
+    assert result["remaining"] == limit - 1

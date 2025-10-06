@@ -224,11 +224,14 @@ function Test-RateLimiting {
 
     if ($hasHeaders) {
         # Test 2: Limit value correct
-        $limit = [int]$response.Headers["x-ratelimit-limit"]
-        $correctLimit = $limit -eq 10
-        Write-TestResult -TestName "Public tier limit is 10 req/min" `
+        # PowerShell may return headers as string arrays, take first element
+        $limitValue = $response.Headers["x-ratelimit-limit"]
+        if ($limitValue -is [array]) { $limitValue = $limitValue[0] }
+        $limit = [int]$limitValue
+        $correctLimit = $limit -eq 100  # Updated from 10 to 100 (see specs/005-adjust-api-key-limits.md)
+        Write-TestResult -TestName "Public tier limit is 100 req/min" `
             -Passed $correctLimit `
-            -Expected "10" `
+            -Expected "100" `
             -Actual $limit.ToString()
     }
 
@@ -240,8 +243,15 @@ function Test-RateLimiting {
         $first.Headers -and $second.Headers -and
         $first.Headers.ContainsKey("x-ratelimit-remaining") -and
         $second.Headers.ContainsKey("x-ratelimit-remaining")) {
-        $firstRemaining = [int]$first.Headers["x-ratelimit-remaining"]
-        $secondRemaining = [int]$second.Headers["x-ratelimit-remaining"]
+        # PowerShell may return headers as string arrays, take first element
+        $firstRem = $first.Headers["x-ratelimit-remaining"]
+        if ($firstRem -is [array]) { $firstRem = $firstRem[0] }
+        $firstRemaining = [int]$firstRem
+
+        $secondRem = $second.Headers["x-ratelimit-remaining"]
+        if ($secondRem -is [array]) { $secondRem = $secondRem[0] }
+        $secondRemaining = [int]$secondRem
+
         $decreases = $secondRemaining -lt $firstRemaining
 
         Write-TestResult -TestName "Remaining count decrements correctly" `
@@ -333,7 +343,7 @@ function Test-ApiDocumentation {
             -Passed $hasPaths
     }
 
-    Start-Sleep -Milliseconds 200
+    Start-Sleep -Milliseconds 500
 
     # Test 4: ReDoc (returns HTML, not JSON)
     try {
@@ -396,8 +406,8 @@ function Test-AnalysisEndpoint {
 function Test-ErrorHandling {
     Write-TestHeader "8" "Error Handling"
 
-    # Add small delay to avoid rate limiting from previous tests
-    Start-Sleep -Milliseconds 500
+    # Add delay to let rate limit window reset (we've made ~25 requests so far)
+    Start-Sleep -Milliseconds 2000
 
     # Test 1: Invalid endpoint returns 404
     $response = Invoke-ApiRequest -Path "/nonexistent-endpoint"
@@ -407,7 +417,7 @@ function Test-ErrorHandling {
         -Expected "404" `
         -Actual "$($response.StatusCode)"
 
-    Start-Sleep -Milliseconds 200
+    Start-Sleep -Milliseconds 500
 
     # Test 2: Invalid example returns 404
     $response = Invoke-ApiRequest -Path "/examples/nonexistent"

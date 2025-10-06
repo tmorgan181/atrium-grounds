@@ -10,6 +10,8 @@ from app import __version__
 from app.models.database import init_database
 from app.api.v1 import analyze, health, batch, examples
 from app.middleware import AuthMiddleware, RateLimitMiddleware
+from app.middleware.ratelimit import RateLimiter
+from app.core.config import settings
 
 
 @asynccontextmanager
@@ -29,6 +31,10 @@ def rate_limit_app():
 
     Function scope ensures each test gets a fresh app with fresh rate limits.
     """
+    # Create a fresh rate limiter for this test to avoid contamination
+    from app.middleware import ratelimit
+    ratelimit.rate_limiter = RateLimiter(redis_url=None)
+
     app = FastAPI(
         title="Atrium Observatory API",
         description="Conversation analysis service for detecting patterns, themes, and insights",
@@ -93,33 +99,34 @@ async def test_public_tier_access_no_auth(client):
 @pytest.mark.asyncio
 async def test_public_tier_rate_limits(client):
     """
-    Test that public tier has 10 req/min rate limit.
+    Test that public tier rate limit is enforced.
 
-    Note: Due to RateLimitMiddleware tracking by IP globally,
-    and the previous test consuming 1 request, this test expects
-    9 successful requests before rate limiting kicks in.
+    Each test gets a fresh app with fresh rate limits (function scope).
     """
-    # Make 10 requests rapidly (after 1 from previous test = 10 total)
+    # Get configured limit
+    limit = settings.rate_limit_public
+
+    # Make (limit + 1) requests rapidly
     responses = []
-    for i in range(10):
+    for i in range(limit + 1):
         response = await client.get("/health")
         responses.append(response)
 
-    # First 9 should succeed (10 - 1 from previous test)
-    assert all(r.status_code == 200 for r in responses[:9])
+    # First {limit} should succeed
+    assert all(r.status_code == 200 for r in responses[:limit])
 
-    # 10th should be rate limited (429)
-    assert responses[9].status_code == 429
+    # Last request should be rate limited (429)
+    assert responses[limit].status_code == 429
 
 
 @pytest.mark.asyncio
 async def test_public_tier_rate_limit_headers(client):
-    """Test that rate limit headers are present."""
+    """Test that rate limit headers are present and match configuration."""
     response = await client.get("/health")
 
     assert "X-RateLimit-Limit" in response.headers
     assert "X-RateLimit-Remaining" in response.headers
     assert "X-RateLimit-Reset" in response.headers
 
-    # Public tier should have limit of 10
-    assert int(response.headers["X-RateLimit-Limit"]) == 10
+    # Public tier should have configured limit
+    assert int(response.headers["X-RateLimit-Limit"]) == settings.rate_limit_public

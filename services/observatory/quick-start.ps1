@@ -13,8 +13,8 @@
 .PARAMETER Port
     Port number for the server (default: 8000)
     
-.PARAMETER Detail
-    Enable detailed output with extra logging
+.PARAMETER Verbose
+    Enable verbose output with full diagnostic information and timestamps
     
 .EXAMPLE
     .\quick-start.ps1 test
@@ -35,14 +35,11 @@
 
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'validate', 'lint', 'format', 'check', 'help')]
+    [ValidateSet('test', 'serve', 'demo', 'health', 'analyze', 'keys', 'setup', 'clean', 'lint', 'format', 'check', 'help')]
     [string]$Action = 'help',
 
     [Parameter()]
     [int]$Port = 8000,
-
-    [Parameter()]
-    [switch]$Detail,
 
     [Parameter()]
     [switch]$NewWindow,
@@ -69,6 +66,10 @@ param(
 # ============================================================================
 # PARAMETER VALIDATION (Feature 002 - T024)
 # ============================================================================
+
+# Convert PowerShell's built-in -Verbose parameter to a simple boolean
+# PowerShell automatically adds -Verbose as a common parameter
+$Script:Verbose = ($VerbosePreference -eq 'Continue')
 
 # Rule 1: -Clean only applies to serve action
 if ($Clean -and $Action -ne "serve") {
@@ -113,8 +114,18 @@ $Script:Config = @{
 }
 
 # ============================================================================
-# COLOR SCHEME
+# COLOR SCHEME AND HELPERS
 # ============================================================================
+
+function Get-Timestamp {
+    <#
+    .SYNOPSIS
+        Get consistently formatted timestamp for verbose output
+    .DESCRIPTION
+        Returns timestamp in format [YYYY-MM-DD HH:mm:ss] for use in verbose logging
+    #>
+    return "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')]"
+}
 
 function Write-Header {
     param([string]$Text)
@@ -150,8 +161,8 @@ function Write-Warning {
 
 function Write-Step {
     param([string]$Text)
-    if ($Detail) {
-        Write-Host "-> " -ForegroundColor Magenta -NoNewline
+    if ($Script:Verbose) {
+        Write-Host "$(Get-Timestamp) " -ForegroundColor DarkGray -NoNewline
         Write-Host $Text -ForegroundColor White
     }
 }
@@ -206,7 +217,7 @@ function Write-ApiCall {
 function Invoke-CommandWithVerbosity {
     <#
     .SYNOPSIS
-        Execute external command with output controlled by $Detail flag
+        Execute external command with output controlled by $Verbose flag
     .DESCRIPTION
         Implements NFR-005 (<100ms overhead) and NFR-006 (efficient streaming)
         via 2>&1 redirection for verbosity control
@@ -230,8 +241,9 @@ function Invoke-CommandWithVerbosity {
         [string]$ErrorMessage = "Command failed"
     )
 
-    if ($Detail) {
-        # Detail mode: Show all output (stdout and stderr)
+    if ($Script:Verbose) {
+        # Verbose mode: Show all output (stdout and stderr) with timestamp
+        # Note: Command details should be logged by calling function before invoking this
         & $Command
     } else {
         # Default mode: Suppress output, capture for error reporting
@@ -242,7 +254,7 @@ function Invoke-CommandWithVerbosity {
             $lines = $output -split "`n"
             $summaryStarted = $false
             $relevantLines = @()
-            
+
             foreach ($line in $lines) {
                 # Show FAILED lines
                 if ($line -match "^FAILED ") {
@@ -258,7 +270,7 @@ function Invoke-CommandWithVerbosity {
                     $relevantLines += $line
                 }
             }
-            
+
             # If we got relevant lines, show them; otherwise show count
             if ($relevantLines.Count -gt 0) {
                 $relevantLines | Select-Object -First 10 | ForEach-Object {
@@ -269,14 +281,14 @@ function Invoke-CommandWithVerbosity {
                     }
                 }
             }
-            
+
             # Don't throw - let the calling function handle the failure
             # The LASTEXITCODE is still set and will be checked by caller
         }
     }
 
     # Show success message in default mode
-    if ($SuccessMessage -and -not $Detail -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
+    if ($SuccessMessage -and -not $Script:Verbose -and ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE)) {
         Write-Success $SuccessMessage
     }
 }
@@ -318,14 +330,18 @@ function Start-TestServer {
     $serverProcess = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -PassThru -WindowStyle Hidden
     
     # Wait for server to be ready (max 10 seconds)
+    # Suppress PowerShell's built-in verbose output during health checks
+    $oldVerbosePreference = $VerbosePreference
+    $VerbosePreference = 'SilentlyContinue'
+
     $maxWait = 10
     $waited = 0
     $ready = $false
-    
+
     while ($waited -lt $maxWait -and -not $ready) {
         Start-Sleep -Milliseconds 500
         $waited += 0.5
-        
+
         try {
             $response = Invoke-WebRequest -Uri "http://127.0.0.1:8000/health" -TimeoutSec 1 -ErrorAction Stop
             if ($response.StatusCode -eq 200) {
@@ -335,7 +351,10 @@ function Start-TestServer {
             # Server not ready yet, continue waiting
         }
     }
-    
+
+    # Restore verbose preference
+    $VerbosePreference = $oldVerbosePreference
+
     if ($ready) {
         Write-Success "Test server ready"
     } else {
@@ -353,10 +372,10 @@ function Stop-TestServer {
         Process object returned from Start-TestServer
     #>
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         $ServerProcess
     )
-    
+
     if ($ServerProcess -and -not $ServerProcess.HasExited) {
         Write-Step "Stopping test server..."
         try {
@@ -365,6 +384,33 @@ function Stop-TestServer {
         } catch {
             Write-Warning "Could not stop server process: $_"
         }
+    }
+}
+
+function Stop-AllTestServers {
+    <#
+    .SYNOPSIS
+        Stop all uvicorn test servers (cleanup orphaned processes)
+    .DESCRIPTION
+        Kills any python processes running uvicorn for this project.
+        Useful for cleaning up servers that weren't properly stopped.
+    #>
+    $stopped = 0
+    Get-Process python -ErrorAction SilentlyContinue | ForEach-Object {
+        try {
+            # Check if this is a uvicorn process
+            $cmdline = (Get-CimInstance Win32_Process -Filter "ProcessId = $($_.Id)" -ErrorAction SilentlyContinue).CommandLine
+            if ($cmdline -like "*uvicorn*app.main:app*") {
+                Write-Host "[INFO] Stopping orphaned server process (PID: $($_.Id))" -ForegroundColor Yellow
+                Stop-Process -Id $_.Id -Force -ErrorAction Stop
+                $stopped++
+            }
+        } catch {
+            # Ignore errors
+        }
+    }
+    if ($stopped -gt 0) {
+        Write-Host "[OK] Cleaned up $stopped orphaned server process(es)" -ForegroundColor Green
     }
 }
 
@@ -398,14 +444,34 @@ function Invoke-TestSuite {
     Write-Step "Running $TestType tests..."
 
     $pythonExe = Get-PythonExePath
-    $command = { & $pythonExe -m pytest $TestPath @PytestArgs }
 
-    Invoke-CommandWithVerbosity -Command $command -SuccessMessage "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests passed"
+    # Show command in verbose mode
+    if ($Script:Verbose) {
+        $argsString = $PytestArgs -join ' '
+        Write-Host "$(Get-Timestamp) Running: pytest $TestPath $argsString" -ForegroundColor Gray
+        Write-Host ""
+    }
 
-    $exitCode = $LASTEXITCODE
+    # Run pytest directly in verbose mode to show output, or via helper in terse mode
+    if ($Script:Verbose) {
+        # Stream pytest output directly to console (don't capture)
+        & $pythonExe -m pytest $TestPath @PytestArgs | ForEach-Object { Write-Host $_ }
+        $exitCode = $LASTEXITCODE
+        Write-Host ""
+        if ($exitCode -eq 0) {
+            Write-Host "$(Get-Timestamp) $($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests: PASSED" -ForegroundColor Green
+        } else {
+            Write-Host "$(Get-Timestamp) $($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests: FAILED (exit code: $exitCode)" -ForegroundColor Red
+        }
+    } else {
+        $command = { & $pythonExe -m pytest $TestPath @PytestArgs }
+        Invoke-CommandWithVerbosity -Command $command -SuccessMessage "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests passed"
+        $exitCode = $LASTEXITCODE
+    }
+
     $passed = ($exitCode -eq 0)
 
-    if (-not $Detail -and -not $passed) {
+    if (-not $Script:Verbose -and -not $passed) {
         if ($TestType -eq "integration") {
             Write-Host "[FAIL] " -ForegroundColor Red -NoNewline
             Write-Host "$($TestType.Substring(0,1).ToUpper())$($TestType.Substring(1)) tests failed (exit code: $exitCode)" -ForegroundColor Yellow
@@ -475,19 +541,25 @@ function Invoke-Setup {
             uv venv
         } -SuccessMessage "Virtual environment created" -ErrorMessage "Failed to create virtual environment"
     } else {
-        if ($Detail) {
+        if ($Script:Verbose) {
             Write-Info "Virtual environment already exists (skipping creation)"
         }
     }
 
     # T006: Apply verbosity to dependency installation
     Write-Step "Installing dependencies..."
+    if ($Script:Verbose) {
+        Write-Host "$(Get-Timestamp) Running: uv pip install -e ." -ForegroundColor Gray
+    }
     Invoke-CommandWithVerbosity -Command {
         uv pip install -e .
     } -SuccessMessage "Dependencies installed" -ErrorMessage "Failed to install dependencies"
 
     # T007: Apply verbosity to dev dependencies
     Write-Step "Installing development dependencies..."
+    if ($Script:Verbose) {
+        Write-Host "$(Get-Timestamp) Running: uv pip install -e .[dev]" -ForegroundColor Gray
+    }
     Invoke-CommandWithVerbosity -Command {
         uv pip install -e ".[dev]"
     } -SuccessMessage "Development dependencies installed" -ErrorMessage "Failed to install development dependencies"
@@ -506,7 +578,6 @@ function Invoke-Setup {
     Write-Host ""
     Write-Success "Setup complete!"
     Write-Info "Run '.\quick-start.ps1 test' to verify installation"
-    Write-Info "Run '.\quick-start.ps1 validate' to test the service"
 }
 
 function Invoke-Clean {
@@ -688,17 +759,19 @@ function Invoke-Tests {
     }
     
     # T009: Define pytest arguments based on verbosity
-    $pytestArgs = @()
-    if ($Detail) {
-        $pytestArgs += @("-v", "--tb=short")
+    # Note: pytest-sugar provides beautiful output by default
+    if ($Verbose) {
+        # Verbose: Show test names as they run
+        $pytestArgs = @("-v")
     } else {
-        $pytestArgs += @("-q", "--tb=line")
+        # Default: Let pytest-sugar show its beautiful progress bar
+        $pytestArgs = @("--tb=short")
     }
-    
+
     # T010: Add coverage if requested
     if ($Coverage) {
         $pytestArgs += @("--cov=app", "--cov-report=term-missing")
-        if ($Detail) {
+        if ($Script:Verbose) {
             Write-Info "Coverage reporting enabled"
         }
     }
@@ -714,12 +787,6 @@ function Invoke-Tests {
     $partnerKey = $null
 
     if ($needsServer) {
-        if (-not (Test-Path $apiKeyFile)) {
-            Write-Step "Generating API keys for testing..."
-            Invoke-GenerateKeys
-            Write-Host ""
-        }
-
         # Load partner key for testing (highest rate limits)
         if (Test-Path $apiKeyFile) {
             $content = Get-Content $apiKeyFile -Raw
@@ -728,11 +795,18 @@ function Invoke-Tests {
                 Write-Info "Using PARTNER_KEY for testing (600 req/min limit)"
                 Write-Host ""
             }
+        } else {
+            Write-Warning "No API keys found - some tests will be skipped"
+            Write-Info "Generate keys with: .\quick-start.ps1 keys"
+            Write-Host ""
         }
     }
 
     # Start server if integration or validation tests will run
     if ($needsServer) {
+        # First, clean up any orphaned servers from previous runs
+        Stop-AllTestServers
+
         $serverProcess = Start-TestServer
         Write-Host ""
     }
@@ -781,19 +855,29 @@ function Invoke-Tests {
 
                 if ($partnerKey) {
                     $validationArgs['ApiKey'] = $partnerKey
+                } else {
+                    Write-Warning "No API key loaded - validation will skip authenticated tests"
                 }
 
-                # Use quiet mode unless -Detail is specified
-                if (-not $Detail) {
+                # Use quiet mode unless -Verbose is specified
+                if (-not $Script:Verbose) {
                     $validationArgs['Quiet'] = $true
                 }
 
+                # Suppress PowerShell's built-in verbose output (VERBOSE: messages)
+                # We want our own verbose format, not PowerShell's
+                $oldVerbosePreference = $VerbosePreference
+                $VerbosePreference = 'SilentlyContinue'
+
                 & ".\scripts\validation.ps1" @validationArgs
+
+                # Restore verbose preference
+                $VerbosePreference = $oldVerbosePreference
                 $exitCodes['validation'] = $LASTEXITCODE
                 $results['validation'] = ($LASTEXITCODE -eq 0)
 
                 if ($LASTEXITCODE -eq 0) {
-                    if (-not $Detail) {
+                    if (-not $Script:Verbose) {
                         Write-Success "Validation suite passed"
                     }
                 } else {
@@ -841,7 +925,7 @@ function Invoke-Tests {
             Write-Success "All tests passed!"
         } else {
             Write-Warning "Failed test suites: $($failedSuites -join ', ')"
-            Write-Info "Run with -Detail flag for more information"
+            Write-Info "Run with -Verbose flag for more information"
         }
     }
 }
@@ -867,9 +951,9 @@ function Invoke-QuickTests {
     Write-Info "Testing: database, auth, rate limiting, and validation"
     Write-Host ""
 
-    # In demo context, use quieter output to match demo style
+    # In demo context, use pytest-sugar's beautiful output
     $quietMode = $ReturnExitCode
-    $pytestArgs = if ($quietMode) { @("-q", "--tb=line") } else { @("-v", "--tb=short") }
+    $pytestArgs = if ($quietMode) { @("-q") } else { @("--tb=short") }
 
     & "$($Script:Config.VenvPath)\python.exe" -m pytest `
         tests/unit/test_database.py `
@@ -1182,7 +1266,6 @@ function Test-AuthenticationMetrics {
 # ============================================================================
 
 function Invoke-Demo {
-    Write-Host ""
     Write-Header "$($Script:Config.ServiceName) - Full Demo"
     
     # Get test counts for info
@@ -1216,13 +1299,18 @@ function Invoke-Demo {
 
     Write-Host ""
 
-    # Check for API keys, generate if missing
+    # Check for API keys
     $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
     if (-not (Test-Path $apiKeyFile)) {
-        Write-Step "No API keys found - generating development keys..."
-        Invoke-GenerateKeys
+        Write-Warning "No API keys found"
+        Write-Info "Run '.\quick-start.ps1 keys' to generate API keys first"
+        Write-Host ""
+        Write-Info "Continuing demo with public-tier endpoints only..."
         Write-Host ""
     }
+
+    # Clean up any orphaned servers first
+    Stop-AllTestServers
 
     # Start server
     Start-Server -Background $true
@@ -1251,140 +1339,12 @@ function Invoke-Demo {
     Write-Step "Stopping background server..."
     Get-Job | Stop-Job
     Get-Job | Remove-Job
+    # Also clean up any process-based servers
+    Stop-AllTestServers
     Write-Success "Server stopped"
     Write-Success "Demo completed successfully!"
 }
 
-# ============================================================================
-# VALIDATION FUNCTION
-# ============================================================================
-
-function Invoke-Validation {
-    Write-Header "Running Automated Validation Suite"
-    
-    # T011: Deprecation warning
-    Write-Warning "The 'validate' action is deprecated. Use 'test -Validation' instead."
-    Write-Info "Example: .\quick-start.ps1 test -Validation"
-    Write-Host ""
-
-    # Check if validation script exists
-    $validationScript = Join-Path $PSScriptRoot "scripts\validation.ps1"
-
-    if (-not (Test-Path $validationScript)) {
-        Write-Error "Validation script not found at: $validationScript"
-        return
-    }
-
-    # Check if server is running
-    Write-Step "Checking server status..."
-    $serverProcess = $null
-    try {
-        $null = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 2
-        Write-Success "Server is running at $($Script:Config.BaseUrl)"
-        $serverWasRunning = $true
-    } catch {
-        Write-Info "Server not running. Starting server for validation..."
-        $serverWasRunning = $false
-
-        # Check if port is already in use
-        $portInUse = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
-        if ($portInUse) {
-            Write-Error "Port $Port is already in use by another process"
-            Write-Info "Close the other process or use a different port: .\quick-start.ps1 validate -Port 8001"
-            return
-        }
-
-        # Start server as background process (not in new window)
-        Write-Info "Starting validation server in background..."
-        $serverProcess = Start-Process -FilePath "$($Script:Config.VenvPath)\python.exe" `
-            -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", $Port `
-            -PassThru -NoNewWindow -RedirectStandardOutput "nul" -RedirectStandardError "nul"
-
-        Write-Info "Waiting for server to start (this can take up to 45 seconds)..."
-        $retries = 0
-        $maxRetries = 45
-
-        while ($retries -lt $maxRetries) {
-            Start-Sleep -Milliseconds 1000
-            if ($retries % 5 -eq 0 -and $retries -gt 0) {
-                Write-Host " ${retries}s" -ForegroundColor DarkGray -NoNewline
-            } else {
-                Write-Host "." -NoNewline -ForegroundColor Gray
-            }
-
-            try {
-                $testResponse = Invoke-WebRequest -Uri "$($Script:Config.BaseUrl)/health" -Method GET -ErrorAction Stop -TimeoutSec 3
-                Write-Host ""
-                Write-Success "Server is ready! (started in ${retries}s)"
-                break
-            } catch {
-                $retries++
-                if ($retries -eq $maxRetries) {
-                    Write-Host ""
-                    Write-Error "Server failed to start after $maxRetries seconds"
-                    Write-Warning "Check the server window for error messages"
-                    Write-Info "Common issues: Port already in use, missing dependencies"
-                    return
-                }
-            }
-        }
-    }
-
-    Write-Host ""
-
-    # Check for API key in dev-api-keys.txt
-    $apiKeyFile = Join-Path $PSScriptRoot "dev-api-keys.txt"
-    $apiKey = $null
-
-    if (Test-Path $apiKeyFile) {
-        $content = Get-Content $apiKeyFile -Raw
-        if ($content -match 'DEV_KEY=([^\r\n]+)') {
-            $apiKey = $Matches[1]
-            Write-Success "Using API key from dev-api-keys.txt"
-        }
-    } else {
-        Write-Warning "No API keys found - some tests will be skipped"
-        Write-Info "Generate keys with: .\quick-start.ps1 keys"
-    }
-
-    # Run validation script
-    Write-Section "Executing Validation Tests"
-    Write-Host ""
-
-    $validationArgs = @(
-        "-BaseUrl", $Script:Config.BaseUrl
-    )
-
-    if ($apiKey) {
-        $validationArgs += "-ApiKey", $apiKey
-    }
-
-    & $validationScript @validationArgs
-
-    $exitCode = $LASTEXITCODE
-
-    # Cleanup: Stop validation server if we started it
-    if ($serverProcess) {
-        Write-Host ""
-        Write-Step "Stopping validation server..."
-        try {
-            Stop-Process -Id $serverProcess.Id -Force -ErrorAction Stop
-            Write-Success "Validation server stopped"
-        } catch {
-            Write-Warning "Could not stop server process. You may need to close it manually."
-        }
-    }
-
-    Write-Host ""
-
-    if ($exitCode -eq 0) {
-        Write-Success "Validation passed!"
-    } else {
-        Write-Warning "Validation completed with failures"
-    }
-
-    exit $exitCode
-}
 
 # ============================================================================
 # CODE QUALITY ACTIONS (Feature 002 - T013-T015)
@@ -1440,8 +1400,8 @@ function Invoke-Format {
     Write-Step "Running ruff format..."
 
     # T014: Format with verbosity control
-    if ($Detail) {
-        # Detail mode: Show full formatting output
+    if ($Script:Verbose) {
+        # Verbose mode: Show full formatting output
         & $pythonExe -m ruff format .
         $exitCode = $LASTEXITCODE
 
@@ -1586,8 +1546,8 @@ function Show-Help {
     Write-Host "  Specify server port (default: 8000)"
     Write-Host "  -NewWindow      " -ForegroundColor Cyan -NoNewline
     Write-Host "  Start server in new PowerShell window (for 'serve' action)"
-    Write-Host "  -Detail         " -ForegroundColor Cyan -NoNewline
-    Write-Host "  Enable detailed output with progress steps"
+    Write-Host "  -Verbose        " -ForegroundColor Cyan -NoNewline
+    Write-Host "  Enable verbose output with full diagnostic information"
     Write-Host ""
     Write-Host "  Test Filtering:" -ForegroundColor Yellow
     Write-Host "  -Unit           " -ForegroundColor Cyan -NoNewline
@@ -1615,8 +1575,8 @@ function Show-Help {
     Write-Host "  .\quick-start.ps1 test -Unit -Coverage" -ForegroundColor White
     Write-Host "    Run unit tests with code coverage report" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "  .\quick-start.ps1 test -Detail" -ForegroundColor White
-    Write-Host "    Run all tests with verbose output" -ForegroundColor Gray
+    Write-Host "  .\quick-start.ps1 test -Verbose" -ForegroundColor White
+    Write-Host "    Run all tests with verbose diagnostic output" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  .\quick-start.ps1 serve -Port 8001" -ForegroundColor White
     Write-Host "    Start server on port 8001" -ForegroundColor Gray
@@ -1658,6 +1618,9 @@ function Show-Help {
 # MAIN EXECUTION
 # ============================================================================
 
+# Add blank line before action output for better readability
+Write-Host ""
+
 switch ($Action.ToLower()) {
     'setup' {
         Invoke-Setup
@@ -1676,15 +1639,11 @@ switch ($Action.ToLower()) {
     }
     'health' {
         if (Test-HealthEndpoint) {
-            Write-Host ""
             Write-Success "Health check passed!"
         }
     }
     'analyze' {
         Test-AnalyzeEndpoint
-    }
-    'validate' {
-        Invoke-Validation
     }
     'lint' {
         Invoke-Lint
