@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - Atrium Observatory{% endblock %}
+
+{% block content %}
+<div class="docs-header">
+    <h1>API Documentation</h1>
+    <p>Developer documentation for the Atrium Observatory conversation analysis API.</p>
+</div>
+
+<div class="docs-content">
+    <section class="api-section">
+        <h2>Quick Start</h2>
+        <p>Get started with the Observatory API in three steps:</p>
+        <ol>
+            <li>Get an API key (contact administrator or use public tier)</li>
+            <li>Send a conversation to the analyze endpoint</li>
+            <li>Receive pattern analysis, sentiment, and topic extraction</li>
+        </ol>
+    </section>
+
+    <section class="api-section">
+        <h2>Endpoints</h2>
+
+        <div class="endpoint">
+            <h3><code>POST /api/analyze</code></h3>
+            <p>Analyze a conversation and extract patterns, sentiment, and topics.</p>
+
+            <h4>Request</h4>
+            <pre><code>curl -X POST http://localhost:8080/api/analyze \
+  -H "X-API-Key: your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "conversation": [
+      {"speaker": "A", "content": "What is truth?"},
+      {"speaker": "B", "content": "Truth is subjective."}
+    ]
+  }'</code></pre>
+
+            <h4>Response (200 OK)</h4>
+            <pre><code>{
+  "id": "analysis_abc123",
+  "patterns": [
+    {
+      "type": "dialectic",
+      "confidence": 0.89,
+      "description": "Thesis-antithesis structure"
+    }
+  ],
+  "sentiment": {
+    "overall": "neutral",
+    "trajectory": "stable"
+  },
+  "topics": ["epistemology", "perception", "truth"]
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><code>GET /api/health</code></h3>
+            <p>Check Observatory service status.</p>
+
+            <h4>Request</h4>
+            <pre><code>curl http://localhost:8080/api/health</code></pre>
+
+            <h4>Response (200 OK)</h4>
+            <pre><code>{
+  "status": "operational",
+  "response_time_ms": 45,
+  "last_checked": "2025-01-05T14:32:10Z"
+}</code></pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><code>GET /examples/{id}</code></h3>
+            <p>Retrieve pre-cached conversation analysis example.</p>
+
+            <h4>Request</h4>
+            <pre><code>curl http://localhost:8080/examples/dialectic-simple</code></pre>
+
+            <h4>Response (200 OK)</h4>
+            <pre><code>{
+  "id": "dialectic-simple",
+  "title": "Truth and Perception",
+  "conversation": [...],
+  "analysis": {...},
+  "metadata": {
+    "type": "dialectic",
+    "complexity": "simple"
+  }
+}</code></pre>
+        </div>
+    </section>
+
+    <section class="api-section">
+        <h2>Authentication</h2>
+        <p>The API supports three access tiers:</p>
+        <ul>
+            <li><strong>Public</strong>: Access to cached examples (no API key required)</li>
+            <li><strong>API Key</strong>: Custom analysis with 1000 requests/minute limit</li>
+            <li><strong>Partner</strong>: Production usage with 5000 requests/minute limit</li>
+        </ul>
+        <p>Include your API key in the <code>X-API-Key</code> header for authenticated requests.</p>
+    </section>
+
+    <section class="api-section">
+        <h2>Rate Limits</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tier</th>
+                    <th>Requests/Minute</th>
+                    <th>Features</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Public</td>
+                    <td>100</td>
+                    <td>Cached examples only</td>
+                </tr>
+                <tr>
+                    <td>API Key</td>
+                    <td>1000</td>
+                    <td>Custom analysis</td>
+                </tr>
+                <tr>
+                    <td>Partner</td>
+                    <td>5000</td>
+                    <td>Production usage</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="api-section">
+        <h2>OpenAPI Specification</h2>
+        <p>Full OpenAPI 3.0 specification available at:</p>
+        <p><a href="{{ observatory_url }}/openapi.json" target="_blank">{{ observatory_url }}/openapi.json</a></p>
+    </section>
+
+    <section class="api-section">
+        <h2>Observatory Service</h2>
+        <p>This web interface proxies requests to the Observatory conversation analysis service.</p>
+        <p>Direct Observatory API documentation: <a href="{{ observatory_url }}/docs" target="_blank">{{ observatory_url }}/docs</a></p>
+    </section>
+</div>
+{% endblock %}

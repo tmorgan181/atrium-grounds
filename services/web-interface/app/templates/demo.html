@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Demo - Atrium Observatory{% endblock %}
+
+{% block content %}
+<div class="demo-header">
+    <h1>Try Conversation Analysis</h1>
+    <p>Select an example below to see instant results, or submit your own conversation for analysis.</p>
+</div>
+
+<div class="demo-sections">
+    <!-- Cached Examples Section -->
+    <section class="examples-section">
+        <h2>Quick Examples</h2>
+        <p class="section-description">Pre-analyzed conversations showing different patterns (loads instantly)</p>
+        <div class="example-grid">
+            {% for example in examples %}
+            <div class="example-card" data-id="{{ example.id }}">
+                <h3>{{ example.title }}</h3>
+                <p>{{ example.description }}</p>
+                <span class="example-type">{{ example.type }}</span>
+                <button class="btn btn-sm" onclick="loadExample('{{ example.id }}')">View Analysis</button>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Results Display Area -->
+    <section class="results-section" id="results" style="display: none;">
+        <h2>Analysis Results</h2>
+
+        <!-- Pattern Cards -->
+        <div class="patterns">
+            <h3>Detected Patterns</h3>
+            <div id="pattern-cards"></div>
+        </div>
+
+        <!-- Sentiment Graph -->
+        <div class="sentiment">
+            <h3>Sentiment Trajectory</h3>
+            <div id="sentiment-display"></div>
+        </div>
+
+        <!-- Topic Tags -->
+        <div class="topics">
+            <h3>Topics</h3>
+            <div id="topic-tags"></div>
+        </div>
+
+        <!-- JSON Toggle -->
+        <details class="json-toggle">
+            <summary>View Raw JSON</summary>
+            <pre id="raw-json"></pre>
+        </details>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadExample(exampleId) {
+    const resultsSection = document.getElementById('results');
+    resultsSection.style.display = 'block';
+
+    try {
+        const response = await fetch(`/examples/${exampleId}`);
+        const data = await response.json();
+
+        // Display patterns
+        displayPatterns(data.analysis.patterns || []);
+
+        // Display sentiment
+        displaySentiment(data.analysis.sentiment || {});
+
+        // Display topics
+        displayTopics(data.analysis.topics || []);
+
+        // Show raw JSON
+        document.getElementById('raw-json').textContent = JSON.stringify(data, null, 2);
+
+    } catch (error) {
+        resultsSection.innerHTML = `<p class="error">Error loading example: ${error.message}</p>`;
+    }
+}
+
+function displayPatterns(patterns) {
+    const container = document.getElementById('pattern-cards');
+    container.innerHTML = patterns.map(p => `
+        <div class="pattern-card">
+            <div class="pattern-name">${p.type}</div>
+            <div class="confidence-bar">
+                <div class="confidence-fill" style="width: ${(p.confidence * 100)}%"></div>
+            </div>
+            <div class="confidence-value">${(p.confidence * 100).toFixed(0)}% confidence</div>
+        </div>
+    `).join('');
+}
+
+function displaySentiment(sentiment) {
+    const container = document.getElementById('sentiment-display');
+    const emoji = {
+        'positive': '😊',
+        'neutral': '😐',
+        'negative': '😞'
+    }[sentiment.overall] || '😐';
+
+    const trajectory = {
+        'ascending': '📈 Improving',
+        'descending': '📉 Declining',
+        'stable': '→ Stable'
+    }[sentiment.trajectory] || 'Unknown';
+
+    container.innerHTML = `
+        <div class="sentiment-summary">
+            <div class="sentiment-emoji">${emoji}</div>
+            <div class="sentiment-text">
+                <div><strong>Overall:</strong> ${sentiment.overall || 'unknown'}</div>
+                <div><strong>Trajectory:</strong> ${trajectory}</div>
+            </div>
+        </div>
+    `;
+}
+
+function displayTopics(topics) {
+    const container = document.getElementById('topic-tags');
+    container.innerHTML = topics.map(t => `
+        <span class="topic-tag">${t}</span>
+    `).join('');
+}
+</script>
+{% endblock %}
