@@ -29,28 +29,32 @@ jobs:
             echo "has_python=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Create virtual environment
+        if: steps.check-python.outputs.has_python == 'true'
+        run: uv venv
+
       - name: Install dependencies
         if: steps.check-python.outputs.has_python == 'true'
         run: |
           if [ -f pyproject.toml ] || [ -f requirements.txt ]; then
-            uv sync --dev --system
+            uv sync --dev
           else
-            uv pip install --system ruff pytest mypy
+            uv pip install ruff pytest mypy
           fi
 
       - name: Lint with ruff
         if: steps.check-python.outputs.has_python == 'true'
-        run: uv run --system ruff check .
+        run: uv run ruff check .
 
       - name: Type check with mypy
         if: steps.check-python.outputs.has_python == 'true'
-        run: uv run --system mypy . --ignore-missing-imports
+        run: uv run mypy . --ignore-missing-imports
 
       - name: Run tests
         if: steps.check-python.outputs.has_python == 'true'
         run: |
           if [ -d "tests" ]; then
-            uv run --system pytest tests/ -v
+            uv run pytest tests/ -v
           else
             echo "No tests directory found yet"
           fi
