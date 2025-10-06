@@ -1,7 +1,8 @@
 """Pydantic schemas for API requests and responses."""
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -13,7 +14,7 @@ class AnalysisOptions(BaseModel):
         description="Types of patterns to detect",
     )
     include_insights: bool = Field(default=True, description="Include natural language insights")
-    callback_url: Optional[str] = Field(
+    callback_url: str | None = Field(
         default=None, description="Webhook URL for async notifications"
     )
 
@@ -41,20 +42,18 @@ class AnalysisResponse(BaseModel):
     status: str = Field(
         ..., description="Analysis status: pending, processing, completed, failed, cancelled"
     )
-    observer_output: Optional[str] = Field(
+    observer_output: str | None = Field(
         default=None, description="Natural language analysis from Observer model"
     )
-    patterns: Optional[PatternData] = Field(default=None, description="Detected patterns")
-    summary_points: Optional[list[str]] = Field(default=None, description="Key insights summary")
-    confidence_score: Optional[float] = Field(
+    patterns: PatternData | None = Field(default=None, description="Detected patterns")
+    summary_points: list[str] | None = Field(default=None, description="Key insights summary")
+    confidence_score: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Confidence score (0.0-1.0)"
     )
-    processing_time: Optional[float] = Field(default=None, description="Processing time in seconds")
+    processing_time: float | None = Field(default=None, description="Processing time in seconds")
     created_at: datetime = Field(..., description="Timestamp when analysis was created")
-    expires_at: Optional[datetime] = Field(
-        default=None, description="Timestamp when results expire"
-    )
-    error: Optional[str] = Field(default=None, description="Error message if analysis failed")
+    expires_at: datetime | None = Field(default=None, description="Timestamp when results expire")
+    error: str | None = Field(default=None, description="Error message if analysis failed")
 
 
 class AnalysisStatusResponse(BaseModel):
@@ -63,7 +62,7 @@ class AnalysisStatusResponse(BaseModel):
     id: str
     status: str
     created_at: datetime
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
 
 class CancelResponse(BaseModel):

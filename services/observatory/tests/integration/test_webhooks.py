@@ -1,7 +1,8 @@
 """Integration tests for webhook notification system."""
 
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
+
 from app.core.notifications import WebhookNotifier
 
 

@@ -4,10 +4,11 @@ NOTE: These tests require Redis to be running and are actually integration tests
 They should be moved to tests/integration/ or marked with @pytest.mark.requires_redis
 """
 
-import pytest
 import asyncio
-from app.core.queue import JobQueue, BatchJob, JobPriority
 
+import pytest
+
+from app.core.queue import BatchJob, JobPriority, JobQueue
 
 pytestmark = pytest.mark.skip(reason="Requires Redis - should be integration test")
 

@@ -2,13 +2,12 @@
 
 import asyncio
 import logging
-from typing import Optional
 
 from app.core.analyzer import AnalyzerEngine
-from app.core.validator import InputValidator
-from app.core.queue import JobQueue, BatchJob
-from app.core.notifications import WebhookNotifier
 from app.core.config import settings
+from app.core.notifications import WebhookNotifier
+from app.core.queue import BatchJob, JobQueue
+from app.core.validator import InputValidator
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +26,10 @@ class BatchWorker:
 
     def __init__(
         self,
-        queue: Optional[JobQueue] = None,
-        analyzer: Optional[AnalyzerEngine] = None,
-        validator: Optional[InputValidator] = None,
-        notifier: Optional[WebhookNotifier] = None,
+        queue: JobQueue | None = None,
+        analyzer: AnalyzerEngine | None = None,
+        validator: InputValidator | None = None,
+        notifier: WebhookNotifier | None = None,
     ):
         """Initialize worker with dependencies."""
         self.queue = queue or JobQueue()
@@ -41,7 +40,7 @@ class BatchWorker:
         self.validator = validator or InputValidator(max_length=settings.max_conversation_length)
         self.notifier = notifier or WebhookNotifier()
         self.running = False
-        self.current_job: Optional[BatchJob] = None
+        self.current_job: BatchJob | None = None
 
     async def start(self):
         """Start the worker loop."""
@@ -98,7 +97,8 @@ class BatchWorker:
                     validation = self.validator.validate(conversation_text)
                     if not validation.is_valid:
                         logger.warning(
-                            f"Batch {job.batch_id}: Conversation {conv_id} validation failed: {validation.error}"
+                            f"Batch {job.batch_id}: Conversation {conv_id} "
+                            f"validation failed: {validation.error}"
                         )
                         failed_count += 1
                         results[conv_id] = {"status": "failed", "error": validation.error}

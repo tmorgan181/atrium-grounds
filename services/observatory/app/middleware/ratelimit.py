@@ -1,10 +1,9 @@
 """Rate limiting middleware with Redis backend."""
 
 import time
-from typing import Dict, Optional
 from collections import defaultdict
 
-from fastapi import Request, Response
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
@@ -30,7 +29,7 @@ class TierLimits:
     }
 
     @classmethod
-    def get_limits(cls, tier: str) -> Dict[str, int]:
+    def get_limits(cls, tier: str) -> dict[str, int]:
         """Get rate limits for a tier."""
         if tier == "partner":
             return cls.PARTNER
@@ -46,7 +45,7 @@ class RateLimiter:
     Phase 5 will migrate to Redis for distributed rate limiting.
     """
 
-    def __init__(self, redis_url: Optional[str] = None):
+    def __init__(self, redis_url: str | None = None):
         """
         Initialize rate limiter.
 
@@ -58,7 +57,7 @@ class RateLimiter:
 
         # In-memory storage for Phase 2
         # Structure: {key: {"minute": [(timestamp, count)], "day": [(timestamp, count)]}}
-        self._memory_store: Dict[str, Dict[str, list]] = defaultdict(
+        self._memory_store: dict[str, dict[str, list]] = defaultdict(
             lambda: {"minute": [], "day": []}
         )
 
@@ -74,7 +73,7 @@ class RateLimiter:
             (ts, count) for ts, count in self._memory_store[key]["day"] if now - ts < 86400
         ]
 
-    async def check_rate_limit(self, identifier: str, tier: str = "public") -> Dict:
+    async def check_rate_limit(self, identifier: str, tier: str = "public") -> dict:
         """
         Check if request is within rate limit.
 
@@ -126,13 +125,14 @@ class RateLimiter:
 
     async def refund_request(self, identifier: str, tier: str = "public") -> None:
         """
-        Refund a request (decrement counter) - used when 404 or other non-rate-limited responses occur.
+        Refund a request (decrement counter).
+
+        Used when 404 or other non-rate-limited responses occur.
 
         Args:
             identifier: Unique identifier (IP address or API key)
             tier: Access tier (public, api_key, partner)
         """
-        now = time.time()
 
         # Remove the most recent request entry if it exists
         if identifier in self._memory_store:

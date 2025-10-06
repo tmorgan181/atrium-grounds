@@ -1,11 +1,10 @@
 """Export functionality for analysis results (FR-014)."""
 
-import json
 import csv
-from io import StringIO
+import json
 from enum import Enum
-from typing import Dict, Any, Optional
-from datetime import datetime
+from io import StringIO
+from typing import Any
 
 
 class ExportFormat(str, Enum):
@@ -44,7 +43,7 @@ class ExportFormatter:
         else:
             raise ValueError(f"Unsupported export format: {format_str}")
 
-    def to_json(self, data: Dict[str, Any], pretty: bool = False) -> str:
+    def to_json(self, data: dict[str, Any], pretty: bool = False) -> str:
         """
         Export analysis data to JSON format.
 
@@ -59,7 +58,7 @@ class ExportFormatter:
             return json.dumps(data, indent=2, default=str)
         return json.dumps(data, default=str)
 
-    def to_csv(self, data: Dict[str, Any]) -> str:
+    def to_csv(self, data: dict[str, Any]) -> str:
         """
         Export analysis data to CSV format.
 
@@ -81,7 +80,7 @@ class ExportFormatter:
 
         return output.getvalue()
 
-    def to_markdown(self, data: Dict[str, Any]) -> str:
+    def to_markdown(self, data: dict[str, Any]) -> str:
         """
         Export analysis data to Markdown format.
 
@@ -151,8 +150,8 @@ class ExportFormatter:
         return "\n".join(lines)
 
     def _flatten_dict(
-        self, data: Dict[str, Any], parent_key: str = "", sep: str = "."
-    ) -> Dict[str, Any]:
+        self, data: dict[str, Any], parent_key: str = "", sep: str = "."
+    ) -> dict[str, Any]:
         """
         Flatten nested dictionary for CSV export.
 
@@ -179,7 +178,7 @@ class ExportFormatter:
 
         return dict(items)
 
-    def _get_csv_fields(self, data: Dict[str, Any]) -> list:
+    def _get_csv_fields(self, data: dict[str, Any]) -> list:
         """
         Get CSV field names from flattened data.
 
@@ -192,7 +191,7 @@ class ExportFormatter:
         flat_data = self._flatten_dict(data)
         return list(flat_data.keys())
 
-    def export(self, data: Dict[str, Any], format: ExportFormat, **kwargs) -> str:
+    def export(self, data: dict[str, Any], format: ExportFormat, **kwargs) -> str:
         """
         Export data in specified format.
 

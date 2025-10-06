@@ -1,0 +1,40 @@
+<div class="status-badge" id="observatory-status">
+    <span class="status-indicator" data-status="checking"></span>
+    <span class="status-text">Observatory</span>
+</div>
+
+<script>
+// Auto-refresh Observatory health status every 30 seconds
+async function updateStatus() {
+    try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+
+        const indicator = document.querySelector('.status-indicator');
+        const badge = document.querySelector('.status-badge');
+
+        // Update status based on response
+        if (data.status === 'operational') {
+            indicator.setAttribute('data-status', 'operational');
+            badge.title = `Observatory: Online (${data.response_time_ms}ms)`;
+        } else if (data.status === 'degraded') {
+            indicator.setAttribute('data-status', 'degraded');
+            badge.title = `Observatory: Degraded (${data.response_time_ms}ms)`;
+        } else {
+            indicator.setAttribute('data-status', 'offline');
+            badge.title = 'Observatory: Offline';
+        }
+    } catch (error) {
+        const indicator = document.querySelector('.status-indicator');
+        const badge = document.querySelector('.status-badge');
+        indicator.setAttribute('data-status', 'offline');
+        badge.title = 'Observatory: Offline';
+    }
+}
+
+// Initial status check
+updateStatus();
+
+// Refresh every 30 seconds
+setInterval(updateStatus, 30000);
+</script>

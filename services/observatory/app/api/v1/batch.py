@@ -1,13 +1,12 @@
 """Batch analysis API endpoints."""
 
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.queue import JobQueue, BatchJob, JobPriority
 from app.core.config import settings
+from app.core.queue import BatchJob, JobPriority, JobQueue
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ class BatchAnalysisResponse(BaseModel):
     batch_id: str = Field(..., description="Unique batch identifier")
     status: str = Field(..., description="Batch status (queued)")
     total_conversations: int = Field(..., description="Number of conversations in batch")
-    queue_position: Optional[int] = Field(None, description="Position in queue")
+    queue_position: int | None = Field(None, description="Position in queue")
 
 
 class BatchStatusResponse(BaseModel):
@@ -112,7 +111,7 @@ async def submit_batch_analysis(request: BatchAnalysisRequest):
 
     # Enqueue job
     try:
-        job_id = await job_queue.enqueue(batch_job)
+        await job_queue.enqueue(batch_job)
         queue_position = await job_queue.size()
 
         logger.info(f"Batch {batch_job.batch_id} queued with {len(conversation_ids)} conversations")

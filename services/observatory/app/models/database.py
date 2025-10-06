@@ -1,28 +1,27 @@
 """SQLAlchemy database models and connection management."""
 
+import enum
 import uuid
-from datetime import datetime, timedelta, UTC
-from typing import Optional, AsyncGenerator
+from collections.abc import AsyncGenerator
+from datetime import UTC, datetime, timedelta
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy import (
-    Boolean,
+    JSON,
     Column,
     DateTime,
     Float,
-    Integer,
     String,
     Text,
-    JSON,
+)
+from sqlalchemy import (
     Enum as SQLEnum,
 )
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
-import enum
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
 
 from app.core.config import settings
-
 
 # SQLAlchemy Base
 Base = declarative_base()
@@ -123,7 +122,6 @@ async def init_database() -> None:
 
     # Ensure data directory exists for SQLite databases
     if "sqlite" in db_url:
-        import os
         from pathlib import Path
 
         # Extract path from URL (e.g., "sqlite+aiosqlite:///./data/observatory.db")
@@ -169,7 +167,8 @@ async def cleanup_expired_records() -> dict[str, int]:
     Returns:
         Dictionary with counts of deleted results and metadata.
     """
-    from sqlalchemy import select, delete
+    from sqlalchemy import delete, select
+
     from app.core.logging import log_ttl_cleanup, log_ttl_cleanup_error
 
     if async_session_maker is None:

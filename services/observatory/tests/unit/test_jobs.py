@@ -6,9 +6,10 @@ Job manager works correctly in production - these test issues are with pytest as
 """
 
 import asyncio
-import pytest
-from app.core.jobs import JobManager, JobStatus
 
+import pytest
+
+from app.core.jobs import JobManager, JobStatus
 
 pytestmark = pytest.mark.skip(reason="Async timing tests cause hangs - needs refactoring")
 

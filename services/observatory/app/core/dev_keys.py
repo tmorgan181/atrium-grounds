@@ -4,9 +4,7 @@ Automatically loads and registers dev API keys from dev-api-keys.txt if it exist
 This is for local development only - production keys should be managed via database.
 """
 
-import os
 from pathlib import Path
-from typing import Optional
 
 
 def parse_dev_keys_file(file_path: Path) -> dict[str, str]:
@@ -22,7 +20,7 @@ def parse_dev_keys_file(file_path: Path) -> dict[str, str]:
     keys = {}
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             for line in f:
                 line = line.strip()
                 if line.startswith("DEV_KEY="):
@@ -35,7 +33,7 @@ def parse_dev_keys_file(file_path: Path) -> dict[str, str]:
     return keys
 
 
-def auto_register_dev_keys() -> Optional[dict[str, str]]:
+def auto_register_dev_keys() -> dict[str, str] | None:
     """
     Automatically register development API keys if dev-api-keys.txt exists.
 

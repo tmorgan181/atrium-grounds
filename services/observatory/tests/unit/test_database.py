@@ -1,11 +1,12 @@
 """Tests for database models and operations."""
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta, UTC
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.models.database import Base, Analysis, AnalysisStatus, get_database_url
+from app.models.database import Analysis, AnalysisStatus, Base, get_database_url
 
 
 @pytest.fixture

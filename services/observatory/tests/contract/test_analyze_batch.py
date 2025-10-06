@@ -1,8 +1,7 @@
 """Contract tests for batch analysis endpoints."""
 
 import pytest
-from httpx import AsyncClient, ASGITransport
-
+from httpx import ASGITransport, AsyncClient
 
 pytestmark = pytest.mark.skip(
     reason="Batch processing requires Redis - not available in test environment"
