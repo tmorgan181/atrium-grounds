@@ -1,0 +1,261 @@
+openapi: 3.0.3
+info:
+  title: Atrium Grounds - Unified Microservice Interface
+  version: 1.0.0
+  description: Public web interface for exploring Observatory conversation analysis API
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://atrium-grounds.com
+    description: Production server (TBD)
+
+paths:
+  /:
+    get:
+      summary: Landing page
+      description: Homepage explaining Atrium Grounds and Observatory service
+      responses:
+        '200':
+          description: HTML landing page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /demo:
+    get:
+      summary: Demo interface
+      description: Interactive demo page with cached and live examples
+      responses:
+        '200':
+          description: HTML demo page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /docs:
+    get:
+      summary: API documentation
+      description: Embedded API documentation and OpenAPI spec viewer
+      responses:
+        '200':
+          description: HTML documentation page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /examples/{example_id}:
+    get:
+      summary: Get cached example
+      description: Retrieve pre-generated analysis for a curated conversation example
+      parameters:
+        - name: example_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-z0-9-]+$'
+          description: Example identifier (e.g., dialectic-simple)
+      responses:
+        '200':
+          description: Cached example with pre-generated analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CachedExample'
+        '404':
+          description: Example not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/analyze:
+    post:
+      summary: Analyze conversation (proxy to Observatory)
+      description: Proxy request to Observatory /analyze endpoint with authentication
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                conversation:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      speaker:
+                        type: string
+                      content:
+                        type: string
+                  minItems: 2
+                  maxItems: 100
+              required:
+                - conversation
+      responses:
+        '200':
+          description: Analysis results from Observatory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisResult'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/health:
+    get:
+      summary: Observatory service health
+      description: Check Observatory service status (proxy to /health endpoint)
+      responses:
+        '200':
+          description: Observatory is operational
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: Observatory is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Observatory API key (public/api-key/partner tier)
+
+  schemas:
+    CachedExample:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        conversation:
+          type: array
+          items:
+            type: object
+            properties:
+              speaker:
+                type: string
+              content:
+                type: string
+        analysis:
+          $ref: '#/components/schemas/AnalysisResult'
+        metadata:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [dialectic, collaborative, exploration, debate]
+            complexity:
+              type: string
+              enum: [simple, moderate, complex]
+            generated_at:
+              type: string
+              format: date-time
+
+    AnalysisResult:
+      type: object
+      properties:
+        id:
+          type: string
+        patterns:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              confidence:
+                type: number
+                format: float
+                minimum: 0
+                maximum: 1
+              description:
+                type: string
+        sentiment:
+          type: object
+          properties:
+            overall:
+              type: string
+              enum: [positive, negative, neutral]
+            trajectory:
+              type: string
+              enum: [ascending, descending, stable]
+            turns:
+              type: array
+              items:
+                type: object
+                properties:
+                  turn:
+                    type: integer
+                  sentiment:
+                    type: string
+                  score:
+                    type: number
+                    format: float
+        topics:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          properties:
+            duration_ms:
+              type: integer
+            model_version:
+              type: string
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [operational, degraded, offline]
+        response_time_ms:
+          type: integer
+        last_checked:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true

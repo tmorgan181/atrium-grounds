@@ -1,16 +1,15 @@
 """Health check and metrics endpoints."""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import __version__
-from app.models.schemas import HealthResponse
-from app.models.database import Analysis, get_db_session
 from app.middleware.auth import get_current_tier
-from fastapi import Request
+from app.models.database import Analysis, get_db_session
+from app.models.schemas import HealthResponse
 
 router = APIRouter()
 

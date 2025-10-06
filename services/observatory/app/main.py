@@ -6,67 +6,67 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
-from app.models.database import init_database, start_cleanup_scheduler, stop_cleanup_scheduler
-from app.api.v1 import analyze, health, batch, examples
-from app.middleware import AuthMiddleware, RateLimitMiddleware
+from app.api.v1 import analyze, batch, examples, health
 from app.core.dev_keys import auto_register_dev_keys
+from app.middleware import AuthMiddleware, RateLimitMiddleware
+from app.models.database import init_database, start_cleanup_scheduler, stop_cleanup_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle - startup and shutdown."""
-    # ANSI color codes
-    CYAN = "\033[96m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    MAGENTA = "\033[95m"
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
+    # ANSI color codes  # noqa: N806
+    cyan = "\033[96m"
+    green = "\033[92m"
+    yellow = "\033[93m"
+    magenta = "\033[95m"
+    bold = "\033[1m"
+    reset = "\033[0m"
 
     # Startup banner
-    print("\n" + CYAN + "=" * 70 + RESET)
-    print(f"   {BOLD}{MAGENTA}⚡ ATRIUM OBSERVATORY{RESET}")
-    print(f"   {CYAN}Conversation Analysis Service{RESET}")
-    print(CYAN + "=" * 70 + RESET)
-    print(f"   {YELLOW}Version:{RESET} {__version__}")
-    print(f"   {YELLOW}API Docs:{RESET} http://localhost:8000/docs")
-    print(CYAN + "=" * 70 + RESET + "\n")
+    print("\n" + cyan + "=" * 70 + reset)
+    print(f"   {bold}{magenta}⚡ ATRIUM OBSERVATORY{reset}")
+    print(f"   {cyan}Conversation Analysis Service{reset}")
+    print(cyan + "=" * 70 + reset)
+    print(f"   {yellow}Version:{reset} {__version__}")
+    print(f"   {yellow}API Docs:{reset} http://localhost:8000/docs")
+    print(cyan + "=" * 70 + reset + "\n")
 
     # Startup: Initialize database and start TTL cleanup scheduler
-    print(f"{CYAN}🔧 Initializing database...{RESET}")
+    print(f"{cyan}🔧 Initializing database...{reset}")
     await init_database()
-    print(f"{GREEN}✓ Database ready{RESET}\n")
+    print(f"{green}✓ Database ready{reset}\n")
 
-    print(f"{CYAN}⏰ Starting cleanup scheduler...{RESET}")
+    print(f"{cyan}⏰ Starting cleanup scheduler...{reset}")
     start_cleanup_scheduler()
-    print(f"{GREEN}✓ TTL cleanup active{RESET}\n")
+    print(f"{green}✓ TTL cleanup active{reset}\n")
 
     # Auto-register development API keys if dev-api-keys.txt exists
     dev_keys = auto_register_dev_keys()
     if dev_keys:
-        print(f"{YELLOW}🔑 Development API keys registered:{RESET}")
+        print(f"{yellow}🔑 Development API keys registered:{reset}")
         if "dev_key" in dev_keys:
-            print(f"   {GREEN}• API Key tier (60 req/min){RESET}")
+            print(f"   {green}• API Key tier (60 req/min){reset}")
         if "partner_key" in dev_keys:
-            print(f"   {GREEN}• Partner tier (600 req/min){RESET}")
-        print(f"   {GREEN}✓ Loaded from dev-api-keys.txt{RESET}\n")
+            print(f"   {green}• Partner tier (600 req/min){reset}")
+        print(f"   {green}✓ Loaded from dev-api-keys.txt{reset}\n")
 
-    print(CYAN + "=" * 70 + RESET)
-    print(f"   {BOLD}{GREEN}🚀 SERVER READY{RESET}")
-    print(f"   {YELLOW}Press CTRL+C to stop{RESET}")
-    print(CYAN + "=" * 70 + RESET + "\n")
+    print(cyan + "=" * 70 + reset)
+    print(f"   {bold}{green}🚀 SERVER READY{reset}")
+    print(f"   {yellow}Press CTRL+C to stop{reset}")
+    print(cyan + "=" * 70 + reset + "\n")
 
     yield
 
     # Shutdown
-    print("\n" + YELLOW + "=" * 70 + RESET)
-    print(f"   {YELLOW}⚠ Shutting down...{RESET}")
-    print(YELLOW + "=" * 70 + RESET + "\n")
+    print("\n" + yellow + "=" * 70 + reset)
+    print(f"   {yellow}⚠ Shutting down...{reset}")
+    print(yellow + "=" * 70 + reset + "\n")
     stop_cleanup_scheduler()
-    print(f"{GREEN}✓ Cleanup scheduler stopped{RESET}")
-    print("\n" + CYAN + "=" * 70 + RESET)
-    print(f"   {BOLD}{MAGENTA}👋 Server stopped{RESET}")
-    print(CYAN + "=" * 70 + RESET + "\n")
+    print(f"{green}✓ Cleanup scheduler stopped{reset}")
+    print("\n" + cyan + "=" * 70 + reset)
+    print(f"   {bold}{magenta}👋 Server stopped{reset}")
+    print(cyan + "=" * 70 + reset + "\n")
 
 
 app = FastAPI(

@@ -1,7 +1,6 @@
 """Unit tests for API key authentication."""
 
-import pytest
-from app.middleware.auth import validate_api_key, generate_api_key, hash_api_key
+from app.middleware.auth import generate_api_key, hash_api_key, validate_api_key
 
 
 def test_api_key_generation():

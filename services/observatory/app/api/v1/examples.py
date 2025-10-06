@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -25,8 +25,8 @@ class ExampleMetadata(BaseModel):
     name: str
     category: str
     description: str
-    tags: List[str]
-    expected_patterns: List[str]
+    tags: list[str]
+    expected_patterns: list[str]
     difficulty: str
     participants: int
 
@@ -34,8 +34,8 @@ class ExampleMetadata(BaseModel):
 class ExampleListResponse(BaseModel):
     """Response for listing examples."""
 
-    examples: List[ExampleMetadata]
-    categories: List[Dict[str, str]]
+    examples: list[ExampleMetadata]
+    categories: list[dict[str, str]]
     total: int
 
 
@@ -48,10 +48,10 @@ class ExampleDetailResponse(BaseModel):
     analyze_url: str = Field(..., description="URL to analyze this conversation")
 
 
-def load_manifest() -> Dict[str, Any]:
+def load_manifest() -> dict[str, Any]:
     """Load the examples manifest."""
     try:
-        with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+        with open(MANIFEST_PATH, encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         logger.error(f"Manifest not found at {MANIFEST_PATH}")
@@ -63,11 +63,11 @@ def load_manifest() -> Dict[str, Any]:
 
 @router.get("/examples", response_model=ExampleListResponse)
 async def list_examples(
-    category: Optional[str] = Query(None, description="Filter by category"),
-    difficulty: Optional[str] = Query(
+    category: str | None = Query(None, description="Filter by category"),
+    difficulty: str | None = Query(
         None, description="Filter by difficulty (beginner, intermediate, advanced)"
     ),
-    tag: Optional[str] = Query(None, description="Filter by tag"),
+    tag: str | None = Query(None, description="Filter by tag"),
 ):
     """
     Get list of curated example conversations.
@@ -140,7 +140,7 @@ async def get_example(example_id: str):
     example_file = EXAMPLES_DIR / example["file"]
 
     try:
-        with open(example_file, "r", encoding="utf-8") as f:
+        with open(example_file, encoding="utf-8") as f:
             content = f.read()
     except FileNotFoundError:
         logger.error(f"Example file not found: {example_file}")

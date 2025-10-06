@@ -1,7 +1,7 @@
 """Input validation and security filtering for conversation data."""
 
 import re
-from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -9,8 +9,8 @@ class ValidationResult(BaseModel):
     """Result of input validation."""
 
     is_valid: bool
-    sanitized_text: Optional[str] = None
-    error: Optional[str] = None
+    sanitized_text: str | None = None
+    error: str | None = None
 
 
 class InputValidator:

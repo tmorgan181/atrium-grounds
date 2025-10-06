@@ -1,9 +1,11 @@
 """Unit tests for rate limiting."""
 
-import pytest
 import time
-from app.middleware.ratelimit import RateLimiter, TierLimits
+
+import pytest
+
 from app.core.config import settings
+from app.middleware.ratelimit import RateLimiter, TierLimits
 
 
 def test_tier_limits_public():

@@ -1,13 +1,12 @@
 """Redis-based job queue for batch processing."""
 
-import asyncio
-import json
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
-from pydantic import BaseModel, ConfigDict
+from typing import Any
+
 import redis.asyncio as redis
+from pydantic import BaseModel, ConfigDict
 
 from app.core.config import settings
 
@@ -51,7 +50,7 @@ class JobQueue:
     def __init__(self, redis_url: str = None):
         """Initialize job queue with Redis connection."""
         self.redis_url = redis_url or settings.redis_url
-        self.redis_client: Optional[redis.Redis] = None
+        self.redis_client: redis.Redis | None = None
         self.queue_key = "observatory:job_queue"
         self.priority_queue_key = "observatory:priority_queue"
         self.job_data_prefix = "observatory:job:"
@@ -89,7 +88,7 @@ class JobQueue:
 
         return job_id
 
-    async def dequeue(self, timeout: float = 0) -> Optional[BatchJob]:
+    async def dequeue(self, timeout: float = 0) -> BatchJob | None:
         """
         Remove and return a job from the queue.
 

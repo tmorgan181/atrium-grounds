@@ -28,9 +28,9 @@ class Settings(BaseSettings):
 
     # Rate Limiting (requests per minute)
     # Note: Increased limits for better DX. See specs/005-adjust-api-key-limits.md
-    rate_limit_public: int = 100      # 10x increase - usable for exploration
-    rate_limit_api_key: int = 1000    # 16x increase - real development use
-    rate_limit_partner: int = 5000    # 8x increase - enterprise scale
+    rate_limit_public: int = 100  # 10x increase - usable for exploration
+    rate_limit_api_key: int = 1000  # 16x increase - real development use
+    rate_limit_partner: int = 5000  # 8x increase - enterprise scale
 
     # TTL Configuration (days)
     ttl_results: int = 30

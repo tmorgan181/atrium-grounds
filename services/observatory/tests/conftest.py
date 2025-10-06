@@ -1,15 +1,16 @@
 """Shared test fixtures for Observatory test suite."""
 
-import pytest
 from contextlib import asynccontextmanager
-from httpx import AsyncClient, ASGITransport
+
+import pytest
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from httpx import ASGITransport, AsyncClient
 
 from app import __version__
+from app.api.v1 import analyze, batch, examples, health
+from app.middleware import AuthMiddleware
 from app.models.database import init_database
-from app.api.v1 import analyze, health, batch, examples
-from app.middleware import AuthMiddleware, RateLimitMiddleware
 
 
 @asynccontextmanager

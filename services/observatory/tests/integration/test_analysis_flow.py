@@ -1,8 +1,9 @@
 """Integration tests for end-to-end conversation analysis flow."""
 
 import asyncio
+
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.mark.asyncio
@@ -188,7 +189,8 @@ async def test_confidence_scoring_correlation(test_app):
             json={
                 "conversation_text": """
                 Human: Can you explain the concept of emergence in complex systems?
-                AI: Emergence occurs when a system exhibits properties not present in individual components.
+                AI: Emergence occurs when a system exhibits properties not present in
+                individual components.
                 Human: Can you provide concrete examples?
                 AI: Ant colonies display emergent intelligence despite individual ants being simple.
                 Human: How does this relate to consciousness?

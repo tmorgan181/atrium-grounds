@@ -1,31 +1,30 @@
 """API endpoints for conversation analysis."""
 
-from datetime import datetime, UTC
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import PlainTextResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.analyzer import AnalyzerEngine
+from app.core.config import settings
+from app.core.export import ExportFormat, ExportFormatter
+from app.core.jobs import JobManager
+from app.core.logging import (
+    log_analysis_cancelled,
+    log_analysis_completed,
+    log_analysis_created,
+    log_analysis_failed,
+)
+from app.core.validator import InputValidator
+from app.models.database import Analysis, AnalysisStatus, get_db_session
 from app.models.schemas import (
     AnalysisRequest,
     AnalysisResponse,
     AnalysisStatusResponse,
     CancelResponse,
-)
-from app.models.database import Analysis, AnalysisStatus, get_db_session
-from app.core.analyzer import AnalyzerEngine
-from app.core.validator import InputValidator
-from app.core.jobs import JobManager
-from app.core.config import settings
-from app.core.export import ExportFormatter, ExportFormat
-from app.core.logging import (
-    log_analysis_created,
-    log_analysis_completed,
-    log_analysis_cancelled,
-    log_analysis_failed,
 )
 
 router = APIRouter()
@@ -152,7 +151,7 @@ async def create_analysis(
 @router.get("/analyze/{analysis_id}")
 async def get_analysis(
     analysis_id: str,
-    format: Optional[str] = Query(None, description="Export format: json (default), csv, markdown"),
+    format: str | None = Query(None, description="Export format: json (default), csv, markdown"),
     db: AsyncSession = Depends(get_db_session),
 ):
     """

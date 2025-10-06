@@ -2,8 +2,8 @@
 
 import json
 import logging
-from datetime import datetime, UTC
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from app.core.config import settings
 
@@ -75,7 +75,7 @@ def log_analysis_completed(
     analysis_id: str,
     status: str,
     processing_time: float,
-    confidence_score: Optional[float] = None,
+    confidence_score: float | None = None,
 ) -> None:
     """Log when an analysis completes."""
     log_json(
@@ -113,7 +113,7 @@ def log_analysis_failed(analysis_id: str, error: str, processing_time: float) ->
 def log_ttl_cleanup(
     deleted_results: int,
     old_metadata_count: int,
-    oldest_deleted_date: Optional[str] = None,
+    oldest_deleted_date: str | None = None,
 ) -> None:
     """Log TTL cleanup execution."""
     log_json(

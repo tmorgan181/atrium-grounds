@@ -1,0 +1,53 @@
+{
+  "id": "dialectic-simple",
+  "title": "Truth and Perception",
+  "description": "Two perspectives on objective vs. subjective truth",
+  "conversation": [
+    {
+      "speaker": "A",
+      "content": "Truth is objective and exists independently of our perceptions. Mathematical proofs demonstrate this - 2+2=4 regardless of belief."
+    },
+    {
+      "speaker": "B",
+      "content": "But our perception shapes what we recognize as truth. Different cultures have different 'truths' about morality and meaning."
+    },
+    {
+      "speaker": "A",
+      "content": "Cultural truths are values, not truths. Values vary, but facts remain constant across contexts."
+    },
+    {
+      "speaker": "B",
+      "content": "Yet quantum physics shows observation affects reality itself. The observer and observed are inseparable."
+    }
+  ],
+  "analysis": {
+    "id": "mock-analysis-001",
+    "patterns": [
+      {
+        "type": "dialectic",
+        "confidence": 0.89,
+        "description": "Thesis-antithesis structure with competing epistemological frameworks"
+      }
+    ],
+    "sentiment": {
+      "overall": "neutral",
+      "trajectory": "stable",
+      "turns": [
+        {"turn": 1, "sentiment": "neutral", "score": 0.05},
+        {"turn": 2, "sentiment": "neutral", "score": 0.02},
+        {"turn": 3, "sentiment": "neutral", "score": 0.01},
+        {"turn": 4, "sentiment": "neutral", "score": -0.01}
+      ]
+    },
+    "topics": ["epistemology", "perception", "truth", "quantum physics"],
+    "metadata": {
+      "duration_ms": 120,
+      "model_version": "mock-v1"
+    }
+  },
+  "metadata": {
+    "type": "dialectic",
+    "complexity": "simple",
+    "generated_at": "2025-01-05T20:00:00Z"
+  }
+}
