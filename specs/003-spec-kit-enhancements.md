@@ -156,8 +156,60 @@ When/if this moves forward:
 
 ---
 
+## Addendum: GitHub Branch Protection & PR Workflow
+
+**Added**: 2025-01-05
+
+### Current Repository State
+
+The main branch has a ruleset (`main-branch-protection`) with:
+- ✅ PR required for all changes
+- ✅ No force pushes
+- ✅ No branch deletion
+- ⚠️ **Bypass enabled for repository admins** (including AI agents)
+
+### Observed Behavior
+
+When pushing to main, GitHub shows:
+```
+remote: Bypassed rule violations for refs/heads/main:
+remote: - Changes must be made through a pull request.
+```
+
+**Why**: AI agents with admin access can bypass the PR requirement automatically.
+
+### Self-Enforcement Required
+
+Since admins can bypass the ruleset, **we must self-enforce PR discipline** according to `.specify/memory/pr-workflow-guide.md`:
+
+**Create PRs for:**
+- ✅ Feature completion (all acceptance criteria met)
+- ✅ Breaking changes (API, schema, config changes)
+- ✅ Multi-agent handoffs
+- ✅ Constitution compliance questions
+
+**Direct push allowed for:**
+- ✅ Documentation-only changes (non-architectural)
+- ✅ Test additions (no code changes)
+- ✅ Minor dependency updates
+- ✅ Infrastructure fixes (CI, tooling)
+- ✅ Work-in-progress on feature branches
+
+### Integration with Feature 003
+
+If Feature 003 is implemented, consider:
+- Adding PR workflow reminders to spec-kit prompts
+- Creating decision tree helper for "Should I create a PR?"
+- Automating PR creation at feature completion checkpoints
+- Adding PR checklist generation to collaboration scaffolding
+
+**Reference**: `.specify/memory/pr-workflow-guide.md` for complete decision tree and examples.
+
+---
+
 **Status**: 💭 **Ideation Phase - Do Not Implement**
 
 This is a feature proposal capturing ideas and possibilities. No specification, planning, or implementation work should occur without explicit user direction.
 
 **Captured**: 2025-01-04 by Copilot CLI after Feature 002 collaboration experience
+**Updated**: 2025-01-05 with PR workflow clarification
