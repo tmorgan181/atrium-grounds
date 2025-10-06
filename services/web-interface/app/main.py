@@ -21,7 +21,7 @@ app = FastAPI(
 # CORS middleware for browser access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # TODO: Configure for production
+    allow_origins=["*"],  # Allow all origins for public demo site
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
